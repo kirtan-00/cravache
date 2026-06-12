@@ -45,8 +45,7 @@
       // 6PM call window
       if(!s.callFiredToday && this.hour() >= 18 && !s.activeCall){
         s.callFiredToday = true;
-        var chance = G.BAL.CALL_CHANCE_PER_DAY[Math.min(s.week - 1, 2)];
-        if(Math.random() < chance) G.events.fireSixPMCall();
+        if(Math.random() < G.curve.callChance(s.week)) G.events.fireSixPMCall();
       }
 
       // one random office event somewhere mid-day
@@ -85,7 +84,7 @@
     advanceToMonday: function(){
       var s = G.state;
       if(s.gameOver) return;
-      if(s.week >= G.BAL.WEEKS){
+      if(s.week >= G.BAL.WEEKS && !s.endless){
         G.main.winGame();
         return;
       }
@@ -105,10 +104,10 @@
 
     spawnIntervalReal: function(){
       var s = G.state;
-      var mult = G.BAL.SPAWN_WEEK_MULT[Math.min(s.week - 1, 2)];
+      var mult = G.curve.spawnMult(s.week);
       var hours = G.BAL.SPAWN_BASE_HOURS * mult +
-                  (Math.random() * 2 - 1) * G.BAL.SPAWN_JITTER_HOURS;
-      return Math.max(0.5, hours) * this.realPerHour();
+                  (Math.random() * 2 - 1) * G.BAL.SPAWN_JITTER_HOURS * mult;
+      return Math.max(0.4, hours) * this.realPerHour();
     }
   };
 })();

@@ -14,11 +14,9 @@
     DESKS_MAX: 5,
     DESKS_START: 3,
 
-    // brief spawning: every 1.5 game-hours ±, scales per week
+    // brief spawning: every 1.5 game-hours ± jitter, scaled by G.curve.spawnMult
     SPAWN_BASE_HOURS: 1.5,
     SPAWN_JITTER_HOURS: 0.6,
-    SPAWN_WEEK_MULT: [1, 0.78, 0.58],   // week 1..3 interval multiplier
-    CONCURRENT_CAP: [2, 4, 6],          // active briefs cap per week
 
     // work: units needed vs staffer speed (units/sec while working)
     WORK_BASE: 20, WORK_PER_DIFF: 12,
@@ -49,11 +47,9 @@
     CHAOS_DECAY_PER_SEC: 0.45,   // only when everything on-track
     CHAOS_QUIT: 10,
 
-    // events
+    // events (call/scope-creep chances live in G.curve)
     CALL_HOLD_REAL_SECONDS: 5,   // "10 in-game minutes" of your attention
-    CALL_CHANCE_PER_DAY: [0.35, 0.55, 0.8],
     OFFICE_EVENT_CHANCE_PER_DAY: 0.5,
-    SCOPECREEP_CHANCE_PER_BRIEF: [0.25, 0.4, 0.55],
 
     // shop (Friday upgrade moment, one purchase)
     SHOP: {
@@ -63,7 +59,35 @@
       neon:   { name:"Neon sign",      price:80000, desc:"rep gains hit harder" }
     },
 
-    TOAST_DECIDE_SECONDS: 9      // brief toast auto-declines after this
+    FIRST_TOAST_SECONDS: 30,     // the very first brief of a run: all the time in the world
+    INTRO_CLIENTS_FULL: 3        // first N new clients get the full signing dossier modal
+  };
+
+  // ---------- difficulty curves ----------
+  // Weeks 1-3 are the authored Q1 ramp. Past week 3 = OVERTIME (endless):
+  // every knob keeps tightening until it's subway-surfer pace, with floors.
+  G.curve = {
+    spawnMult: function(w){
+      if(w <= 3) return [1.4, 0.85, 0.6][w - 1];
+      return Math.max(0.18, 0.6 * Math.pow(0.92, w - 3));
+    },
+    cap: function(w){
+      if(w <= 3) return [2, 4, 6][w - 1];
+      return Math.min(9, 6 + Math.floor((w - 3) / 2));
+    },
+    callChance: function(w){
+      if(w <= 3) return [0.3, 0.55, 0.8][w - 1];
+      return Math.min(0.95, 0.8 + (w - 3) * 0.03);
+    },
+    scopeChance: function(w){
+      if(w <= 3) return [0.2, 0.4, 0.55][w - 1];
+      return Math.min(0.75, 0.55 + (w - 3) * 0.02);
+    },
+    // seconds to decide on a brief toast: generous early, brutal in overtime
+    toastSeconds: function(w){
+      if(w <= 3) return [20, 13, 9][w - 1];
+      return Math.max(5, 9 - (w - 3) * 0.5);
+    }
   };
 
   G.initialState = function(){
@@ -99,6 +123,10 @@
 
       relationships: {},        // clientId -> n (starts at client.patience)
       goneClients: {},          // clientId -> true (left forever)
+      metClients: {},           // clientId -> true (dossier/intro shown)
+      introducedCount: 0,       // how many full dossiers shown so far
+      endless: false,           // OVERTIME mode past week 3
+      _firstToastShown: false,
 
       quotesWall: [],           // {text, client} survived absurdities
       activeCall: null,         // 6PM call in progress

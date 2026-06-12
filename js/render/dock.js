@@ -164,11 +164,17 @@
       toastsEl.appendChild(el);
       G.audio.click();
 
+      // decide-time: very first brief is unhurried, then the week curve takes over
+      var secs = G.curve.toastSeconds(G.state.week);
+      if(!G.state._firstToastShown){
+        G.state._firstToastShown = true;
+        secs = G.BAL.FIRST_TOAST_SECONDS;
+      }
       var tt = {
         el: el,
         fill: el.querySelector('.toast-timer > div'),
-        t: G.BAL.TOAST_DECIDE_SECONDS,
-        total: G.BAL.TOAST_DECIDE_SECONDS,
+        t: secs,
+        total: secs,
         done: false,
         cb: cb
       };
@@ -185,7 +191,7 @@
         '<div class="toast-head">' + esc(head) + '</div>' +
         '<div class="toast-title">' + esc(body) + '</div>';
       toastsEl.appendChild(el);
-      infoToasts.push({ el: el, t: 4.5 });
+      infoToasts.push({ el: el, t: 7 });
       while(infoToasts.length > 4){ // never wall the screen
         var old = infoToasts.shift();
         old.el.remove();

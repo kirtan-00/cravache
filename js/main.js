@@ -54,6 +54,16 @@
       stageEl.classList.add('shake');
     },
 
+    // OVERTIME: endless mode past Q1. The curves in state.js keep tightening.
+    enterEndless: function(){
+      var s = G.state;
+      s.endless = true;
+      s.gameOver = null;
+      s.running = true;
+      G.time.advanceToMonday();
+      G.dock.infoToast('OVERTIME', 'No more quarters. No more finish line. Just briefs. RETIRE button lives on the Friday report.', 'good');
+    },
+
     winGame: function(){
       var s = G.state;
       if(s.gameOver) return;

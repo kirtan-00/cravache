@@ -61,7 +61,7 @@
 
     say: function(st, text){
       st.bubble = text;
-      st.bubbleT = 3.2;
+      st.bubbleT = 4.5;
     },
 
     freeDesk: function(){

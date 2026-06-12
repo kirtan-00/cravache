@@ -131,6 +131,37 @@
       }));
     },
 
+    // ---------- client signing dossier (first meeting, sim paused) ----------
+    showClientIntro: function(client, onAccept){
+      var their = G.data.briefs.filter(function(b){ return b.clientId === client.id; });
+      var fees = their.map(function(b){ return b.fee; });
+      var lo = Math.min.apply(null, fees), hi = Math.max.apply(null, fees);
+      var pat = '';
+      for(var i = 0; i < 5; i++) pat += i < client.patience ? '★' : '☆';
+
+      var el = modalShell({
+        cls: 'modal-green',
+        kicker: 'NEW CLIENT SIGNING · READ BEFORE YOU REGRET',
+        title: client.name,
+        bodyHTML:
+          '<div class="report-grid">' +
+            '<div class="rg-k">Business</div><div class="rg-v">' + esc(client.industry) + '</div>' +
+            '<div class="rg-k">Vibe</div><div class="rg-v">' + esc(client.personality) + '</div>' +
+            '<div class="rg-k">Patience</div><div class="rg-v">' + pat + '</div>' +
+            '<div class="rg-k">Sends this quarter</div><div class="rg-v">~' + their.length + ' briefs</div>' +
+            '<div class="rg-k">Fee range</div><div class="rg-v pos">' + G.fmtMoney(lo) + ' – ' + G.fmtMoney(hi) + '</div>' +
+          '</div>' +
+          (client.quotes && client.quotes.length
+            ? '<div class="quote-of-week">"' + esc(client.quotes[0]) + '"</div>' : '') +
+          '<div class="modal-fine">Patience runs out, they leave forever and take their live briefs along. No pressure.</div>'
+      });
+      var entry = push(el, { pausing: true, onClose: onAccept });
+      addButtons(el, [{
+        label: 'ACCEPT. YOUR SLEEP IS GOING AWAY.',
+        onClick: function(){ G.audio.accept(); close(entry); }
+      }]);
+    },
+
     // ---------- verdict slot machine ----------
     // info: {brief, staffer, outcome, payout, conflict}; applyCb fires on landing
     showVerdict: function(info, applyCb){
@@ -341,10 +372,23 @@
       });
       if(!items.length) shopEl.innerHTML = '<div class="modal-fine">Nothing left to buy. The office is complete. The work is not.</div>';
 
-      addButtons(el, [{
+      var rcBtns = [{
         label: 'START MONDAY',
         onClick: function(){ G.audio.click(); close(entry); }
-      }]);
+      }];
+      if(s.endless){
+        rcBtns.push({
+          label: 'RETIRE', cls: 'px-btn-dim',
+          onClick: function(){
+            // leave without re-triggering advanceToMonday side effects
+            entry.onClose = null;
+            close(entry);
+            G.state.running = false;
+            G.modals.showRetire();
+          }
+        });
+      }
+      addButtons(el, rcBtns);
     },
 
     // ---------- quotes wall ----------
@@ -374,11 +418,63 @@
             '<div class="rg-k">Staff still employed</div><div class="rg-v">' + G.state.staff.length + '</div>' +
             '<div class="rg-k">Cash on hand</div><div class="rg-v pos">' + G.fmtMoney(G.state.money) + '</div>' +
           '</div>' +
-          '<div class="modal-fine">Q2, Q3, Q4 and the Craanes award night exist. Somewhere. In a roadmap.</div>'
+          '<div class="modal-fine">From here it only gets faster. Briefs come quicker, decisions get shorter, the phone never stops. You can always walk away. Can you?</div>'
       });
       var entry = push(el, { pausing: true });
-      addButtons(el, [{ label: 'PUNCH IN AGAIN', onClick: function(){ location.reload(); } }]);
+      addButtons(el, [
+        { label: 'KEEP GOING — OVERTIME', onClick: function(){
+            G.audio.accept();
+            close(entry);
+            G.main.enterEndless();
+          } },
+        { label: 'WALK AWAY', cls: 'px-btn-dim', onClick: function(){
+            close(entry);
+            G.modals.showRetire();
+          } }
+      ]);
       this.confetti();
+    },
+
+    // ---------- retirement (endless exit). Endings are placeholders for now. ----------
+    showRetire: function(){
+      var st = G.state.stats;
+      var weeks = G.state.week;
+      var endings = {
+        hills: { label: 'RETIRE TO THE HILLS',
+          text: 'You bought a small place near a big mountain. Your phone gets no signal. You checked. Twice. (full ending coming soon)' },
+        agency: { label: 'START YOUR OWN AGENCY',
+          text: 'You become the client-servicing person AND the client. There is no one left to blame. (full ending coming soon)' },
+        field: { label: 'CHANGE FIELDS ENTIRELY',
+          text: 'You now do something calm. Every time someone says "small change" you flinch. They do not know why. (full ending coming soon)' }
+      };
+
+      var el = modalShell({
+        kicker: 'AFTER ' + weeks + ' WEEK' + (weeks > 1 ? 'S' : '') + ' · ' + st.totalShipped + ' BRIEFS SHIPPED',
+        title: 'HOW DOES THIS END?',
+        bodyHTML: '<div class="modal-body">The agency will survive without you. That is either comforting or insulting. Pick a door.</div>'
+      });
+      var entry = push(el, { pausing: true });
+      addButtons(el, Object.keys(endings).map(function(k){
+        return {
+          label: endings[k].label,
+          onClick: function(){
+            close(entry);
+            var e2 = modalShell({
+              cls: 'modal-green',
+              bodyHTML: '<div class="end-big">' + esc(endings[k].label) + '</div>' +
+                '<div class="modal-body">' + esc(endings[k].text) + '</div>' +
+                '<div class="report-grid">' +
+                  '<div class="rg-k">Weeks survived</div><div class="rg-v">' + weeks + '</div>' +
+                  '<div class="rg-k">Total billed</div><div class="rg-v pos">' + G.fmtMoney(st.totalEarned) + '</div>' +
+                  '<div class="rg-k">Quotes framed</div><div class="rg-v">' + st.quotesSurvived + '</div>' +
+                '</div>'
+            });
+            var entry2 = push(e2, { pausing: true });
+            addButtons(e2, [{ label: 'PUNCH IN AGAIN', onClick: function(){ location.reload(); } }]);
+            G.modals.confetti();
+          }
+        };
+      }));
     },
 
     showLose: function(type){

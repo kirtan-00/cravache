@@ -33,7 +33,7 @@
 
       // spawn
       s.nextSpawnIn -= dt;
-      var cap = G.BAL.CONCURRENT_CAP[Math.min(s.week - 1, 2)];
+      var cap = G.curve.cap(s.week);
       if(s.nextSpawnIn <= 0){
         s.nextSpawnIn = G.time.spawnIntervalReal();
         if(this.activeCount() + s.pendingToasts < cap) this.offerNext();
@@ -71,19 +71,48 @@
         var cand = s.briefDeck.shift();
         if(!s.goneClients[cand.clientId]){ def = cand; break; }
       }
-      if(!def) return; // deck exhausted, the city has run out of bad ideas
+      if(!def){
+        // deck exhausted. In OVERTIME the city never runs out of bad ideas:
+        // reshuffle every brief whose client is still talking to us.
+        if(!s.endless) return;
+        s.briefDeck = G.data.briefs.filter(function(b){ return !s.goneClients[b.clientId]; });
+        for(var i = s.briefDeck.length - 1; i > 0; i--){
+          var j = Math.floor(Math.random() * (i + 1));
+          var t = s.briefDeck[i]; s.briefDeck[i] = s.briefDeck[j]; s.briefDeck[j] = t;
+        }
+        def = s.briefDeck.shift();
+        if(!def) return;
+      }
 
       s.pendingToasts++;
-      G.dock.showBriefToast(def, function(accepted){
-        s.pendingToasts--;
-        if(accepted){
-          G.briefs.accept(def);
-        } else {
-          s.rep = Math.max(0, s.rep + G.BAL.REP_DECLINE);
-          G.audio.decline();
-          G.hud.poke('rep');
+      var deliver = function(){
+        G.dock.showBriefToast(def, function(accepted){
+          s.pendingToasts--;
+          if(accepted){
+            G.briefs.accept(def);
+          } else {
+            s.rep = Math.max(0, s.rep + G.BAL.REP_DECLINE);
+            G.audio.decline();
+            G.hud.poke('rep');
+          }
+        });
+      };
+
+      // never met this client? introduce them first.
+      var client = G.data.clientById(def.clientId);
+      if(client && !s.metClients[client.id]){
+        s.metClients[client.id] = true;
+        s.introducedCount++;
+        if(s.introducedCount <= G.BAL.INTRO_CLIENTS_FULL){
+          // full signing dossier (pauses the sim; read in peace)
+          G.modals.showClientIntro(client, deliver);
+          return;
         }
-      });
+        // past the gentle phase: one-liner intro, brief lands immediately
+        G.dock.infoToast('NEW CLIENT · ' + client.name,
+          client.industry + '. ' + client.personality + '.', 'good');
+      }
+      deliver();
     },
 
     accept: function(def){
@@ -116,7 +145,7 @@
       G.dock.refreshTray();
 
       // scope creep dice rolled once per brief, fires mid-progress (events.js)
-      var chance = G.BAL.SCOPECREEP_CHANCE_PER_BRIEF[Math.min(s.week - 1, 2)];
+      var chance = G.curve.scopeChance(s.week);
       if(Math.random() < chance) live._scopeAt = 0.35 + Math.random() * 0.35; // workDone fraction
     },
 
