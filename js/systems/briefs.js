@@ -31,12 +31,14 @@
     update: function(dt){
       var s = G.state;
 
-      // spawn
-      s.nextSpawnIn -= dt;
-      var cap = G.curve.cap(s.week);
-      if(s.nextSpawnIn <= 0){
-        s.nextSpawnIn = G.time.spawnIntervalReal();
-        if(this.activeCount() + s.pendingToasts < cap) this.offerNext();
+      // spawn (clients do not brief at night; they save it up for 9:01 AM)
+      if(!s.night){
+        s.nextSpawnIn -= dt;
+        var cap = G.curve.cap(s.week);
+        if(s.nextSpawnIn <= 0){
+          s.nextSpawnIn = G.time.spawnIntervalReal();
+          if(this.activeCount() + s.pendingToasts < cap) this.offerNext();
+        }
       }
 
       // tick live briefs
@@ -53,6 +55,7 @@
         if(b.status === 'assigned'){
           var st = G.staff.byId(b.staffId);
           if(!st) { this.returnToTray(b, 1); continue; }
+          if(!G.time.onClock(st)) continue; // staffer is home asleep; deadline is not
           b.workDone += G.staff.effectiveSpeed(st, b) * dt;
           G.economy.tickEscrow(b, dt);
           if(b.workDone >= b.workNeeded){
@@ -130,8 +133,10 @@
 
     accept: function(def){
       var s = G.state;
+      s._briefSeq = (s._briefSeq || 0) + 1;
       var live = {
-        id: def.id, def: def,
+        id: def.id + '#' + s._briefSeq, // unique per live copy (deck recycles defs)
+        def: def,
         clientId: def.clientId,
         title: def.title, ask: def.ask,
         finePrint: def.finePrint || [],
@@ -166,6 +171,11 @@
     assign: function(brief, staffer){
       if(brief.status !== 'tray') return false;
       if(staffer.briefId) return false;
+      if(!G.time.onClock(staffer)){
+        G.dock.infoToast('GONE HOME', staffer.name + ' is asleep. The night crew (Arya, the Producer, the Director) takes night briefs.', 'bad');
+        G.audio.decline();
+        return false;
+      }
       if(!G.staff.canWork(staffer, brief)){
         G.dock.infoToast('WRONG DEPARTMENT',
           staffer.name + ' (' + staffer.dept + ') stares at the ' + brief.role +

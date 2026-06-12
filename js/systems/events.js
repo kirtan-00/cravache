@@ -138,8 +138,11 @@
 
     // ---------- office randoms ----------
     fireOfficeEvent: function(){
-      var def = pick(G.data.eventsByType('office'));
+      var s = G.state;
+      var pool = G.data.eventsByType('office').filter(function(e){ return e.id !== s._lastOfficeEvent; });
+      var def = pick(pool.length ? pool : G.data.eventsByType('office'));
       if(!def) return;
+      s._lastOfficeEvent = def.id;
       G.modals.showEvent({
         kicker: 'OFFICE',
         title: 'MEANWHILE...',

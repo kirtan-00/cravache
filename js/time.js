@@ -12,10 +12,20 @@
       return Math.min(1, G.state.dayT / G.BAL.DAY_REAL_SECONDS);
     },
 
-    // current game hour (e.g. 13.5 = 1:30 PM)
+    // current game hour (e.g. 13.5 = 1:30 PM; night runs 19..24)
     hour: function(){
+      var s = G.state;
+      if(s.night){
+        var nspan = G.BAL.NIGHT_END_HOUR - G.BAL.DAY_END_HOUR;
+        return G.BAL.DAY_END_HOUR + Math.min(1, s.nightT / G.BAL.NIGHT_REAL_SECONDS) * nspan;
+      }
       var span = G.BAL.DAY_END_HOUR - G.BAL.DAY_START_HOUR;
       return G.BAL.DAY_START_HOUR + this.dayFrac() * span;
+    },
+
+    // is this staffer on the clock right now? (night = owls only, rest sleep)
+    onClock: function(st){
+      return !G.state.night || !!G.BAL.NIGHT_OWLS[st.id];
     },
 
     clockString: function(){
@@ -23,9 +33,11 @@
       var hh = Math.floor(h);
       var mm = Math.floor((h - hh) * 60);
       mm = mm - (mm % 10); // chunky 10-min steps, pixel clocks don't do precision
-      var ampm = hh >= 12 ? 'PM' : 'AM';
+      var ampm = hh >= 12 && hh < 24 ? 'PM' : 'AM';
       var h12 = hh > 12 ? hh - 12 : hh;
-      return DAY_NAMES[G.state.day - 1] + ' ' + h12 + ':' + (mm < 10 ? '0' : '') + mm + ampm;
+      if(hh >= 24){ h12 = 12; ampm = 'AM'; }
+      return DAY_NAMES[G.state.day - 1] + ' ' + h12 + ':' + (mm < 10 ? '0' : '') + mm + ampm +
+             (G.state.night ? ' 🌙' : '');
     },
 
     // real seconds per game hour (used to convert event timings)
@@ -61,10 +73,37 @@
         G.events.fireOfficeEvent();
       }
 
-      // end of day
-      if(s.dayT >= G.BAL.DAY_REAL_SECONDS){
-        this.endDay();
+      // 7PM: the office empties, the night shift begins
+      if(!s.night && s.dayT >= G.BAL.DAY_REAL_SECONDS){
+        s.night = true;
+        s.nightT = 0;
+        var owlsIn = s.staff.some(function(st){ return G.BAL.NIGHT_OWLS[st.id] && st.briefId; });
+        G.dock.infoToast('7PM 🌙', owlsIn
+          ? 'Everyone normal went home. The night crew stays. Deadlines do not sleep.'
+          : 'Office empty. Night crew has no tasks. SKIP NIGHT, or put them to work.', '');
+        return;
       }
+
+      // night ticks
+      if(s.night){
+        s.nightT += dt;
+        if(s.nightT >= G.BAL.NIGHT_REAL_SECONDS){
+          this.endDay();
+        }
+      }
+    },
+
+    // skip to morning, only when no night owl is mid-task
+    skipNight: function(){
+      var s = G.state;
+      if(!s.night) return;
+      var owlsWorking = s.staff.some(function(st){ return G.BAL.NIGHT_OWLS[st.id] && st.briefId; });
+      if(owlsWorking){
+        G.dock.infoToast('CANNOT SKIP', 'The night crew is mid-task. Sleep is for clients.', 'bad');
+        return;
+      }
+      G.audio.click();
+      s.nightT = G.BAL.NIGHT_REAL_SECONDS;
     },
 
     endDay: function(){
@@ -97,6 +136,8 @@
     resetDayFlags: function(){
       var s = G.state;
       s.dayT = 0;
+      s.night = false;
+      s.nightT = 0;
       s.callFiredToday = false;
       s.officeEventToday = false;
       s._officeEventAt = null;

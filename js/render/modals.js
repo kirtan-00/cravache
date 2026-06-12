@@ -405,6 +405,65 @@
       addButtons(el, rcBtns);
     },
 
+    // ---------- HIRE: anytime, grouped by department ----------
+    showHire: function(){
+      var s = G.state;
+      var el = modalShell({
+        kicker: 'HIRING · PAYROLL NOW ' + G.fmtMoney(G.economy.payrollTotal()) + '/WK',
+        title: 'WHO JOINS THE CHAOS?',
+        bodyHTML: '<div class="modal-fine">Signing advance = one week of pay, upfront. Salaries hit every Friday whether clients pay or not.</div><div data-hires></div>'
+      });
+      var entry = push(el, { pausing: true });
+      var listEl = el.querySelector('[data-hires]');
+      var any = false;
+
+      ['designer', 'editor', 'content', 'production'].forEach(function(dept){
+        var cap = G.BAL.DEPT_CAPS[dept];
+        var head = document.createElement('div');
+        head.className = 'modal-kicker';
+        head.style.marginTop = '8px';
+        head.textContent = dept.toUpperCase() + ' · ' + G.staff.deptCount(dept) + '/' + cap +
+          (!G.staff.deptUnlocked(dept) ? ' · LOCKED UNTIL WK ' + G.BAL.PRODUCTION_UNLOCK_WEEK : '');
+        listEl.appendChild(head);
+
+        s.hirePool.filter(function(c){ return c.dept === dept; }).forEach(function(cand){
+          any = true;
+          var advance = Math.round(cand.salaryMonthly / 4);
+          var badges = (cand.badges || []).map(function(b){ return b.icon + ' ' + b.label; }).join(' · ');
+          var rowEl = document.createElement('div');
+          rowEl.className = 'shop-row';
+          rowEl.innerHTML = '<div><span class="sr-name">' + esc(cand.name) + ' ' + '★'.repeat(cand.skill) +
+            ' <span style="color:#9fe8ff">' + esc(cand.level) + '</span></span>' +
+            '<span class="sr-desc">' + esc(badges) + '</span>' +
+            '<span class="sr-desc">' + esc(cand.trait) + ' · ' + G.fmtMoney(cand.salaryMonthly) + '/mo</span></div>';
+          var b = document.createElement('button');
+          b.className = 'px-btn';
+          b.textContent = G.fmtMoney(advance);
+          b.disabled = !G.staff.deptUnlocked(dept) ||
+                       G.staff.deptCount(dept) >= cap ||
+                       s.money < advance;
+          b.addEventListener('click', function(){
+            var idx = s.hirePool.indexOf(cand);
+            if(s.money >= advance && G.staff.canHire(cand)){
+              G.economy.spend(advance);
+              if(G.staff.hire(idx)){
+                b.textContent = 'HIRED ✔';
+                rowEl.querySelectorAll('button').forEach(function(x){ x.disabled = true; });
+                head.textContent = dept.toUpperCase() + ' · ' + G.staff.deptCount(dept) + '/' + cap;
+                return;
+              }
+            }
+            G.audio.decline();
+          });
+          rowEl.appendChild(b);
+          listEl.appendChild(rowEl);
+        });
+      });
+      if(!any) listEl.innerHTML += '<div class="modal-fine">Pool empty. Everyone employable in Ahmedabad already works here.</div>';
+
+      addButtons(el, [{ label: 'DONE', onClick: function(){ G.audio.click(); close(entry); } }]);
+    },
+
     // ---------- GROWTH: spend money or staff time for leads ----------
     showGrowth: function(){
       var s = G.state;
@@ -442,7 +501,7 @@
             function(){ return G.growth.buy(key); });
       });
       G.INTERNAL_BRIEFS.forEach(function(def){
-        var live = s.briefs.some(function(b){ return b.id === def.id && (b.status === 'tray' || b.status === 'assigned'); });
+        var live = s.briefs.some(function(b){ return b.def && b.def.id === def.id && (b.status === 'tray' || b.status === 'assigned'); });
         row(def.title + ' (staff time)', def.ask, live ? 'IN PROGRESS' : 'ADD TO TRAY', live,
             function(){ return G.growth.startInternal(def.id); });
       });

@@ -7,9 +7,15 @@
   G.BAL = {
     START_MONEY: 100000,         // ~4 starting payrolls. Tight is the point.
     START_REP: 50,
-    DAY_REAL_SECONDS: 45,        // one game day
+    DAY_REAL_SECONDS: 45,        // one game day (9AM-7PM)
     DAY_START_HOUR: 9,           // 9:00
     DAY_END_HOUR: 19,            // 19:00 (10 game hours per day)
+
+    // night shift: 7PM-midnight. Only the night owls work; everyone else
+    // sleeps at home. Skippable when no owl is mid-task.
+    NIGHT_REAL_SECONDS: 15,
+    NIGHT_END_HOUR: 24,
+    NIGHT_OWLS: { s_arya: true, s_natasha: true, s_dev_anand: true },
     WEEKS: 8,                    // local -> gujarat -> india -> dubai -> global
 
     // departments
@@ -65,7 +71,7 @@
 
     // events (call/scope-creep chances live in G.curve)
     CALL_HOLD_REAL_SECONDS: 5,   // "10 in-game minutes" of your attention
-    OFFICE_EVENT_CHANCE_PER_DAY: 0.5,
+    OFFICE_EVENT_CHANCE_PER_DAY: 0.4,  // wifi/hotspot drama ~ once per 2-3 days
 
     // shop (Friday upgrade moment, one purchase)
     SHOP: {
@@ -148,6 +154,7 @@
 
       week: 1, day: 1,          // day 1=Mon .. 5=Fri
       dayT: 0,                  // real seconds into current day
+      night: false, nightT: 0,  // night shift phase
 
       upgrades: { plant:false, coffee:false, neon:false },
 

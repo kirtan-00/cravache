@@ -90,6 +90,55 @@
       noiseHit(0.18, 0.2, 0.04);
     },
     slotTick: function(){ beep('square', 1568, 1568, 0.025, 0.05); },
+
+    // ---------- ambient layer: editors at work ----------
+    // 50% earphones (faint hi-hat leak), 25% playing edit music (lo-fi square
+    // bassline), 25% Premiere Pro (razor clicks + scrub). Whisper-quiet by
+    // default; hovering a desk = leaning in = that editor gets 5x louder.
+    ambient: {
+      update: function(dt){
+        if(muted || !G.state || !G.state.running || G.state.paused) return;
+        var s = G.state;
+        var hoverIdx = G.render && G.render.office ? G.render.office.hoverDesk : -1;
+        var DESKS = G.render && G.render.office ? G.render.office.DESKS : [];
+        for(var i = 0; i < s.staff.length; i++){
+          var st = s.staff[i];
+          if(st.dept !== 'editor' || !st.briefId || !G.time.onClock(st)) continue;
+          if(!st._amb) st._amb = { mode: null, modeT: 0, sfxT: 0, note: 0 };
+          var a = st._amb;
+
+          a.modeT -= dt;
+          if(a.modeT <= 0){
+            // 50/25/25 split, holds for 8-16s
+            var r = Math.random();
+            a.mode = r < 0.5 ? 'phones' : (r < 0.75 ? 'music' : 'premiere');
+            a.modeT = 8 + Math.random() * 8;
+          }
+
+          var boost = (hoverIdx >= 0 && hoverIdx === st.desk) ? 5 : 1;
+          a.sfxT -= dt;
+          if(a.sfxT > 0) continue;
+
+          if(a.mode === 'phones'){
+            // hi-hat leak from the earphones: tss... tss...
+            noiseHit(0.03, 0.006 * boost);
+            a.sfxT = 0.42 + Math.random() * 0.2;
+          } else if(a.mode === 'music'){
+            // 4-note lo-fi bassline, loops
+            var bass = [110, 110, 147, 131];
+            beep('square', bass[a.note % 4], bass[a.note % 4], 0.16, 0.009 * boost);
+            a.note++;
+            a.sfxT = 0.38;
+          } else {
+            // premiere: razor click-click, occasional scrub
+            beep('square', 1250, 1250, 0.018, 0.012 * boost);
+            beep('square', 980, 980, 0.018, 0.010 * boost, 0.07);
+            if(Math.random() < 0.25) noiseHit(0.08, 0.008 * boost, 0.16);
+            a.sfxT = 0.9 + Math.random() * 0.9;
+          }
+        }
+      }
+    },
     gameOver: function(){
       beep('sawtooth', 440, 110, 0.7, 0.16);
       beep('sawtooth', 330, 82, 0.9, 0.14, 0.3);

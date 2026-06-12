@@ -64,7 +64,7 @@
       var s = G.state;
       for(var i = s.staff.length - 1; i >= 0; i--){
         var st = s.staff[i];
-        var working = !!st.briefId;
+        var working = !!st.briefId && G.time.onClock(st); // home = not working, recovering
 
         if(working){
           var rate = G.BAL.BURNOUT_WORK_RATE * (s.upgrades.coffee ? G.BAL.COFFEE_BURNOUT_MULT : 1);

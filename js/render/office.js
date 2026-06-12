@@ -214,12 +214,41 @@
         }
       }
 
+      // at night, off-clock staff are home in bed; their desk sits empty
+      var home = st && !G.time.onClock(st);
+
       // staffer behind desk (bob + typing frames while working)
-      if(st){
+      if(st && !home){
         var working = !!st.briefId;
         var bob = working ? Math.round(Math.sin(t * 7 + i) * 2) : 0;
         var frame = working ? Math.floor(t * 5 + i) % 2 : 0;
         drawSprite(ctx, st.portraitKey, d.x - CHAR_W / 2, d.y - DESK_H / 2 - CHAR_H + 16 + bob, CHAR_W, CHAR_H, frame);
+
+        // production at work = a shoot in progress: spotlight, REC dot, flash
+        if(st.dept === 'production' && working){
+          // spotlight cone from above
+          ctx.fillStyle = 'rgba(255,224,102,0.10)';
+          ctx.beginPath();
+          ctx.moveTo(d.x - 8, d.y - DESK_H / 2 - CHAR_H - 24);
+          ctx.lineTo(d.x - 46, d.y + 8);
+          ctx.lineTo(d.x + 46, d.y + 8);
+          ctx.closePath();
+          ctx.fill();
+          // blinking REC dot
+          if(Math.floor(t * 2) % 2 === 0){
+            ctx.fillStyle = '#ff5c5c';
+            ctx.fillRect(d.x + DESK_W / 2 - 12, d.y - DESK_H / 2 - 10, 6, 6);
+            pxText(ctx, 'REC', d.x + DESK_W / 2 - 4, d.y - DESK_H / 2 - 3, 8, '#ff5c5c', 'left', true);
+          }
+          // camera flash pop every ~3s
+          if((t + i * 0.7) % 3 < 0.12){
+            ctx.fillStyle = 'rgba(255,255,255,0.55)';
+            ctx.fillRect(d.x - DESK_W / 2 - 8, d.y - DESK_H / 2 - CHAR_H, DESK_W + 16, CHAR_H + DESK_H);
+          }
+        }
+      }
+      if(home){
+        pxText(ctx, 'zzz · home', d.x, d.y + 4, 12, 'rgba(159,232,255,0.4)', 'center');
       }
 
       // desk + monitor
@@ -235,6 +264,7 @@
         ctx.strokeRect(d.x - DESK_W / 2 + 1, d.y - DESK_H / 2 + 1, DESK_W - 2, DESK_H - 2);
         continue;
       }
+      if(home) continue; // no nameplate/bars for sleeping staff
 
       // name plate + badge icons
       var first = st.name.split(' ')[0];
@@ -349,11 +379,31 @@
       t += dt;
       ctx.clearRect(0, 0, 1280, 720);
       drawBackground(ctx);
+      // night: the office goes dark blue, monitors become the light source
+      if(G.state.night){
+        ctx.fillStyle = 'rgba(8,12,28,0.52)';
+        ctx.fillRect(0, 0, 1280, 720);
+        pxText(ctx, '🌙 NIGHT SHIFT', 640, 60, 12, 'rgba(159,232,255,0.7)', 'center', true);
+      }
       drawQuotesWall(ctx);
       drawProps(ctx);
       drawClusters(ctx);
       drawDesks(ctx);
       drawFire(ctx);
+    },
+
+    // pointer hover (for leaning in to listen to an editor)
+    hoverDesk: -1,
+    setHover: function(lx, ly){
+      this.hoverDesk = -1;
+      for(var d = 0; d < DESKS.length; d++){
+        if(!G.staff.deptUnlocked(DESKS[d].dept)) continue;
+        var hb = deskHitbox(d);
+        if(lx >= hb.x && lx <= hb.x + hb.w && ly >= hb.y && ly <= hb.y + hb.h){
+          this.hoverDesk = d;
+          return;
+        }
+      }
     },
 
     // canvas click: quote frames, staffers (shows trait), desks (shows fine print)

@@ -31,6 +31,16 @@
         G.render.office.handleClick((e.clientX - r.left) / s, (e.clientY - r.top) / s);
       });
 
+      // hover tracking: leaning in to a desk (drives the ambient audio boost)
+      canvas.addEventListener('pointermove', function(e){
+        var r = canvas.getBoundingClientRect();
+        var s = r.width / 1280;
+        G.render.office.setHover((e.clientX - r.left) / s, (e.clientY - r.top) / s);
+      });
+      canvas.addEventListener('pointerleave', function(){
+        G.render.office.hoverDesk = -1;
+      });
+
       var startBtn = document.getElementById('btn-start');
       startBtn.addEventListener('click', function(){
         G.audio.unlock();
@@ -129,6 +139,7 @@
     G.hud.update(rdt);
     G.dock.update(simActive ? rdt : 0, rdt);
     G.modals.update(rdt);
+    if(simActive) G.audio.ambient.update(rdt);
   }
 
   window.addEventListener('DOMContentLoaded', function(){

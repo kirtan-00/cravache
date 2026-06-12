@@ -90,6 +90,14 @@
         G.audio.click();
         G.modals.showCollect();
       });
+      document.getElementById('btn-hire').addEventListener('click', function(){
+        if(!G.state.running || G.state.paused) return;
+        G.audio.click();
+        G.modals.showHire();
+      });
+      document.getElementById('btn-skipnight').addEventListener('click', function(){
+        G.time.skipNight();
+      });
 
       // ----- drag start (delegated) -----
       trayEl.addEventListener('pointerdown', function(e){
@@ -137,6 +145,13 @@
 
     // simDt freezes with the sim (pause), rdt is real for info toasts
     update: function(simDt, rdt){
+      // skip-night button: visible at night when no owl is mid-task
+      var s = G.state;
+      var skipBtn = document.getElementById('btn-skipnight');
+      if(skipBtn){
+        var canSkip = s.night && !s.staff.some(function(st){ return G.BAL.NIGHT_OWLS[st.id] && st.briefId; });
+        skipBtn.classList.toggle('hidden', !canSkip);
+      }
       // brief toasts tick down on sim time; hovering pauses (reading is free)
       for(var i = briefToasts.length - 1; i >= 0; i--){
         var tt = briefToasts[i];

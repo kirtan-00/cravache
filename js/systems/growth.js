@@ -111,10 +111,11 @@
         if(G.INTERNAL_BRIEFS[i].id === defId) def = G.INTERNAL_BRIEFS[i];
       if(!def) return false;
       // only one of each internal brief live at a time
-      if(s.briefs.some(function(b){ return b.id === def.id && (b.status === 'tray' || b.status === 'assigned'); }))
+      if(s.briefs.some(function(b){ return b.def && b.def.id === def.id && (b.status === 'tray' || b.status === 'assigned'); }))
         return false;
+      s._briefSeq = (s._briefSeq || 0) + 1;
       var live = {
-        id: def.id, def: def, internal: true,
+        id: def.id + '#' + s._briefSeq, def: def, internal: true,
         clientId: null, title: def.title, ask: def.ask,
         finePrint: [], extraTags: [], fee: 0,
         role: def.role, difficulty: def.difficulty,
