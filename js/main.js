@@ -8,6 +8,7 @@
   var last = 0;
   var SIM_STEP = 1 / 60;
   var acc = 0;
+  var saveT = 0;
 
   G.main = {
     init: function(){
@@ -45,14 +46,41 @@
       startBtn.addEventListener('click', function(){
         G.audio.unlock();
         G.audio.accept();
+        G.save.clear();
         document.getElementById('start-screen').classList.add('hidden');
         G.main.start();
+      });
+
+      // resume a saved shift
+      var contBtn = document.getElementById('btn-continue');
+      if(G.save.exists()){
+        contBtn.classList.remove('hidden');
+        contBtn.addEventListener('click', function(){
+          var loaded = G.save.load();
+          G.audio.unlock();
+          if(!loaded){ G.main.start(); }
+          else {
+            G.state = loaded;
+            G.state.running = true;
+            G.hud._painted = false; // repaint chips for the swapped-in state
+            G.dock.refreshTray();
+            G.dock.refreshCollect();
+            G.dock.infoToast('WELCOME BACK', 'The chaos kept your seat warm. ' + G.fmtMoney(G.state.money) + ' in the account.', 'good');
+          }
+          G.audio.accept();
+          document.getElementById('start-screen').classList.add('hidden');
+        });
+      }
+
+      document.getElementById('btn-letsgo').addEventListener('click', function(){
+        G.main.letsGo();
       });
     },
 
     start: function(){
       G.state = G.initialState();
       G.state.running = true;
+      G.hud._painted = false;
       G.state.staff.forEach(function(st){ G.staff.seat(st); });
       G.briefs.init();
       G.dock.refreshTray();
@@ -64,6 +92,32 @@
       stageEl.classList.remove('shake');
       void stageEl.offsetWidth; // restart css animation
       stageEl.classList.add('shake');
+    },
+
+    // investor bailout: cash injection, slate half-cleaned, restructure mode
+    investorBailout: function(){
+      var s = G.state;
+      s.bailouts++;
+      var cash = s.bailouts === 1 ? 150000 : 250000;
+      s.money = Math.max(s.money, 0) + cash; // moneyShown counts up to it on screen
+      s.chaos = Math.min(s.chaos, 45);
+      s.strikes = 0;
+      s.rep = Math.max(0, s.rep - 5 * s.bailouts);
+      s.gameOver = null;
+      s.running = true;
+      s.restructure = true;
+      document.getElementById('restructure').classList.remove('hidden');
+      G.audio.chaChing();
+      G.dock.infoToast('INVESTOR ON BOARD', G.fmtMoney(cash) + ' wired. They said "last time" in a way that sounded legal.', 'good');
+      G.save.store();
+    },
+
+    // restructure done: back to the grind
+    letsGo: function(){
+      G.state.restructure = false;
+      document.getElementById('restructure').classList.add('hidden');
+      G.audio.accept();
+      G.hud.flashDayBanner();
     },
 
     // OVERTIME: endless mode past Q1. The curves in state.js keep tightening.
@@ -122,7 +176,14 @@
     if(!G.state) return;
 
     var s = G.state;
-    var simActive = s.running && !s.paused && !s.gameOver;
+    var simActive = s.running && !s.paused && !s.gameOver && !s.restructure;
+
+    // autosave every ~5s while playing
+    saveT += rdt;
+    if(saveT > 5 && simActive){
+      saveT = 0;
+      G.save.store();
+    }
 
     // fixed-step sim so balance is framerate-independent
     if(simActive){

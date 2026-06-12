@@ -339,3 +339,19 @@ canvas#game{
   background:var(--navy); color:var(--teal); border-color:var(--teal);
 }
 #btn-skipnight:hover{ background:var(--navy-d); }
+
+/* restructure mode */
+#restructure{
+  position:absolute; inset:0; z-index:55;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  pointer-events:none;
+  background:repeating-linear-gradient(45deg, rgba(255,224,102,.05) 0 24px, transparent 24px 48px);
+}
+.rs-banner{
+  margin-top:54px; padding:10px 22px;
+  background:var(--navy-dd); border:3px solid var(--brass);
+  box-shadow:4px 4px 0 #000; text-align:center;
+}
+.rs-title{ font-family:'Silkscreen', monospace; font-size:18px; color:var(--brass); }
+.rs-sub{ font-size:17px; color:var(--paper); max-width:560px; }
+#btn-letsgo{ pointer-events:auto; margin-top:10px; animation:bump 1.6s steps(2) infinite; }

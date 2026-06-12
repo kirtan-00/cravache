@@ -51,6 +51,15 @@
   <!-- modal root -->
   <div id="modal-root" class="hidden"></div>
 
+  <!-- restructure mode (investor bailout): sim frozen, manage freely -->
+  <div id="restructure" class="hidden">
+    <div class="rs-banner">
+      <div class="rs-title">⏸ RESTRUCTURING</div>
+      <div class="rs-sub">The investor is watching. Tasks are paused. Reassign briefs, hire people, fix the mess. Then punch it.</div>
+    </div>
+    <button id="btn-letsgo" class="px-btn px-btn-big">LET'S GO!</button>
+  </div>
+
   <!-- start screen -->
   <div id="start-screen">
     <div class="start-box">
@@ -58,8 +67,9 @@
       <div class="start-tag">an indian ad agency survival sim</div>
       <div class="start-body">You are Client Servicing. The briefs are absurd, the deadlines are yesterday,
         and the CEO hates blue. Survive Q1.</div>
-      <button id="btn-start" class="px-btn px-btn-big">PUNCH IN</button>
-      <div class="start-foot">laptop only · sound on recommended</div>
+      <button id="btn-continue" class="px-btn px-btn-big hidden">CONTINUE SHIFT</button>
+      <button id="btn-start" class="px-btn px-btn-big">PUNCH IN (NEW GAME)</button>
+      <div class="start-foot">laptop only · sound on recommended · autosaves</div>
     </div>
   </div>
 </div>
@@ -67,6 +77,7 @@
 <script src="js/audio.js"></script>
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
+<script src="js/save.js"></script>
 <script src="js/time.js"></script>
 <script src="js/systems/briefs.js"></script>
 <script src="js/systems/staff.js"></script>

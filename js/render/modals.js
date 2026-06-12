@@ -698,7 +698,24 @@
           '</div>'
       });
       var entry = push(el, { pausing: true });
-      addButtons(el, [{ label: 'TRY AGAIN', onClick: function(){ location.reload(); } }]);
+      var loseBtns = [];
+      if(G.state.bailouts < 2){
+        loseBtns.push({
+          label: G.state.bailouts === 0 ? '📞 CALL THE INVESTOR (+₹1.5L)' : '📞 BEG THE INVESTOR (+₹2.5L)',
+          onClick: function(){
+            close(entry);
+            G.main.investorBailout();
+          }
+        });
+      }
+      loseBtns.push({ label: 'TRY AGAIN FROM ZERO', cls: 'px-btn-dim', onClick: function(){ G.save.clear(); location.reload(); } });
+      addButtons(el, loseBtns);
+      if(G.state.bailouts < 2){
+        var fine = document.createElement('div');
+        fine.className = 'modal-fine';
+        fine.textContent = 'The investor takes 5 rep, resets your strikes, calms the fire to 45%, and will absolutely bring this up at every dinner.';
+        el.appendChild(fine);
+      }
     },
 
     // ---------- confetti ----------

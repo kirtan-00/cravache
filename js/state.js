@@ -183,6 +183,10 @@
       // receivables: approved work invoices. CALL to collect, or wait (late).
       receivables: [],          // [{clientId, title, amount, age}]
 
+      // investor bailout + restructure mode
+      restructure: false,       // sim frozen, free management, LET'S GO resumes
+      bailouts: 0,              // investor rescues used (max 2)
+
       quotesWall: [],           // {text, client} survived absurdities
       activeCall: null,         // 6PM call in progress
       callFiredToday: false,
