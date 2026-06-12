@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CravAche — survive the quarter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="game" width="1280" height="720"></canvas>
+
+  <!-- HUD: top chips (DOM) -->
+  <div id="hud">
+    <div class="chip" id="chip-money"><span class="chip-label">CASH</span><span class="chip-val" id="hud-money">₹0</span></div>
+    <div class="chip" id="chip-rep"><span class="chip-label">REP</span><span class="chip-val" id="hud-rep">0</span></div>
+    <div class="chip chip-chaos" id="chip-chaos">
+      <span class="chip-label">CHAOS</span>
+      <div class="chaos-track"><div class="chaos-fill" id="hud-chaos-fill"></div></div>
+      <span class="chip-val" id="hud-chaos">0%</span>
+    </div>
+    <div class="chip" id="chip-clock"><span class="chip-val" id="hud-clock">MON 9:00</span><span class="chip-label" id="hud-week">WK 1 · Q1</span></div>
+    <button class="chip chip-btn" id="btn-mute" title="mute">SND ON</button>
+  </div>
+
+  <!-- toasts -->
+  <div id="toasts"></div>
+
+  <!-- bottom dock -->
+  <div id="dock">
+    <div class="dock-label">BRIEF TRAY <span id="tray-count"></span></div>
+    <div id="tray"></div>
+    <div class="dock-hint" id="dock-hint">drag a brief onto a desk</div>
+  </div>
+
+  <!-- drag ghost -->
+  <div id="drag-ghost" class="hidden"></div>
+
+  <!-- dim layer for 6PM call -->
+  <div id="dim" class="hidden"></div>
+
+  <!-- modal root -->
+  <div id="modal-root" class="hidden"></div>
+
+  <!-- start screen -->
+  <div id="start-screen">
+    <div class="start-box">
+      <div class="start-logo">CRAV<span>ACHE</span></div>
+      <div class="start-tag">an indian ad agency survival sim</div>
+      <div class="start-body">You are Client Servicing. The briefs are absurd, the deadlines are yesterday,
+        and the CEO hates blue. Survive Q1.</div>
+      <button id="btn-start" class="px-btn px-btn-big">PUNCH IN</button>
+      <div class="start-foot">laptop only · sound on recommended</div>
+    </div>
+  </div>
+</div>
+
+<script src="js/audio.js"></script>
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/time.js"></script>
+<script src="js/systems/briefs.js"></script>
+<script src="js/systems/staff.js"></script>
+<script src="js/systems/economy.js"></script>
+<script src="js/systems/chaos.js"></script>
+<script src="js/systems/events.js"></script>
+<script src="js/systems/verdict.js"></script>
+<script src="js/render/office.js"></script>
+<script src="js/render/hud.js"></script>
+<script src="js/render/dock.js"></script>
+<script src="js/render/modals.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

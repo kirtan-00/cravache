@@ -1,0 +1,601 @@
+[
+  {
+    "id": "b01",
+    "clientId": "c01",
+    "title": "Monsoon Menu Post",
+    "ask": "One static post for the new adrak chai. Make it feel like rain. But happy rain. Sunny rain. Rain you would pay 40 rupees to stand in.",
+    "finePrint": [],
+    "fee": 50000,
+    "deadlineDays": 2,
+    "difficulty": 1,
+    "extraTags": []
+  },
+  {
+    "id": "b02",
+    "clientId": "c04",
+    "title": "Steel That Lasts",
+    "ask": "Static post for the new tiffin range. Tagline: 'Outlives your job, your phone, and possibly you.' Uncle ji loved it, do not change it.",
+    "finePrint": [
+      "Owner wants his late father's photo in the corner. Tastefully. But big."
+    ],
+    "fee": 55000,
+    "deadlineDays": 3,
+    "difficulty": 1,
+    "extraTags": []
+  },
+  {
+    "id": "b03",
+    "clientId": "c05",
+    "title": "10 Minute Banner",
+    "ask": "Homepage banner for the monsoon sale. Onions, umbrellas, urgency.",
+    "finePrint": [
+      "Needs to be delivered in 10 minutes. The banner, not the groceries. Ha ha. But seriously, today."
+    ],
+    "fee": 60000,
+    "deadlineDays": 1,
+    "difficulty": 2,
+    "extraTags": ["deadline-blind"]
+  },
+  {
+    "id": "b04",
+    "clientId": "c07",
+    "title": "Protein Paratha Launch",
+    "ask": "Launch reel for the 32g protein paratha. Sizzle, steam, slow-mo ghee. Founder will appear, uninvited but inevitable.",
+    "finePrint": [
+      "Do not crop the biceps. The biceps are brand equity."
+    ],
+    "fee": 70000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": []
+  },
+  {
+    "id": "b05",
+    "clientId": "c02",
+    "title": "Fixed Deposit Carousel",
+    "ask": "Explain FD rates to Gen Z. Make compounding feel like a glow-up. No slang older than this quarter.",
+    "finePrint": [
+      "Legal must approve every word. Legal is on leave till Thursday. Deadline is Wednesday."
+    ],
+    "fee": 90000,
+    "deadlineDays": 3,
+    "difficulty": 2,
+    "extraTags": []
+  },
+  {
+    "id": "b06",
+    "clientId": "c03",
+    "title": "Glow Serum Teaser",
+    "ask": "Teaser static for the new serum. One drop, one face, one feeling. The feeling is 'inner light', per the brand book, page 12.",
+    "finePrint": [
+      "Do not use the word fairness. Marketing says the vibe is 'inner light'. Legal says the vibe is 'careful'."
+    ],
+    "fee": 65000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": ["hates-fmcg"]
+  },
+  {
+    "id": "b07",
+    "clientId": "c06",
+    "title": "Sunday Curry Post",
+    "ask": "Static post: Sunday curry, family table, masala packet placed naturally in the centre of everything, like it pays rent.",
+    "finePrint": [
+      "The chilli red must match the founder's Mercedes. He will check. He has the car key as reference."
+    ],
+    "fee": 60000,
+    "deadlineDays": 2,
+    "difficulty": 1,
+    "extraTags": ["hates-fmcg", "colour-blind-to-feedback"]
+  },
+  {
+    "id": "b08",
+    "clientId": "c09",
+    "title": "UPI Cashback Story Set",
+    "ask": "Three story frames for the weekend cashback. Tap, pay, confetti. Standard dopamine.",
+    "finePrint": [],
+    "fee": 50000,
+    "deadlineDays": 1,
+    "difficulty": 1,
+    "extraTags": []
+  },
+  {
+    "id": "b09",
+    "clientId": "c11",
+    "title": "Saree Drape Tutorial",
+    "ask": "Edit a 4-minute drape tutorial into 45 seconds without losing any of the 9 steps or the model's dignity.",
+    "finePrint": [
+      "Model's mother will be on set. She has opinions and a thermos."
+    ],
+    "fee": 75000,
+    "deadlineDays": 3,
+    "difficulty": 2,
+    "extraTags": []
+  },
+  {
+    "id": "b10",
+    "clientId": "c12",
+    "title": "Drop Day Teaser",
+    "ask": "Teaser for Friday's hoodie drop using whatever meme format is alive this exact week. Check the date. Check it again.",
+    "finePrint": [
+      "Must use a meme format from this week. Last week's memes are for LinkedIn."
+    ],
+    "fee": 55000,
+    "deadlineDays": 1,
+    "difficulty": 2,
+    "extraTags": ["meme-illiterate"]
+  },
+  {
+    "id": "b11",
+    "clientId": "c10",
+    "title": "Sky Villa Post",
+    "ask": "Static for the new Sky Villas. The flat is 2BHK. The feeling should be 4BHK. The price should be invisible.",
+    "finePrint": [
+      "Flat must look bigger than it is. This is not lying, this is wide angle."
+    ],
+    "fee": 80000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": []
+  },
+  {
+    "id": "b12",
+    "clientId": "c08",
+    "title": "Polki Earrings Post",
+    "ask": "Single product post for the new polki earrings. Heritage, but make the heritage scroll-stopping.",
+    "finePrint": [
+      "Gold must look expensive but approachable. Royal but humble. You get it. They are sure you get it."
+    ],
+    "fee": 100000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": ["no-luxury-polish"]
+  },
+  {
+    "id": "b13",
+    "clientId": "c01",
+    "title": "Chai vs Coffee War",
+    "ask": "Snarky carousel roasting coffee culture. Punch hard, but remember who actually buys our croissants.",
+    "finePrint": [
+      "Roast coffee drinkers without alienating coffee drinkers. They are 60 percent of walk-ins."
+    ],
+    "fee": 85000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": ["meme-illiterate"]
+  },
+  {
+    "id": "b14",
+    "clientId": "c05",
+    "title": "Midnight Cravings Reel",
+    "ask": "Fast-cut reel about 2 AM cravings. The CEO saw a competitor version at 2 AM. He wants 'that'. He cannot find the link. Nobody can find the link.",
+    "finePrint": [
+      "Cuts must land exactly on the beat. The CEO claps along while reviewing."
+    ],
+    "fee": 95000,
+    "deadlineDays": 1,
+    "difficulty": 3,
+    "extraTags": ["deadline-blind", "fast-sloppy"]
+  },
+  {
+    "id": "b15",
+    "clientId": "c02",
+    "title": "Home Loan Film Cutdown",
+    "ask": "Cut the 90-second home loan film to 15 seconds. Keep the emotion, the family, the dog, and all of compliance.",
+    "finePrint": [
+      "All 14 disclaimers stay in.",
+      "Compliance wants every disclaimer readable. At 15 seconds. They have a stopwatch."
+    ],
+    "fee": 120000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["fast-sloppy"]
+  },
+  {
+    "id": "b16",
+    "clientId": "c03",
+    "title": "Before After Without Before",
+    "ask": "Campaign static showing transformation. ASCI rules say no before-after claims. Client wants the before-after feeling. Without the before. Or the after.",
+    "finePrint": [
+      "No claims, no arrows, no split screens. But the consumer should 'just know'."
+    ],
+    "fee": 90000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": ["hates-fmcg"]
+  },
+  {
+    "id": "b17",
+    "clientId": "c06",
+    "title": "Diwali Early Bird Teaser",
+    "ask": "Diwali teaser. Yes, it is months away. The son read a case study about 'owning the festive conversation early' and now we are all living in it.",
+    "finePrint": [
+      "Must feel festive but not so festive that people check their calendar."
+    ],
+    "fee": 70000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": ["allergic-to-festive", "hates-fmcg"]
+  },
+  {
+    "id": "b18",
+    "clientId": "c07",
+    "title": "Cheat Day Apology Post",
+    "ask": "The founder posted a pizza story from his personal account. Turn this crisis into content. The pizza must become a teachable moment.",
+    "finePrint": [
+      "Tone: accountable but shredded."
+    ],
+    "fee": 60000,
+    "deadlineDays": 1,
+    "difficulty": 2,
+    "extraTags": []
+  },
+  {
+    "id": "b19",
+    "clientId": "c08",
+    "title": "Bridal Campaign Key Visual",
+    "ask": "Key visual for the bridal campaign. One bride, one necklace, one thousand-yard stare of generational wealth.",
+    "finePrint": [
+      "Bride should look emotional but not sad. Tears of joy at roughly 30 percent opacity.",
+      "Every jewel must be in focus. All 47. Madam ji will zoom."
+    ],
+    "fee": 200000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["no-luxury-polish", "fast-sloppy"]
+  },
+  {
+    "id": "b20",
+    "clientId": "c09",
+    "title": "Founder Thought Leadership Reel",
+    "ask": "Make the founder sound like he predicted UPI. Available footage: him reading bullet points off his phone in a hallway.",
+    "finePrint": [
+      "He should look like he is NOT reading. He is reading."
+    ],
+    "fee": 85000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": []
+  },
+  {
+    "id": "b21",
+    "clientId": "c10",
+    "title": "Drone Walkthrough Edit",
+    "ask": "Aerial walkthrough of the new tower. Note: no drone was hired. You have phone footage shot from the 14th floor of the building opposite.",
+    "finePrint": [
+      "Make the phone footage fly. Stabilise until it believes it is a drone."
+    ],
+    "fee": 110000,
+    "deadlineDays": 3,
+    "difficulty": 3,
+    "extraTags": []
+  },
+  {
+    "id": "b22",
+    "clientId": "c12",
+    "title": "Roast Our Own Brand",
+    "ask": "Self-roast carousel. We make fun of our own prices, our own drops, our own founder. He approved this. He will also take it personally.",
+    "finePrint": [
+      "Self-aware but not too self-aware. Cool self-aware. He will know the difference."
+    ],
+    "fee": 75000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": ["meme-illiterate"]
+  },
+  {
+    "id": "b23",
+    "clientId": "c11",
+    "title": "Raksha Bandhan Catalogue Post",
+    "ask": "Festive catalogue post. 18 sarees. One post. The owner does not trust carousels, swiping, or the concept of 'less'.",
+    "finePrint": [
+      "All 18 sarees equally visible. No saree should feel less loved."
+    ],
+    "fee": 95000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": ["allergic-to-festive"]
+  },
+  {
+    "id": "b24",
+    "clientId": "c04",
+    "title": "50 Years Of Bartan Film",
+    "ask": "Anniversary film. Five decades, one steel dynasty. Archive photos, misty eyes, the hammer.",
+    "finePrint": [
+      "All 23 family members must be featured equally. They are counting seconds.",
+      "Uncle ji will narrate. He has done one take. There will be one take."
+    ],
+    "fee": 130000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": []
+  },
+  {
+    "id": "b25",
+    "clientId": "c01",
+    "title": "Franchise Pitch Deck",
+    "ask": "Design the franchise pitch deck. Founder wants it to feel like an Apple keynote. The budget feels like a bus ticket.",
+    "finePrint": [
+      "Slide 14 must contain his quote about chai being 'the original startup'. Full slide. His face behind it."
+    ],
+    "fee": 100000,
+    "deadlineDays": 3,
+    "difficulty": 3,
+    "extraTags": ["no-luxury-polish"]
+  },
+  {
+    "id": "b26",
+    "clientId": "c05",
+    "title": "App Update Explainer",
+    "ask": "30-second explainer for the new app update. Product team will send final copy. Product team has so far sent four different final copies.",
+    "finePrint": [
+      "Each revision is final. Expect six finals.",
+      "The word 'fast' must appear at least five times without feeling repetitive."
+    ],
+    "fee": 80000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": ["hates-revisions"]
+  },
+  {
+    "id": "b27",
+    "clientId": "c02",
+    "title": "CSR Tree Plantation Post",
+    "ask": "Post about the bank's tree plantation drive. Photos show 12 trees and 40 executives. Copy says 10,000 trees. Make the math feel okay.",
+    "finePrint": [
+      "Executives must be cropped out. Except the MD. The MD stays."
+    ],
+    "fee": 70000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": []
+  },
+  {
+    "id": "b28",
+    "clientId": "c03",
+    "title": "Influencer Kit Unboxing Template",
+    "ask": "Design the influencer PR kit template. The box is purple. The brand is pink. The CEO's wife chose the box. The box stays.",
+    "finePrint": [
+      "Purple box, pink brand, and the layout must make this look intentional.",
+      "CMO wants 'pink-forward'. The box, again, is purple."
+    ],
+    "fee": 85000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": ["hates-fmcg", "colour-blind-to-feedback"]
+  },
+  {
+    "id": "b29",
+    "clientId": "c06",
+    "title": "Recipe Reel Pilot",
+    "ask": "Pilot episode of a recipe reel series. Hands, steam, masala falling in slow motion like it owes gravity nothing.",
+    "finePrint": [
+      "Hand model must wear the family rings. Rings arrive Thursday. Shoot is Wednesday."
+    ],
+    "fee": 90000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": ["hates-fmcg"]
+  },
+  {
+    "id": "b30",
+    "clientId": "c10",
+    "title": "Possession Day Testimonials",
+    "ask": "Edit resident testimonials into a feel-good film. Residents are genuinely happy and genuinely inaudible.",
+    "finePrint": [
+      "Subtitles should be generous. Interpret with kindness."
+    ],
+    "fee": 95000,
+    "deadlineDays": 3,
+    "difficulty": 3,
+    "extraTags": []
+  },
+  {
+    "id": "b31",
+    "clientId": "c12",
+    "title": "Viral Or Refund Reel",
+    "ask": "Drop reel for the new cargo line. Client wants a written guarantee that it goes viral. He says this is standard. It is not standard.",
+    "finePrint": [
+      "If it gets under 100k views, we redo it free. He has said this in three meetings.",
+      "He will share it from his personal account 'to help'. Plan for this."
+    ],
+    "fee": 150000,
+    "deadlineDays": 2,
+    "difficulty": 4,
+    "extraTags": ["meme-illiterate", "hates-revisions"]
+  },
+  {
+    "id": "b32",
+    "clientId": "c09",
+    "title": "Crypto Pivot Announcement",
+    "ask": "Announce the crypto feature. Update: legal called mid-brief. We are no longer saying crypto. We are saying 'digital assets of the future'. The deadline did not move.",
+    "finePrint": [
+      "The word crypto must not appear. The crypto audience must still understand.",
+      "CEO hates orange now. The competitor is orange. Orange is over."
+    ],
+    "fee": 140000,
+    "deadlineDays": 2,
+    "difficulty": 4,
+    "extraTags": ["colour-blind-to-feedback"]
+  },
+  {
+    "id": "b33",
+    "clientId": "c08",
+    "title": "Maharani Campaign Film Edit",
+    "ask": "Edit the Maharani campaign film. The reference is a period drama with a 40 crore budget. We shot in a banquet hall in Andheri with two lights.",
+    "finePrint": [
+      "The royal feel must come from the grading. There is nowhere else for it to come from.",
+      "The banquet hall AC vent is visible in 30 percent of shots. It was not royal."
+    ],
+    "fee": 250000,
+    "deadlineDays": 3,
+    "difficulty": 5,
+    "extraTags": ["no-luxury-polish"]
+  },
+  {
+    "id": "b34",
+    "clientId": "c05",
+    "title": "War Room Hype Film",
+    "ask": "Internal hype film for the mega sale. The sale is in six weeks. The film is needed tomorrow 9 AM. The energy, apparently, is needed now.",
+    "finePrint": [
+      "CEO wants the team to cry. Good crying. Sale crying."
+    ],
+    "fee": 120000,
+    "deadlineDays": 1,
+    "difficulty": 4,
+    "extraTags": ["deadline-blind", "fast-sloppy"]
+  },
+  {
+    "id": "b35",
+    "clientId": "c01",
+    "title": "National TV Spot Cutdown",
+    "ask": "Cut the national TV spot for social. The spot is 60 seconds. We have rights to 11 seconds of it. The other 49 belong to a music label and a very alert lawyer.",
+    "finePrint": [
+      "Founder wants his cameo extended. His cameo is 0.8 seconds.",
+      "The 11 seconds we own do not include the product."
+    ],
+    "fee": 160000,
+    "deadlineDays": 2,
+    "difficulty": 4,
+    "extraTags": ["fast-sloppy"]
+  },
+  {
+    "id": "b36",
+    "clientId": "c11",
+    "title": "Wedding Season Mega Lookbook",
+    "ask": "Wedding season lookbook shoot edit. The outdoor shoot moved indoors due to rain, budget, and one argument.",
+    "finePrint": [
+      "Make indoors look like Udaipur palace at golden hour. We have one window.",
+      "The owner's niece is now a model. The contract model is also still the model. Equal frames."
+    ],
+    "fee": 180000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["allergic-to-festive", "no-luxury-polish"]
+  },
+  {
+    "id": "b37",
+    "clientId": "c02",
+    "title": "The Apology Post",
+    "ask": "The app was down for six hours. Write and design the apology post. Apologise without admitting anything happened.",
+    "finePrint": [
+      "Legal forbids the words sorry, outage, down, issue, and 'we'.",
+      "Tone: apologetic but premium."
+    ],
+    "fee": 100000,
+    "deadlineDays": 1,
+    "difficulty": 4,
+    "extraTags": ["deadline-blind"]
+  },
+  {
+    "id": "b38",
+    "clientId": "c07",
+    "title": "Rebrand Reveal",
+    "ask": "Reveal film for the rebrand. New name: FitTandoor Pro Max. Yes, like the phone. No, we cannot say like the phone.",
+    "finePrint": [
+      "The founder will do a slow walk towards camera. He has been practising."
+    ],
+    "fee": 110000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": []
+  },
+  {
+    "id": "b39",
+    "clientId": "c03",
+    "title": "Monsoon Skin SOS Campaign",
+    "ask": "Six posts. One day. All six must feel handcrafted, unhurried, and artisanal. Again: one day.",
+    "finePrint": [
+      "CMO will review from her treadmill. Keep all text readable at jogging speed.",
+      "Each post needs a different mood. The brand book allows two moods."
+    ],
+    "fee": 170000,
+    "deadlineDays": 1,
+    "difficulty": 5,
+    "extraTags": ["hates-fmcg", "fast-sloppy"]
+  },
+  {
+    "id": "b40",
+    "clientId": "c06",
+    "title": "Founder Biopic Teaser",
+    "ask": "Teaser for a founder biopic. Treat it like a Bollywood trailer. The footage is a shaky 2009 wedding video and four passport photos.",
+    "finePrint": [
+      "The son wants a post-credits scene. For a teaser.",
+      "Background score must 'feel like A.R. Rahman without being A.R. Rahman'. Legal was specific."
+    ],
+    "fee": 190000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["hates-fmcg"]
+  },
+  {
+    "id": "b41",
+    "clientId": "c10",
+    "title": "Metaverse Show Flat",
+    "ask": "The owner heard the metaverse is back. Nobody can confirm this. Build a 'virtual show flat experience' post anyway.",
+    "finePrint": [
+      "The walkthrough must work on his phone. He is testing on a Nokia.",
+      "Do not use the word metaverse. He also heard it is over."
+    ],
+    "fee": 200000,
+    "deadlineDays": 3,
+    "difficulty": 5,
+    "extraTags": []
+  },
+  {
+    "id": "b42",
+    "clientId": "c12",
+    "title": "Mystery Celebrity Collab Drop",
+    "ask": "Tease the celebrity collab. The celebrity is not confirmed. Design around a silhouette that is recognisable but legally nobody.",
+    "finePrint": [
+      "The silhouette must create speculation but survive a lawsuit.",
+      "If the deal falls through, the silhouette becomes 'the spirit of the streets'. Keep that door open."
+    ],
+    "fee": 160000,
+    "deadlineDays": 2,
+    "difficulty": 4,
+    "extraTags": ["meme-illiterate"]
+  },
+  {
+    "id": "b43",
+    "clientId": "c09",
+    "title": "IPO Rumour Management",
+    "ask": "Posts that neither confirm nor deny the IPO. The vibe, however, should scream IPO. The lawyers should hear nothing.",
+    "finePrint": [
+      "Blue is banned this week. Investor meeting reasons. Last week it was orange.",
+      "Every draft goes to three departments. Each department contradicts one other department."
+    ],
+    "fee": 220000,
+    "deadlineDays": 2,
+    "difficulty": 5,
+    "extraTags": ["colour-blind-to-feedback", "hates-revisions"]
+  },
+  {
+    "id": "b44",
+    "clientId": "c08",
+    "title": "Craanes Award Entry Film",
+    "ask": "Entry film for the Craanes. The campaign did not perform. The film should gently suggest that it did. Jury loves craft. Add craft.",
+    "finePrint": [
+      "Results slide must be 'directionally true'. Their words.",
+      "Client wants their logo bigger on OUR award entry."
+    ],
+    "fee": 260000,
+    "deadlineDays": 3,
+    "difficulty": 5,
+    "extraTags": ["no-luxury-polish", "hates-revisions"]
+  },
+  {
+    "id": "b45",
+    "clientId": "c04",
+    "title": "The Super Bowl Of Bartan",
+    "ask": "Uncle ji watched the Super Bowl. He wants a Super Bowl ad. For steel bartan. He has already cried imagining it. Do not let him down.",
+    "finePrint": [
+      "Budget is the same as the tiffin post. Dream big anyway, beta.",
+      "It must make his late father proud. This is in the brief. In writing."
+    ],
+    "fee": 300000,
+    "deadlineDays": 3,
+    "difficulty": 5,
+    "extraTags": []
+  }
+]

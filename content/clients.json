@@ -1,0 +1,158 @@
+[
+  {
+    "id": "c01",
+    "name": "Chaiyos",
+    "industry": "Chai cafe chain",
+    "personality": "Founder thinks he is the Steve Jobs of adrak chai. Calls every post a 'launch'. Sends voice notes at 7 AM with ocean sounds in the background.",
+    "patience": 3,
+    "quotes": [
+      "Make the steam look premium. Premium steam. You know what I mean.",
+      "I showed it to my barista and he felt nothing. FIX.",
+      "Chai is not a beverage, it is a religion. Now make the post by Friday.",
+      "Can the cup look more... visionary?"
+    ]
+  },
+  {
+    "id": "c02",
+    "name": "Vistaara Bank",
+    "industry": "Private bank",
+    "personality": "Every word goes through legal. Legal is one man named Mr. Kelkar who is perpetually on leave. Approvals arrive in tranches, like EMIs.",
+    "patience": 2,
+    "quotes": [
+      "Legal has 41 comments. Comment 7 is about comment 4.",
+      "Can we say 'best bank' without claiming we are the best bank?",
+      "The asterisk should be visible but not noticeable.",
+      "Mr. Kelkar is back from leave. He has concerns about the full stop."
+    ]
+  },
+  {
+    "id": "c03",
+    "name": "GlowMaxx",
+    "industry": "Skincare FMCG",
+    "personality": "CMO reviews everything from her treadmill at 6 AM. Brand book is 90 pages and contradicts itself on page 12. Wants 'clean girl aesthetic' with maximum text.",
+    "patience": 2,
+    "quotes": [
+      "Do not say fairness. The vibe is 'inner light'. Legal will explain.",
+      "Make the serum drop look like a moment.",
+      "I want it minimal. Also add the offer, the hashtag, and all six benefits.",
+      "My treadmill stopped when I saw this font. Not in a good way."
+    ]
+  },
+  {
+    "id": "c04",
+    "name": "Babloo Steel Bartan",
+    "industry": "Steel utensils, 50-year family business",
+    "personality": "Run by Uncle ji, who is genuinely kind, pays eventually, and believes steel bartan can compete with the iPhone if marketed properly. Whole family has opinions.",
+    "patience": 5,
+    "quotes": [
+      "Beta, my father built this with one hammer. Show the hammer.",
+      "The tiffin should look strong. Like Sunny Deol.",
+      "Whatever you feel is right beta. But also my wife feels the logo is small.",
+      "I saw the Super Bowl. Why can't bartan have this energy?"
+    ]
+  },
+  {
+    "id": "c05",
+    "name": "ZippKart",
+    "industry": "10-minute grocery delivery",
+    "personality": "Everything is needed in 10 minutes, including 3-week projects. CEO communicates exclusively in screenshots of competitor ads taken at 2 AM.",
+    "patience": 1,
+    "quotes": [
+      "Why is the edit taking 2 days? We deliver onions in 9 minutes.",
+      "Saw this at 2 AM. Want exactly this. Cannot find the link.",
+      "EOD means End Of Discussion, not End Of Day. Send now.",
+      "Make it pop but also make it ship."
+    ]
+  },
+  {
+    "id": "c06",
+    "name": "Maharaja Masala",
+    "industry": "Legacy spice brand",
+    "personality": "70-year-old brand, 27-year-old 'CMO' who is the founder's son and just discovered the word 'storytelling'. The founder only checks if the red is correct.",
+    "patience": 3,
+    "quotes": [
+      "Papa says the chilli red is wrong. It must match his Mercedes.",
+      "I read a case study. We need to be early on Diwali. Like, June early.",
+      "The masala should tell a story. The story of masala.",
+      "Can we make the packet the hero? But emotionally."
+    ]
+  },
+  {
+    "id": "c07",
+    "name": "FitTandoor",
+    "industry": "Healthy cloud kitchen",
+    "personality": "Founder is a gym bro who appears in every asset whether briefed or not. Counts macros, not deadlines. Damage control is a recurring deliverable.",
+    "patience": 3,
+    "quotes": [
+      "Do not crop the biceps. The biceps are brand equity.",
+      "Protein is the hook, gains are the story, paratha is the product.",
+      "I posted a pizza story by mistake. We need content that heals this.",
+      "Make it look tasty but like, disciplined tasty."
+    ]
+  },
+  {
+    "id": "c08",
+    "name": "Soneri Jewels",
+    "industry": "Luxury jewellery",
+    "personality": "Old money, new Instagram. Wants royal but relatable, heritage but trending, expensive but approachable. Will zoom into pixels on a 2014 iPad.",
+    "patience": 4,
+    "quotes": [
+      "The gold looks yellow. Gold should look gold.",
+      "Royal but humble. Palace but homely. You understand na?",
+      "Madam ji zoomed in. The 43rd jewel is soft. Resend.",
+      "Our customer does not scroll. She glides."
+    ]
+  },
+  {
+    "id": "c09",
+    "name": "PaisaPal",
+    "industry": "Fintech UPI app",
+    "personality": "Growth team changes strategy weekly. Banned colours rotate based on which competitor raised funding. Founder wants thought leadership without thoughts.",
+    "patience": 2,
+    "quotes": [
+      "Blue is banned this week. Investor reasons. Do not ask.",
+      "Make the founder sound visionary. Footage is him reading his phone.",
+      "We are not saying crypto. We are saying 'digital assets of the future'.",
+      "Can the QR code be... sexy?"
+    ]
+  },
+  {
+    "id": "c10",
+    "name": "Dholakia Developers",
+    "industry": "Real estate",
+    "personality": "Owner wants helicopter-shot grandeur on bicycle-bell budget. Believes wide-angle lenses are a legitimate business strategy. Surprisingly patient, terrifyingly literal.",
+    "patience": 4,
+    "quotes": [
+      "The flat is 2BHK but the feeling should be 4BHK.",
+      "No drone was hired. Make the phone footage fly.",
+      "Put my face on the hoarding. People trust this face.",
+      "Possession in 2027. The post should say 'almost ready'."
+    ]
+  },
+  {
+    "id": "c11",
+    "name": "Resham Republic",
+    "industry": "Ethnic wear and sarees",
+    "personality": "Family-owned saree empire. Owner does not trust carousels, swiping, or models who are not relatives. Every month is festive season if you believe hard enough.",
+    "patience": 3,
+    "quotes": [
+      "18 sarees, one post. Carousel is a scam, people don't swipe.",
+      "My niece is also a model now. The model is also still the model.",
+      "Make indoor look like Udaipur. The palace, not the airport.",
+      "Festive feeling should come, even if there is no festival."
+    ]
+  },
+  {
+    "id": "c12",
+    "name": "BroCode Clothing",
+    "industry": "Gen-Z streetwear",
+    "personality": "Founder is 24, communicates in reels, and wants a written guarantee of virality. Last week's memes are dead to him. Sends 'bro' as a complete sentence.",
+    "patience": 2,
+    "quotes": [
+      "Bro.",
+      "This meme format died Tuesday. It is Wednesday. Why am I seeing it?",
+      "If it doesn't hit 100k views we redo it free, right? That's standard.",
+      "Make it self-aware but not cringe self-aware. Cool self-aware."
+    ]
+  }
+]

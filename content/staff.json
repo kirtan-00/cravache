@@ -1,0 +1,82 @@
+[
+  {
+    "id": "s01",
+    "name": "Tanvi Kulkarni",
+    "role": "designer",
+    "skill": 4,
+    "salaryWeekly": 60000,
+    "trait": "Diva. Will not touch soap, serum, masala, or anything sold in a sachet. FMCG briefs give her a migraine she will describe in detail.",
+    "traitTag": "hates-fmcg",
+    "portraitKey": "char1"
+  },
+  {
+    "id": "s02",
+    "name": "Ronak Shah",
+    "role": "editor",
+    "skill": 3,
+    "salaryWeekly": 45000,
+    "trait": "Fast like a Mumbai local, sloppy like a Mumbai local. Anything needing frame-perfect detail comes back with one frame missing.",
+    "traitTag": "fast-sloppy",
+    "portraitKey": "char2"
+  },
+  {
+    "id": "s03",
+    "name": "Meher Bhandari",
+    "role": "designer",
+    "skill": 3,
+    "salaryWeekly": 50000,
+    "trait": "Hears 'less blue' and adds more blue. Every time. Colour feedback enters her ears and evaporates.",
+    "traitTag": "colour-blind-to-feedback",
+    "portraitKey": "char3"
+  },
+  {
+    "id": "s04",
+    "name": "Joseph D'Costa",
+    "role": "editor",
+    "skill": 5,
+    "salaryWeekly": 80000,
+    "trait": "Did 41 Diwali edits last year. One more diya, one more dhol drop, one more rangoli transition and he walks into the sea.",
+    "traitTag": "allergic-to-festive",
+    "portraitKey": "char4"
+  },
+  {
+    "id": "s05",
+    "name": "Ankit Jha",
+    "role": "allrounder",
+    "skill": 2,
+    "salaryWeekly": 35000,
+    "trait": "Junior, eager, cheap. Thinks drop shadow is a luxury finish. Premium briefs come back looking like a tuition flyer.",
+    "traitTag": "no-luxury-polish",
+    "portraitKey": "char5"
+  },
+  {
+    "id": "s06",
+    "name": "Farah Khambatta",
+    "role": "copy",
+    "skill": 4,
+    "salaryWeekly": 65000,
+    "trait": "Writes gold. Has no concept of clocks. A 1-day deadline is, to her, a fun rumour.",
+    "traitTag": "deadline-blind",
+    "portraitKey": "char6"
+  },
+  {
+    "id": "s07",
+    "name": "Suresh Nair",
+    "role": "allrounder",
+    "skill": 3,
+    "salaryWeekly": 48000,
+    "trait": "20 years of experience, zero years of memes. Once asked if 'skibidi' was a client. Gen-Z briefs age 40 years in his hands.",
+    "traitTag": "meme-illiterate",
+    "portraitKey": "char3"
+  },
+  {
+    "id": "s08",
+    "name": "Dia Malhotra",
+    "role": "designer",
+    "skill": 5,
+    "salaryWeekly": 75000,
+    "trait": "First version is final version. Revision rounds give her hives. Briefs promising 'multiple finals' end in cold war.",
+    "traitTag": "hates-revisions",
+    "portraitKey": "char1"
+  }
+]

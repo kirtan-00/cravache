@@ -1,0 +1,18 @@
+{
+  "office_bg_shoebox": { "file": "office_bg_shoebox.png", "w": 320, "h": 180, "frames": 1 },
+  "desk":              { "file": "desk.png",              "w": 64,  "h": 40,  "frames": 1 },
+  "monitor_on":        { "file": "monitor_on.png",        "w": 32,  "h": 24,  "frames": 1 },
+  "char_1":            { "file": "char_1.png",            "w": 32,  "h": 48,  "frames": 2 },
+  "char_2":            { "file": "char_2.png",            "w": 32,  "h": 48,  "frames": 2 },
+  "char_3":            { "file": "char_3.png",            "w": 32,  "h": 48,  "frames": 2 },
+  "char_4":            { "file": "char_4.png",            "w": 32,  "h": 48,  "frames": 2 },
+  "char_5":            { "file": "char_5.png",            "w": 32,  "h": 48,  "frames": 2 },
+  "char_6":            { "file": "char_6.png",            "w": 32,  "h": 48,  "frames": 2 },
+  "plant":             { "file": "plant.png",             "w": 32,  "h": 48,  "frames": 1 },
+  "coffee_machine":    { "file": "coffee_machine.png",    "w": 40,  "h": 48,  "frames": 1 },
+  "phone_prop":        { "file": "phone_prop.png",        "w": 24,  "h": 24,  "frames": 1 },
+  "award_trophy":      { "file": "award_trophy.png",      "w": 32,  "h": 48,  "frames": 1 },
+  "ui_frame_9slice":   { "file": "ui_frame_9slice.png",   "w": 48,  "h": 48,  "frames": 1 },
+  "logo_cravache":     { "file": "logo_cravache.png",     "w": 128, "h": 64,  "frames": 1 },
+  "fire_overlay":      { "file": "fire_overlay.png",      "w": 320, "h": 180, "frames": 1 }
+}
