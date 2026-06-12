@@ -28,13 +28,19 @@
       }).length;
     },
 
+    // workload follows headcount: cap = staff × 1.15, so there is always
+    // ~15% more work than hands. Hire more, get briefed more.
+    workloadCap: function(){
+      return Math.max(2, Math.ceil(G.state.staff.length * G.BAL.WORKLOAD_OVERREACH));
+    },
+
     update: function(dt){
       var s = G.state;
 
       // spawn (clients do not brief at night; they save it up for 9:01 AM)
       if(!s.night){
         s.nextSpawnIn -= dt;
-        var cap = G.curve.cap(s.week);
+        var cap = this.workloadCap();
         if(s.nextSpawnIn <= 0){
           s.nextSpawnIn = G.time.spawnIntervalReal();
           if(this.activeCount() + s.pendingToasts < cap) this.offerNext();
@@ -76,27 +82,50 @@
       return true;
     },
 
-    offerNext: function(){
+    // does the office WANT a brief of this role right now? Staffed depts get
+    // briefs up to headcount+1; unstaffed depts get at most ONE live teaser
+    // brief total (hire pressure without a wall of unassignable work).
+    roleWanted: function(role){
       var s = G.state;
-      var def = null, skipped = [];
-      while(s.briefDeck.length){
-        var cand = s.briefDeck.shift();
-        if(this.offerable(cand)){ def = cand; break; }
-        if(!s.goneClients[cand.clientId]) skipped.push(cand); // locked tier/role: back in the pile
+      if(!role || role === 'any') return true;
+      var live = s.briefs.filter(function(b){
+        return b.status === 'tray' || b.status === 'assigned';
+      });
+      var deptStaff = G.staff.deptCount(role);
+      if(deptStaff > 0){
+        var sameRole = live.filter(function(b){ return b.role === role; }).length;
+        return sameRole < deptStaff + 1;
       }
-      s.briefDeck = s.briefDeck.concat(skipped);
+      var teasers = live.filter(function(b){
+        return b.role && b.role !== 'any' && G.staff.deptCount(b.role) === 0;
+      }).length;
+      return teasers < 1;
+    },
+
+    offerNext: function(){
+      var s = G.state, self = this;
+
+      function pick(requireRoleFit){
+        for(var i = 0; i < s.briefDeck.length; i++){
+          var cand = s.briefDeck[i];
+          if(s.goneClients[cand.clientId]){ s.briefDeck.splice(i, 1); i--; continue; }
+          if(!self.offerable(cand)) continue;
+          if(requireRoleFit && !self.roleWanted(cand.role)) continue;
+          s.briefDeck.splice(i, 1);
+          return cand;
+        }
+        return null;
+      }
+
+      var def = pick(true) || pick(false);
       if(!def){
         // deck exhausted: the city never runs out of bad ideas. Reshuffle.
-        var self = this;
         s.briefDeck = G.data.briefs.filter(function(b){ return !s.goneClients[b.clientId]; });
         for(var i = s.briefDeck.length - 1; i > 0; i--){
           var j = Math.floor(Math.random() * (i + 1));
           var t = s.briefDeck[i]; s.briefDeck[i] = s.briefDeck[j]; s.briefDeck[j] = t;
         }
-        while(s.briefDeck.length){
-          var c2 = s.briefDeck.shift();
-          if(self.offerable(c2)){ def = c2; break; }
-        }
+        def = pick(true) || pick(false);
         if(!def) return;
       }
 

@@ -161,6 +161,23 @@
       return true;
     },
 
+    // ---------- walk-in candidates: the pool never runs dry ----------
+    // Named characters are finite; once they're hired (or people rage-quit),
+    // Ahmedabad keeps sending CVs. Each dept with open cap keeps >=2 candidates.
+    refillPool: function(){
+      var s = G.state;
+      var depts = ['designer', 'editor', 'content', 'production'];
+      for(var d = 0; d < depts.length; d++){
+        var dept = depts[d];
+        if(this.deptCount(dept) >= G.BAL.DEPT_CAPS[dept]) continue;
+        var inPool = s.hirePool.filter(function(c){ return c.dept === dept; }).length;
+        while(inPool < 2){
+          s.hirePool.push(G.makeStaffer(walkIn(dept)));
+          inPool++;
+        }
+      }
+    },
+
     // staffer at a desk index, or null
     atDesk: function(d){
       var arr = G.state.staff;
@@ -168,4 +185,60 @@
       return null;
     }
   };
+
+  // ---------- walk-in generator ----------
+  var FIRST = ['Hardik','Mansi','Rohan','Khushi','Parth','Avni','Yash','Disha','Kunal',
+    'Shreya','Nikhil','Pooja','Raj','Esha','Tejas','Krupa','Sahil','Dhruvi','Meet','Tanvi'];
+  var LAST = ['Pandya','Soni','Bhatt','Gandhi','Vora','Mehta','Dholakia','Acharya',
+    'Parmar','Thakkar','Raval','Chauhan','Modi','Vyas','Solanki','Dave'];
+  var TAGS = ['skips_legal','slowmo_lover','blue_only','meme_brain',
+    'deadline_blind','perfection_loop','boring_allergy','trend_chaser'];
+  var TRAITS = [
+    'Came from a bigger agency. Will not say which one or why.',
+    'Portfolio is 90% college work, 10% confidence.',
+    'Replies "noted" to everything. Sometimes even does it.',
+    'Asked about work-life balance in the interview. Brave.',
+    'Left their last job over "creative differences". Twice.',
+    'Freelanced for two years. Allergic to timesheets now.',
+    'LinkedIn says thought leader. CV says 14 months experience.',
+    'Quiet in meetings, loud in the work.',
+    'Knows every chai spot within 500m of every office in the city.',
+    'Was promised ESOPs once. Trusts nobody.'
+  ];
+  var TAG_BADGE = {
+    skips_legal:     { icon: '⚠️', label: 'Loose Cannon',  desc: 'Fast, but fine print is a suggestion.' },
+    slowmo_lover:    { icon: '🎵', label: 'Slow-Mo Hands', desc: 'Everything looks expensive. And slow.' },
+    blue_only:       { icon: '🎨', label: 'Safe Hands',    desc: 'No drama, no genius. Ships.' },
+    meme_brain:      { icon: '🔥', label: 'Trend Radar',   desc: 'Great on topical briefs. Risky on legacy brands.' },
+    deadline_blind:  { icon: '🛠', label: 'Grinder',       desc: 'Heads down, calendar off.' },
+    perfection_loop: { icon: '🎯', label: 'One More Pass', desc: 'Quality habit. Time problem.' },
+    boring_allergy:  { icon: '🧠', label: 'Picky Genius',  desc: 'Shines on hard briefs, sulks on easy ones.' },
+    trend_chaser:    { icon: '🐣', label: 'Chronically Online', desc: 'Saw it on reels first.' }
+  };
+  // salary by skill star, light jitter; matches the named-cast price ladder
+  var SALARY = [12000, 30000, 45000, 65000];
+
+  function walkIn(dept){
+    var s = G.state;
+    s._walkinSeq = (s._walkinSeq || 0) + 1;
+    var skill = 1 + Math.floor(Math.random() * 4); // 1-4; 5★ stays named-cast only
+    var tag = TAGS[Math.floor(Math.random() * TAGS.length)];
+    var salary = Math.round(SALARY[skill - 1] * (0.9 + Math.random() * 0.25) / 500) * 500;
+    // reuse a same-dept named sprite so walk-ins still look like real cast
+    var twins = G.data.staff.filter(function(c){ return c.dept === dept; });
+    var twin = twins[Math.floor(Math.random() * twins.length)];
+    return {
+      id: 'w_' + s._walkinSeq,
+      name: FIRST[Math.floor(Math.random() * FIRST.length)] + ' ' +
+            LAST[Math.floor(Math.random() * LAST.length)],
+      dept: dept,
+      level: skill === 1 ? 'intern' : skill === 4 ? 'senior' : 'junior',
+      skill: skill,
+      salaryMonthly: salary,
+      trait: TRAITS[Math.floor(Math.random() * TRAITS.length)],
+      traitTag: tag,
+      badges: [TAG_BADGE[tag]],
+      portraitKey: twin ? twin.portraitKey : 'char1'
+    };
+  }
 })();

@@ -326,6 +326,7 @@
       });
 
       // shop: upgrades not owned + the next candidate from EACH department
+      G.staff.refillPool();
       var shopEl = el.querySelector('[data-shop]');
       var items = [];
       Object.keys(G.BAL.SHOP).forEach(function(key){
@@ -408,6 +409,7 @@
     // ---------- HIRE: anytime, grouped by department ----------
     showHire: function(){
       var s = G.state;
+      G.staff.refillPool(); // walk-in CVs keep the pool stocked
       var el = modalShell({
         kicker: 'HIRING · PAYROLL NOW ' + G.fmtMoney(G.economy.payrollTotal()) + '/WK',
         title: 'WHO JOINS THE CHAOS?',

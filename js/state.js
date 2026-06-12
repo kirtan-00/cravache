@@ -31,6 +31,10 @@
     SPAWN_BASE_HOURS: 1.5,
     SPAWN_JITTER_HOURS: 0.6,
 
+    // workload tracks headcount: active briefs cap = staff × this.
+    // Always slightly more work than hands. That is the anxiety engine.
+    WORKLOAD_OVERREACH: 1.15,
+
     // work: units needed vs staffer speed (units/sec while working)
     WORK_BASE: 20, WORK_PER_DIFF: 12,
     SPEED_BASE: 1.5, SPEED_PER_SKILL: 0.6,
