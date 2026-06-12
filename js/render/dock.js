@@ -33,13 +33,34 @@
     return out;
   }
 
+  var ROLE_CHIP = {
+    designer:   { icon: '🎨', label: 'DESIGN' },
+    editor:     { icon: '🎬', label: 'EDIT' },
+    content:    { icon: '✍️', label: 'CONTENT' },
+    production: { icon: '📷', label: 'SHOOT' },
+    any:        { icon: '🔁', label: 'ANYONE' }
+  };
+  function roleChip(role){
+    var r = ROLE_CHIP[role] || ROLE_CHIP.any;
+    return '<span class="bc-role bc-role-' + (role || 'any') + '">' + r.icon + ' ' + r.label + '</span>';
+  }
+
+  // how scary is this brief, really
+  function urgency(def){
+    var score = def.difficulty - def.deadlineDays; // 5★ in 1d = 4, 1★ in 3d = -2
+    if(score >= 3) return { label: 'INSANE', cls: 'u-insane' };
+    if(score >= 1) return { label: 'TIGHT', cls: 'u-tight' };
+    return { label: 'CHILL', cls: 'u-chill' };
+  }
+
   function cardHTML(b){
     var c = G.data.clientById(b.clientId);
     return '<div class="bc-client">' + esc(c ? c.name : '???') + '</div>' +
       '<div class="bc-diff">' + diffPips(b.difficulty) + '</div>' +
       '<div class="bc-title">' + esc(b.title) + '</div>' +
-      '<div class="bc-row"><span class="bc-fee">' + G.fmtMoney(b.fee) + '</span>' +
+      '<div class="bc-row">' + roleChip(b.role) +
       '<span class="bc-dl" data-dl>' + daysLabel(b.deadlineLeft) + '</span></div>' +
+      '<div class="bc-row"><span class="bc-fee">' + G.fmtMoney(b.fee) + '</span></div>' +
       (b.finePrint.length ? '<div class="bc-fine">' + esc(b.finePrint.join(' ')) + '</div>' : '');
   }
 
@@ -54,6 +75,21 @@
       hintEl = document.getElementById('dock-hint');
       ghostEl = document.getElementById('drag-ghost');
       stageEl = document.getElementById('stage');
+
+      document.getElementById('btn-growth').addEventListener('click', function(){
+        if(!G.state.running || G.state.paused) return;
+        if(!G.growth.unlocked()){
+          G.dock.infoToast('NOT YET', 'Growth unlocks on day 4. Survive the week first.', 'bad');
+          return;
+        }
+        G.audio.click();
+        G.modals.showGrowth();
+      });
+      document.getElementById('btn-collect').addEventListener('click', function(){
+        if(!G.state.running || G.state.paused) return;
+        G.audio.click();
+        G.modals.showCollect();
+      });
 
       // ----- drag start (delegated) -----
       trayEl.addEventListener('pointerdown', function(e){
@@ -101,11 +137,12 @@
 
     // simDt freezes with the sim (pause), rdt is real for info toasts
     update: function(simDt, rdt){
-      // brief toasts tick down on sim time
+      // brief toasts tick down on sim time; hovering pauses (reading is free)
       for(var i = briefToasts.length - 1; i >= 0; i--){
         var tt = briefToasts[i];
-        tt.t -= simDt;
+        if(!tt.hover) tt.t -= simDt;
         tt.fill.style.width = Math.max(0, (tt.t / tt.total) * 100) + '%';
+        tt.el.classList.toggle('reading', !!tt.hover);
         if(tt.t <= 0) resolveToast(tt, false);
       }
       // info toasts expire on real time
@@ -129,6 +166,16 @@
       }
     },
 
+    // outstanding-invoice badge on the COLLECT button
+    refreshCollect: function(){
+      var el = document.getElementById('collect-badge');
+      if(!el) return;
+      var r = G.state.receivables;
+      var total = r.reduce(function(s, i){ return s + i.amount; }, 0);
+      el.textContent = r.length ? '(' + r.length + ' · ' + G.fmtMoney(total) + ')' : '(0)';
+      document.getElementById('btn-collect').classList.toggle('has-money', r.length > 0);
+    },
+
     refreshTray: function(){
       var briefs = G.briefs.trayBriefs();
       trayEl.innerHTML = '';
@@ -146,13 +193,15 @@
     // brief offer toast: SIGN / PASS, auto-pass on timeout
     showBriefToast: function(def, cb){
       var c = G.data.clientById(def.clientId);
+      var u = urgency(def);
       var el = document.createElement('div');
       el.className = 'toast brief-toast';
       el.innerHTML =
-        '<div class="toast-head">NEW BRIEF · ' + esc(c ? c.name : '???') + ' · ' + diffPips(def.difficulty) + '</div>' +
+        '<div class="toast-head">NEW BRIEF · ' + esc(c ? c.name : '???') + ' · ' + diffPips(def.difficulty) +
+          '<span class="toast-urgency ' + u.cls + '">' + u.label + '</span></div>' +
         '<div class="toast-title">' + esc(def.title) + '</div>' +
         '<div class="toast-sub">' + esc(def.ask) + '</div>' +
-        '<div class="toast-sub"><span class="toast-fee">' + G.fmtMoney(def.fee) + '</span> · ' +
+        '<div class="toast-sub">' + roleChip(def.role) + ' <span class="toast-fee">' + G.fmtMoney(def.fee) + '</span> · ' +
           def.deadlineDays + ' day' + (def.deadlineDays > 1 ? 's' : '') + '</div>' +
         ((def.finePrint && def.finePrint.length)
           ? '<div class="bc-fine">' + esc(def.finePrint.join(' ')) + '</div>' : '') +
@@ -160,8 +209,11 @@
           '<button class="px-btn" data-yes>SIGN IT</button>' +
           '<button class="px-btn px-btn-dim" data-no>PASS (−rep)</button>' +
         '</div>' +
-        '<div class="toast-timer"><div></div></div>';
+        '<div class="toast-timer"><div></div></div>' +
+        '<div class="toast-read-hint">hovering pauses the clock. read.</div>';
       toastsEl.appendChild(el);
+      el.addEventListener('pointerenter', function(){ tt.hover = true; });
+      el.addEventListener('pointerleave', function(){ tt.hover = false; });
       G.audio.click();
 
       // decide-time: very first brief is unhurried, then the week curve takes over
@@ -215,7 +267,9 @@
 
     // desk hover detection
     G.dock.dragHoverDesk = -1;
-    for(var d = 0; d < G.state.desksUnlocked; d++){
+    var DESKS = G.render.office.DESKS;
+    for(var d = 0; d < DESKS.length; d++){
+      if(!G.staff.deptUnlocked(DESKS[d].dept)) continue;
       var hb = G.render.office.deskHitbox(d);
       if(p.x >= hb.x && p.x <= hb.x + hb.w && p.y >= hb.y && p.y <= hb.y + hb.h){
         G.dock.dragHoverDesk = d;

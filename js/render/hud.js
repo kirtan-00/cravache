@@ -75,7 +75,8 @@
       el.chaosFill.classList.toggle('hot', c >= 60);
 
       el.clock.textContent = G.time.clockString();
-      el.week.textContent = 'WK ' + s.week + (s.endless ? ' · OVERTIME' : ' · Q1');
+      el.week.textContent = 'WK ' + s.week + ' · ' +
+        (s.week > G.BAL.WEEKS ? 'OVERTIME' : G.BAL.TIER_LABEL[Math.min(s.week - 1, G.BAL.TIER_LABEL.length - 1)]);
     },
 
     // bump animation on a chip

@@ -1,601 +1,950 @@
 [
   {
     "id": "b01",
-    "clientId": "c01",
-    "title": "Monsoon Menu Post",
-    "ask": "One static post for the new adrak chai. Make it feel like rain. But happy rain. Sunny rain. Rain you would pay 40 rupees to stand in.",
+    "clientId": "c_induben",
+    "title": "The 27 Flavour Board",
+    "ask": "One static post showing all 27 khakhra flavours. Methi is the captain, the rest are the team. The queue should be able to read it from across the road.",
     "finePrint": [],
-    "fee": 50000,
+    "fee": 22000,
     "deadlineDays": 2,
     "difficulty": 1,
-    "extraTags": []
+    "extraTags": [],
+    "role": "designer"
   },
   {
     "id": "b02",
-    "clientId": "c04",
-    "title": "Steel That Lasts",
-    "ask": "Static post for the new tiffin range. Tagline: 'Outlives your job, your phone, and possibly you.' Uncle ji loved it, do not change it.",
+    "clientId": "c_induben",
+    "title": "No Discount, Full Respect",
+    "ask": "A static announcing that prices are not changing. That is the entire news. Make a price NOT changing feel like an event.",
     "finePrint": [
-      "Owner wants his late father's photo in the corner. Tastefully. But big."
+      "This is a plain announcement post. Anyone trying to make it 'interesting' gets a call from the family."
     ],
-    "fee": 55000,
-    "deadlineDays": 3,
+    "fee": 18000,
+    "deadlineDays": 2,
     "difficulty": 1,
-    "extraTags": []
+    "extraTags": ["boring_allergy"],
+    "role": "designer"
   },
   {
     "id": "b03",
-    "clientId": "c05",
-    "title": "10 Minute Banner",
-    "ask": "Homepage banner for the monsoon sale. Onions, umbrellas, urgency.",
+    "clientId": "c_induben",
+    "title": "Queue at 7 AM",
+    "ask": "A reel of the morning queue. Aunties, office-goers, one confused tourist. The khakhra leaves the counter still warm and so should the edit.",
     "finePrint": [
-      "Needs to be delivered in 10 minutes. The banner, not the groceries. Ha ha. But seriously, today."
+      "The queue must look fast and joyful. No slow motion, slow queues scare customers."
     ],
-    "fee": 60000,
-    "deadlineDays": 1,
+    "fee": 30000,
+    "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["deadline-blind"]
+    "extraTags": ["slowmo_lover"],
+    "role": "editor"
   },
   {
     "id": "b04",
-    "clientId": "c07",
-    "title": "Protein Paratha Launch",
-    "ask": "Launch reel for the 32g protein paratha. Sizzle, steam, slow-mo ghee. Founder will appear, uninvited but inevitable.",
-    "finePrint": [
-      "Do not crop the biceps. The biceps are brand equity."
-    ],
-    "fee": 70000,
-    "deadlineDays": 2,
-    "difficulty": 2,
-    "extraTags": []
+    "clientId": "c_induben",
+    "title": "Khakhra Caption Pack",
+    "ask": "Ten captions for the month. Tone: your grandmother, if your grandmother were extremely confident on the internet.",
+    "finePrint": [],
+    "fee": 15000,
+    "deadlineDays": 1,
+    "difficulty": 1,
+    "extraTags": [],
+    "role": "content"
   },
   {
     "id": "b05",
-    "clientId": "c02",
-    "title": "Fixed Deposit Carousel",
-    "ask": "Explain FD rates to Gen Z. Make compounding feel like a glow-up. No slang older than this quarter.",
-    "finePrint": [
-      "Legal must approve every word. Legal is on leave till Thursday. Deadline is Wednesday."
-    ],
-    "fee": 90000,
-    "deadlineDays": 3,
-    "difficulty": 2,
-    "extraTags": []
+    "clientId": "c_jaybhavani",
+    "title": "Butter Hero Shot",
+    "ask": "One static of the vadapav with butter that looks like a lifestyle choice. The pav glistens. The vada commands respect.",
+    "finePrint": [],
+    "fee": 25000,
+    "deadlineDays": 2,
+    "difficulty": 1,
+    "extraTags": [],
+    "role": "designer"
   },
   {
     "id": "b06",
-    "clientId": "c03",
-    "title": "Glow Serum Teaser",
-    "ask": "Teaser static for the new serum. One drop, one face, one feeling. The feeling is 'inner light', per the brand book, page 12.",
+    "clientId": "c_jaybhavani",
+    "title": "New Branch Poster",
+    "ask": "Opening poster for the new branch. The vadapav should look bigger than the building. The building is three storeys. Do the needful.",
     "finePrint": [
-      "Do not use the word fairness. Marketing says the vibe is 'inner light'. Legal says the vibe is 'careful'."
+      "Six cousins approve this poster. Feedback arrives in waves. Lock a version early or drown."
     ],
-    "fee": 65000,
-    "deadlineDays": 2,
+    "fee": 35000,
+    "deadlineDays": 3,
     "difficulty": 2,
-    "extraTags": ["hates-fmcg"]
+    "extraTags": ["perfection_loop"],
+    "role": "designer"
   },
   {
     "id": "b07",
-    "clientId": "c06",
-    "title": "Sunday Curry Post",
-    "ask": "Static post: Sunday curry, family table, masala packet placed naturally in the centre of everything, like it pays rent.",
+    "clientId": "c_jaybhavani",
+    "title": "Tawa Sizzle Reel",
+    "ask": "A reel of the tawa at full chaos. Butter hits, steam rises, hands move like a card trick. Hunger in the first half second.",
     "finePrint": [
-      "The chilli red must match the founder's Mercedes. He will check. He has the car key as reference."
+      "No meme audio. The cousin committee voted on this. It was unanimous, eventually."
     ],
-    "fee": 60000,
+    "fee": 40000,
     "deadlineDays": 2,
-    "difficulty": 1,
-    "extraTags": ["hates-fmcg", "colour-blind-to-feedback"]
+    "difficulty": 2,
+    "extraTags": ["meme_brain", "trend_chaser"],
+    "role": "editor"
   },
   {
     "id": "b08",
-    "clientId": "c09",
-    "title": "UPI Cashback Story Set",
-    "ask": "Three story frames for the weekend cashback. Tap, pay, confetti. Standard dopamine.",
+    "clientId": "c_jaybhavani",
+    "title": "Menu Board Rewrite",
+    "ask": "Rewrite the names of 12 menu items so each one sounds like a legend without changing what it is. The cheese vadapav has notions. Honour them.",
     "finePrint": [],
-    "fee": 50000,
-    "deadlineDays": 1,
+    "fee": 16000,
+    "deadlineDays": 2,
     "difficulty": 1,
-    "extraTags": []
+    "extraTags": [],
+    "role": "content"
   },
   {
     "id": "b09",
-    "clientId": "c11",
-    "title": "Saree Drape Tutorial",
-    "ask": "Edit a 4-minute drape tutorial into 45 seconds without losing any of the 9 steps or the model's dignity.",
-    "finePrint": [
-      "Model's mother will be on set. She has opinions and a thermos."
-    ],
-    "fee": 75000,
-    "deadlineDays": 3,
-    "difficulty": 2,
-    "extraTags": []
+    "clientId": "c_daskhaman",
+    "title": "Sunday Khaman Ritual",
+    "ask": "A static for Sunday morning. Khaman, sev, green chutney, one beam of sunlight that has clearly been arranged in advance.",
+    "finePrint": [],
+    "fee": 20000,
+    "deadlineDays": 2,
+    "difficulty": 1,
+    "extraTags": [],
+    "role": "designer"
   },
   {
     "id": "b10",
-    "clientId": "c12",
-    "title": "Drop Day Teaser",
-    "ask": "Teaser for Friday's hoodie drop using whatever meme format is alive this exact week. Check the date. Check it again.",
+    "clientId": "c_daskhaman",
+    "title": "Steam Don't Stop",
+    "ask": "A reel of fresh khaman coming off the steamer. The steam is the celebrity. Everything else is supporting cast.",
     "finePrint": [
-      "Must use a meme format from this week. Last week's memes are for LinkedIn."
+      "Fast cuts only. In slow motion the khaman looks cold by the end and Uncle ji will notice."
     ],
-    "fee": 55000,
-    "deadlineDays": 1,
+    "fee": 32000,
+    "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["meme-illiterate"]
+    "extraTags": ["slowmo_lover"],
+    "role": "editor"
   },
   {
     "id": "b11",
-    "clientId": "c10",
-    "title": "Sky Villa Post",
-    "ask": "Static for the new Sky Villas. The flat is 2BHK. The feeling should be 4BHK. The price should be invisible.",
+    "clientId": "c_daskhaman",
+    "title": "Softness Manifesto",
+    "ask": "Write five lines about softness. The khaman is soft. The family is soft. The lines should make a grown man call his mother.",
     "finePrint": [
-      "Flat must look bigger than it is. This is not lying, this is wide angle."
+      "Heritage tone only. Anything trending dies at this counter."
     ],
-    "fee": 80000,
+    "fee": 18000,
     "deadlineDays": 2,
-    "difficulty": 2,
-    "extraTags": []
+    "difficulty": 1,
+    "extraTags": ["trend_chaser"],
+    "role": "content"
   },
   {
     "id": "b12",
-    "clientId": "c08",
-    "title": "Polki Earrings Post",
-    "ask": "Single product post for the new polki earrings. Heritage, but make the heritage scroll-stopping.",
+    "clientId": "c_daskhaman",
+    "title": "Festival Counter Rush",
+    "ask": "The festival rush announcement. Timings, pre-orders, a plea for patience. Whatever format gets it out the door fastest.",
     "finePrint": [
-      "Gold must look expensive but approachable. Royal but humble. You get it. They are sure you get it."
+      "Needed before tomorrow's first batch. The first batch is at 6 AM. The 6 is not flexible."
     ],
-    "fee": 100000,
-    "deadlineDays": 2,
+    "fee": 28000,
+    "deadlineDays": 1,
     "difficulty": 2,
-    "extraTags": ["no-luxury-polish"]
+    "extraTags": ["deadline_blind"],
+    "role": "any"
   },
   {
     "id": "b13",
-    "clientId": "c01",
-    "title": "Chai vs Coffee War",
-    "ask": "Snarky carousel roasting coffee culture. Punch hard, but remember who actually buys our croissants.",
+    "clientId": "c_balaji",
+    "title": "New Flavour: Top Secret",
+    "ask": "Key art for a flavour launch where marketing refuses to reveal the flavour. Design a chip reveal around a chip you cannot fully show. Welcome to wafers.",
     "finePrint": [
-      "Roast coffee drinkers without alienating coffee drinkers. They are 60 percent of walk-ins."
+      "The flavour is under NDA until launch day. One leaked hint and legal calls before the chip cools."
+    ],
+    "fee": 90000,
+    "deadlineDays": 3,
+    "difficulty": 3,
+    "extraTags": ["skips_legal"],
+    "role": "designer"
+  },
+  {
+    "id": "b14",
+    "clientId": "c_balaji",
+    "title": "Family Pack Pyramid",
+    "ask": "A static of the full range stacked into a pyramid. Not one chip. A system of chips. The marketing head was very clear about the system.",
+    "finePrint": [],
+    "fee": 60000,
+    "deadlineDays": 2,
+    "difficulty": 1,
+    "extraTags": [],
+    "role": "designer"
+  },
+  {
+    "id": "b15",
+    "clientId": "c_balaji",
+    "title": "Crunch ASMR",
+    "ask": "A reel where the crunch is the entire story. Build to the bite. The bite is the drop. The wafer is the artist.",
+    "finePrint": [
+      "The crunch must read on mute. Captions, waveforms, whatever it takes.",
+      "No trending audio. The crunch IS the audio."
     ],
     "fee": 85000,
     "deadlineDays": 2,
     "difficulty": 3,
-    "extraTags": ["meme-illiterate"]
-  },
-  {
-    "id": "b14",
-    "clientId": "c05",
-    "title": "Midnight Cravings Reel",
-    "ask": "Fast-cut reel about 2 AM cravings. The CEO saw a competitor version at 2 AM. He wants 'that'. He cannot find the link. Nobody can find the link.",
-    "finePrint": [
-      "Cuts must land exactly on the beat. The CEO claps along while reviewing."
-    ],
-    "fee": 95000,
-    "deadlineDays": 1,
-    "difficulty": 3,
-    "extraTags": ["deadline-blind", "fast-sloppy"]
-  },
-  {
-    "id": "b15",
-    "clientId": "c02",
-    "title": "Home Loan Film Cutdown",
-    "ask": "Cut the 90-second home loan film to 15 seconds. Keep the emotion, the family, the dog, and all of compliance.",
-    "finePrint": [
-      "All 14 disclaimers stay in.",
-      "Compliance wants every disclaimer readable. At 15 seconds. They have a stopwatch."
-    ],
-    "fee": 120000,
-    "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["fast-sloppy"]
+    "extraTags": ["trend_chaser"],
+    "role": "editor"
   },
   {
     "id": "b16",
-    "clientId": "c03",
-    "title": "Before After Without Before",
-    "ask": "Campaign static showing transformation. ASCI rules say no before-after claims. Client wants the before-after feeling. Without the before. Or the after.",
+    "clientId": "c_balaji",
+    "title": "Name Six Flavours",
+    "ask": "Naming for the new namkeen line. Six names that sound delicious in Gujarati, Hindi, and to a distributor reading them off a carton at 5 AM.",
     "finePrint": [
-      "No claims, no arrows, no split screens. But the consumer should 'just know'."
+      "Names get printed on lakhs of packets. Legal checks every word for accidental meanings in nine languages."
     ],
-    "fee": 90000,
-    "deadlineDays": 2,
-    "difficulty": 3,
-    "extraTags": ["hates-fmcg"]
+    "fee": 55000,
+    "deadlineDays": 3,
+    "difficulty": 2,
+    "extraTags": ["skips_legal"],
+    "role": "content"
   },
   {
     "id": "b17",
-    "clientId": "c06",
-    "title": "Diwali Early Bird Teaser",
-    "ask": "Diwali teaser. Yes, it is months away. The son read a case study about 'owning the festive conversation early' and now we are all living in it.",
+    "clientId": "c_waghbakri",
+    "title": "Morning Cup Static",
+    "ask": "One static of the morning cup. Steam, a newspaper, the specific peace that exists before everyone else wakes up.",
+    "finePrint": [],
+    "fee": 55000,
+    "deadlineDays": 2,
+    "difficulty": 1,
+    "extraTags": [],
+    "role": "designer"
+  },
+  {
+    "id": "b18",
+    "clientId": "c_waghbakri",
+    "title": "Steam With Dignity",
+    "ask": "Cut the brand film down to 30 seconds. The chai is poured, the family gathers, nobody rushes. Except you. You rush.",
     "finePrint": [
-      "Must feel festive but not so festive that people check their calendar."
+      "The founder family finds slow motion 'too filmy'. The steam rises slowly. The edit does not."
+    ],
+    "fee": 95000,
+    "deadlineDays": 3,
+    "difficulty": 3,
+    "extraTags": ["slowmo_lover"],
+    "role": "editor"
+  },
+  {
+    "id": "b19",
+    "clientId": "c_waghbakri",
+    "title": "Chai Time Reel",
+    "ask": "A reel that makes a 22-year-old put down the cold coffee. Young energy, same old chai. The brand book is watching.",
+    "finePrint": [
+      "Young, but no memes. Everything gets reviewed at the family's Sunday breakfast and memes do not survive breakfast."
     ],
     "fee": 70000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["allergic-to-festive", "hates-fmcg"]
-  },
-  {
-    "id": "b18",
-    "clientId": "c07",
-    "title": "Cheat Day Apology Post",
-    "ask": "The founder posted a pizza story from his personal account. Turn this crisis into content. The pizza must become a teachable moment.",
-    "finePrint": [
-      "Tone: accountable but shredded."
-    ],
-    "fee": 60000,
-    "deadlineDays": 1,
-    "difficulty": 2,
-    "extraTags": []
-  },
-  {
-    "id": "b19",
-    "clientId": "c08",
-    "title": "Bridal Campaign Key Visual",
-    "ask": "Key visual for the bridal campaign. One bride, one necklace, one thousand-yard stare of generational wealth.",
-    "finePrint": [
-      "Bride should look emotional but not sad. Tears of joy at roughly 30 percent opacity.",
-      "Every jewel must be in focus. All 47. Madam ji will zoom."
-    ],
-    "fee": 200000,
-    "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["no-luxury-polish", "fast-sloppy"]
+    "extraTags": ["meme_brain"],
+    "role": "editor"
   },
   {
     "id": "b20",
-    "clientId": "c09",
-    "title": "Founder Thought Leadership Reel",
-    "ask": "Make the founder sound like he predicted UPI. Available footage: him reading bullet points off his phone in a hallway.",
+    "clientId": "c_waghbakri",
+    "title": "Generations of Chai",
+    "ask": "Write lines about generations sharing chai without using the word legacy. They are tired of the word legacy. The word legacy is on a list.",
     "finePrint": [
-      "He should look like he is NOT reading. He is reading."
+      "This is a tribute post, not a trend post. Keep it timeless or keep it to yourself."
     ],
-    "fee": 85000,
-    "deadlineDays": 2,
-    "difficulty": 3,
-    "extraTags": []
+    "fee": 60000,
+    "deadlineDays": 3,
+    "difficulty": 2,
+    "extraTags": ["trend_chaser"],
+    "role": "content"
   },
   {
     "id": "b21",
-    "clientId": "c10",
-    "title": "Drone Walkthrough Edit",
-    "ask": "Aerial walkthrough of the new tower. Note: no drone was hired. You have phone footage shot from the 14th floor of the building opposite.",
+    "clientId": "c_havmor",
+    "title": "Summer War Key Visual",
+    "ask": "The key visual for summer. Every flavour reporting for duty. The sun is the villain. The cart is the cavalry.",
     "finePrint": [
-      "Make the phone footage fly. Stabilise until it believes it is a drone."
+      "Due before the heatwave peaks. The heatwave peaks tomorrow. The weather report is the project plan."
     ],
-    "fee": 110000,
-    "deadlineDays": 3,
+    "fee": 80000,
+    "deadlineDays": 1,
     "difficulty": 3,
-    "extraTags": []
+    "extraTags": ["deadline_blind"],
+    "role": "designer"
   },
   {
     "id": "b22",
-    "clientId": "c12",
-    "title": "Roast Our Own Brand",
-    "ask": "Self-roast carousel. We make fun of our own prices, our own drops, our own founder. He approved this. He will also take it personally.",
+    "clientId": "c_havmor",
+    "title": "Kulfi Hero Poster",
+    "ask": "Poster for the kulfi range. The kulfi gets the lighting of a 200 crore movie hero. Entry shot energy, dessert format.",
+    "finePrint": [],
+    "fee": 65000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": [],
+    "role": "designer"
+  },
+  {
+    "id": "b23",
+    "clientId": "c_havmor",
+    "title": "Melt Test Reel",
+    "ask": "A reel of scoops in full summer glory. The catch: the ice cream can never appear melted in any frame. Edit around physics.",
     "finePrint": [
-      "Self-aware but not too self-aware. Cool self-aware. He will know the difference."
+      "One pass only. The scoop budget is finished. No reshoots, no endless polish rounds."
     ],
     "fee": 75000,
     "deadlineDays": 2,
     "difficulty": 3,
-    "extraTags": ["meme-illiterate"]
-  },
-  {
-    "id": "b23",
-    "clientId": "c11",
-    "title": "Raksha Bandhan Catalogue Post",
-    "ask": "Festive catalogue post. 18 sarees. One post. The owner does not trust carousels, swiping, or the concept of 'less'.",
-    "finePrint": [
-      "All 18 sarees equally visible. No saree should feel less loved."
-    ],
-    "fee": 95000,
-    "deadlineDays": 2,
-    "difficulty": 3,
-    "extraTags": ["allergic-to-festive"]
+    "extraTags": ["perfection_loop"],
+    "role": "editor"
   },
   {
     "id": "b24",
-    "clientId": "c04",
-    "title": "50 Years Of Bartan Film",
-    "ask": "Anniversary film. Five decades, one steel dynasty. Archive photos, misty eyes, the hammer.",
+    "clientId": "c_havmor",
+    "title": "Cart Rush Shoot",
+    "ask": "Shoot kids pulling their parents toward the cart. Real carts, real kids, real heat. Capture the pulling. The pulling is the brand.",
     "finePrint": [
-      "All 23 family members must be featured equally. They are counting seconds.",
-      "Uncle ji will narrate. He has done one take. There will be one take."
+      "Product melts in four minutes under this sun. Every shot is scheduled like a heist."
     ],
-    "fee": 130000,
+    "fee": 120000,
     "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": []
+    "difficulty": 3,
+    "extraTags": ["deadline_blind"],
+    "role": "production"
   },
   {
     "id": "b25",
-    "clientId": "c01",
-    "title": "Franchise Pitch Deck",
-    "ask": "Design the franchise pitch deck. Founder wants it to feel like an Apple keynote. The budget feels like a bus ticket.",
-    "finePrint": [
-      "Slide 14 must contain his quote about chai being 'the original startup'. Full slide. His face behind it."
-    ],
-    "fee": 100000,
-    "deadlineDays": 3,
-    "difficulty": 3,
-    "extraTags": ["no-luxury-polish"]
+    "clientId": "c_rasna",
+    "title": "One Glass Vacation",
+    "ask": "A static where one glass of orange looks like an entire summer holiday. The condensation does the heavy lifting.",
+    "finePrint": [],
+    "fee": 55000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": [],
+    "role": "designer"
   },
   {
     "id": "b26",
-    "clientId": "c05",
-    "title": "App Update Explainer",
-    "ask": "30-second explainer for the new app update. Product team will send final copy. Product team has so far sent four different final copies.",
+    "clientId": "c_rasna",
+    "title": "90s Summer Rewind",
+    "ask": "A nostalgia montage. Power cuts, cousins, steel glasses, one orange pitcher in the middle of it all. Make millennials feel personally attacked, lovingly.",
     "finePrint": [
-      "Each revision is final. Expect six finals.",
-      "The word 'fast' must appear at least five times without feeling repetitive."
+      "Pure nostalgia. One trending transition and the whole feeling dies on the table."
     ],
-    "fee": 80000,
-    "deadlineDays": 2,
+    "fee": 85000,
+    "deadlineDays": 3,
     "difficulty": 3,
-    "extraTags": ["hates-revisions"]
+    "extraTags": ["trend_chaser"],
+    "role": "editor"
   },
   {
     "id": "b27",
-    "clientId": "c02",
-    "title": "CSR Tree Plantation Post",
-    "ask": "Post about the bank's tree plantation drive. Photos show 12 trees and 40 executives. Copy says 10,000 trees. Make the math feel okay.",
+    "clientId": "c_rasna",
+    "title": "Tagline for Two Generations",
+    "ask": "One line that lands on a parent who grew up with it and a kid who has never mixed it. Two hearts, one tagline.",
     "finePrint": [
-      "Executives must be cropped out. Except the MD. The MD stays."
+      "The old jingle is off limits. Rights reasons. Legal was very calm and very clear."
     ],
-    "fee": 70000,
+    "fee": 50000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": []
+    "extraTags": ["skips_legal"],
+    "role": "content"
   },
   {
     "id": "b28",
-    "clientId": "c03",
-    "title": "Influencer Kit Unboxing Template",
-    "ask": "Design the influencer PR kit template. The box is purple. The brand is pink. The CEO's wife chose the box. The box stays.",
+    "clientId": "c_rasna",
+    "title": "Mango Launch Blitz",
+    "ask": "Everything for mango flavour day one. Static, story, caption, chaos. Whoever is free, make it land.",
     "finePrint": [
-      "Purple box, pink brand, and the layout must make this look intentional.",
-      "CMO wants 'pink-forward'. The box, again, is purple."
+      "Launch day is fixed. The mangoes are already ripe. Nothing moves."
     ],
-    "fee": 85000,
-    "deadlineDays": 2,
+    "fee": 110000,
+    "deadlineDays": 1,
     "difficulty": 3,
-    "extraTags": ["hates-fmcg", "colour-blind-to-feedback"]
+    "extraTags": ["deadline_blind"],
+    "role": "any"
   },
   {
     "id": "b29",
-    "clientId": "c06",
-    "title": "Recipe Reel Pilot",
-    "ask": "Pilot episode of a recipe reel series. Hands, steam, masala falling in slow motion like it owes gravity nothing.",
+    "clientId": "c_amul",
+    "title": "Topical in Four Hours",
+    "ask": "The news broke this morning. They want the take by evening. One static, one pun, a nation watching. No pressure.",
     "finePrint": [
-      "Hand model must wear the family rings. Rings arrive Thursday. Shoot is Wednesday."
+      "Due before the news cycle turns. You have hours, not days.",
+      "Witty, never mean. One offended community and everyone in this office retires together."
     ],
-    "fee": 90000,
-    "deadlineDays": 2,
+    "fee": 150000,
+    "deadlineDays": 1,
     "difficulty": 3,
-    "extraTags": ["hates-fmcg"]
+    "extraTags": ["deadline_blind", "meme_brain"],
+    "role": "designer"
   },
   {
     "id": "b30",
-    "clientId": "c10",
-    "title": "Possession Day Testimonials",
-    "ask": "Edit resident testimonials into a feel-good film. Residents are genuinely happy and genuinely inaudible.",
-    "finePrint": [
-      "Subtitles should be generous. Interpret with kindness."
-    ],
-    "fee": 95000,
-    "deadlineDays": 3,
-    "difficulty": 3,
-    "extraTags": []
+    "clientId": "c_amul",
+    "title": "Butter on Everything",
+    "ask": "A campaign static where butter improves an everyday situation. Breakfast, traffic, a Monday. Pick a misery, apply butter.",
+    "finePrint": [],
+    "fee": 120000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": [],
+    "role": "designer"
   },
   {
     "id": "b31",
-    "clientId": "c12",
-    "title": "Viral Or Refund Reel",
-    "ask": "Drop reel for the new cargo line. Client wants a written guarantee that it goes viral. He says this is standard. It is not standard.",
+    "clientId": "c_amul",
+    "title": "Breakfast Anthem Cutdown",
+    "ask": "Cut the 60 second breakfast film to 15 seconds. The jingle is 22 seconds long. They see no contradiction in this. Find one cut and ship it.",
     "finePrint": [
-      "If it gets under 100k views, we redo it free. He has said this in three meetings.",
-      "He will share it from his personal account 'to help'. Plan for this."
+      "The jingle is untouchable. One approved cut, no extra polish rounds, the slot is booked."
     ],
-    "fee": 150000,
+    "fee": 180000,
     "deadlineDays": 2,
-    "difficulty": 4,
-    "extraTags": ["meme-illiterate", "hates-revisions"]
+    "difficulty": 3,
+    "extraTags": ["perfection_loop"],
+    "role": "editor"
   },
   {
     "id": "b32",
-    "clientId": "c09",
-    "title": "Crypto Pivot Announcement",
-    "ask": "Announce the crypto feature. Update: legal called mid-brief. We are no longer saying crypto. We are saying 'digital assets of the future'. The deadline did not move.",
+    "clientId": "c_amul",
+    "title": "Utterly Punny Captions",
+    "ask": "A week of pun captions. Seven days, seven groans, seven shares. The pun standard here is generational, write accordingly.",
     "finePrint": [
-      "The word crypto must not appear. The crypto audience must still understand.",
-      "CEO hates orange now. The competitor is orange. Orange is over."
+      "Puns, not memes. There is a difference and the brand IS the difference."
     ],
-    "fee": 140000,
+    "fee": 100000,
     "deadlineDays": 2,
-    "difficulty": 4,
-    "extraTags": ["colour-blind-to-feedback"]
+    "difficulty": 2,
+    "extraTags": ["meme_brain"],
+    "role": "content"
   },
   {
     "id": "b33",
-    "clientId": "c08",
-    "title": "Maharani Campaign Film Edit",
-    "ask": "Edit the Maharani campaign film. The reference is a period drama with a 40 crore budget. We shot in a banquet hall in Andheri with two lights.",
+    "clientId": "c_zomato",
+    "title": "Midnight Notification Pack",
+    "ask": "Twenty push notifications for the midnight craving window. Thirteen words max each. Make insomnia profitable.",
     "finePrint": [
-      "The royal feel must come from the grading. There is nowhere else for it to come from.",
-      "The banquet hall AC vent is visible in 30 percent of shots. It was not royal."
+      "Every line ships to millions of phones. Legal reads all twenty for slang that means something else somewhere."
     ],
-    "fee": 250000,
-    "deadlineDays": 3,
-    "difficulty": 5,
-    "extraTags": ["no-luxury-polish"]
+    "fee": 140000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": ["skips_legal"],
+    "role": "content"
   },
   {
     "id": "b34",
-    "clientId": "c05",
-    "title": "War Room Hype Film",
-    "ask": "Internal hype film for the mega sale. The sale is in six weeks. The film is needed tomorrow 9 AM. The energy, apparently, is needed now.",
-    "finePrint": [
-      "CEO wants the team to cry. Good crying. Sale crying."
-    ],
-    "fee": 120000,
+    "clientId": "c_zomato",
+    "title": "Rainy Day Push Copy",
+    "ask": "It is raining. Five notifications that turn weather into orders. Pakora is implied, never stated. That is the art.",
+    "finePrint": [],
+    "fee": 100000,
     "deadlineDays": 1,
-    "difficulty": 4,
-    "extraTags": ["deadline-blind", "fast-sloppy"]
+    "difficulty": 1,
+    "extraTags": [],
+    "role": "content"
   },
   {
     "id": "b35",
-    "clientId": "c01",
-    "title": "National TV Spot Cutdown",
-    "ask": "Cut the national TV spot for social. The spot is 60 seconds. We have rights to 11 seconds of it. The other 49 belong to a music label and a very alert lawyer.",
+    "clientId": "c_zomato",
+    "title": "App Banner: Biryani Day",
+    "ask": "The in-app banner for Biryani Day. The rice should look individually blessed. Tap-through is the only review metric.",
     "finePrint": [
-      "Founder wants his cameo extended. His cameo is 0.8 seconds.",
-      "The 11 seconds we own do not include the product."
+      "The biryani must look exactly like the biryani that arrives. Expectation lawsuits route through us, then to you."
     ],
-    "fee": 160000,
+    "fee": 130000,
     "deadlineDays": 2,
-    "difficulty": 4,
-    "extraTags": ["fast-sloppy"]
+    "difficulty": 2,
+    "extraTags": ["skips_legal"],
+    "role": "designer"
   },
   {
     "id": "b36",
-    "clientId": "c11",
-    "title": "Wedding Season Mega Lookbook",
-    "ask": "Wedding season lookbook shoot edit. The outdoor shoot moved indoors due to rain, budget, and one argument.",
+    "clientId": "c_zomato",
+    "title": "Craving in Three Seconds",
+    "ask": "A 15 second reel that creates hunger by second three. Cheese pull, steam, the exact sound of a delivery bag opening.",
     "finePrint": [
-      "Make indoors look like Udaipur palace at golden hour. We have one window.",
-      "The owner's niece is now a model. The contract model is also still the model. Equal frames."
-    ],
-    "fee": 180000,
-    "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["allergic-to-festive", "no-luxury-polish"]
-  },
-  {
-    "id": "b37",
-    "clientId": "c02",
-    "title": "The Apology Post",
-    "ask": "The app was down for six hours. Write and design the apology post. Apologise without admitting anything happened.",
-    "finePrint": [
-      "Legal forbids the words sorry, outage, down, issue, and 'we'.",
-      "Tone: apologetic but premium."
-    ],
-    "fee": 100000,
-    "deadlineDays": 1,
-    "difficulty": 4,
-    "extraTags": ["deadline-blind"]
-  },
-  {
-    "id": "b38",
-    "clientId": "c07",
-    "title": "Rebrand Reveal",
-    "ask": "Reveal film for the rebrand. New name: FitTandoor Pro Max. Yes, like the phone. No, we cannot say like the phone.",
-    "finePrint": [
-      "The founder will do a slow walk towards camera. He has been practising."
-    ],
-    "fee": 110000,
-    "deadlineDays": 2,
-    "difficulty": 3,
-    "extraTags": []
-  },
-  {
-    "id": "b39",
-    "clientId": "c03",
-    "title": "Monsoon Skin SOS Campaign",
-    "ask": "Six posts. One day. All six must feel handcrafted, unhurried, and artisanal. Again: one day.",
-    "finePrint": [
-      "CMO will review from her treadmill. Keep all text readable at jogging speed.",
-      "Each post needs a different mood. The brand book allows two moods."
-    ],
-    "fee": 170000,
-    "deadlineDays": 1,
-    "difficulty": 5,
-    "extraTags": ["hates-fmcg", "fast-sloppy"]
-  },
-  {
-    "id": "b40",
-    "clientId": "c06",
-    "title": "Founder Biopic Teaser",
-    "ask": "Teaser for a founder biopic. Treat it like a Bollywood trailer. The footage is a shaky 2009 wedding video and four passport photos.",
-    "finePrint": [
-      "The son wants a post-credits scene. For a teaser.",
-      "Background score must 'feel like A.R. Rahman without being A.R. Rahman'. Legal was specific."
-    ],
-    "fee": 190000,
-    "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["hates-fmcg"]
-  },
-  {
-    "id": "b41",
-    "clientId": "c10",
-    "title": "Metaverse Show Flat",
-    "ask": "The owner heard the metaverse is back. Nobody can confirm this. Build a 'virtual show flat experience' post anyway.",
-    "finePrint": [
-      "The walkthrough must work on his phone. He is testing on a Nokia.",
-      "Do not use the word metaverse. He also heard it is over."
-    ],
-    "fee": 200000,
-    "deadlineDays": 3,
-    "difficulty": 5,
-    "extraTags": []
-  },
-  {
-    "id": "b42",
-    "clientId": "c12",
-    "title": "Mystery Celebrity Collab Drop",
-    "ask": "Tease the celebrity collab. The celebrity is not confirmed. Design around a silhouette that is recognisable but legally nobody.",
-    "finePrint": [
-      "The silhouette must create speculation but survive a lawsuit.",
-      "If the deal falls through, the silhouette becomes 'the spirit of the streets'. Keep that door open."
+      "First bite lands by second three. Slow motion pushes it to second nine. Do the math."
     ],
     "fee": 160000,
     "deadlineDays": 2,
-    "difficulty": 4,
-    "extraTags": ["meme-illiterate"]
+    "difficulty": 3,
+    "extraTags": ["slowmo_lover"],
+    "role": "editor"
   },
   {
-    "id": "b43",
-    "clientId": "c09",
-    "title": "IPO Rumour Management",
-    "ask": "Posts that neither confirm nor deny the IPO. The vibe, however, should scream IPO. The lawyers should hear nothing.",
+    "id": "b37",
+    "clientId": "c_nykaa",
+    "title": "Pink Friday Master Visual",
+    "ask": "The key visual for the biggest sale of the quarter. One image, four thousand products implied, zero products cluttering it.",
     "finePrint": [
-      "Blue is banned this week. Investor meeting reasons. Last week it was orange.",
-      "Every draft goes to three departments. Each department contradicts one other department."
+      "The pink is a specific pink. Close enough is a resignation letter.",
+      "Sale assets lock tonight. There is no second pass."
     ],
-    "fee": 220000,
+    "fee": 250000,
     "deadlineDays": 2,
-    "difficulty": 5,
-    "extraTags": ["colour-blind-to-feedback", "hates-revisions"]
+    "difficulty": 4,
+    "extraTags": ["blue_only", "perfection_loop"],
+    "role": "designer"
   },
   {
-    "id": "b44",
-    "clientId": "c08",
-    "title": "Craanes Award Entry Film",
-    "ask": "Entry film for the Craanes. The campaign did not perform. The film should gently suggest that it did. Jury loves craft. Add craft.",
-    "finePrint": [
-      "Results slide must be 'directionally true'. Their words.",
-      "Client wants their logo bigger on OUR award entry."
-    ],
-    "fee": 260000,
+    "id": "b38",
+    "clientId": "c_nykaa",
+    "title": "Shade 47 Swatch Reel",
+    "ask": "A swatch reel for the new lipstick line. Shade 47 and shade 48 must be visibly different on a 2018 phone in sunlight. This is the whole job.",
+    "finePrint": [],
+    "fee": 180000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": [],
+    "role": "editor"
+  },
+  {
+    "id": "b39",
+    "clientId": "c_nykaa",
+    "title": "GRWM Cutdown Marathon",
+    "ask": "Nine creator videos arrive in nine formats. Cut them into one launch reel that looks like it was always one video.",
+    "finePrint": [],
+    "fee": 150000,
     "deadlineDays": 3,
-    "difficulty": 5,
-    "extraTags": ["no-luxury-polish", "hates-revisions"]
+    "difficulty": 2,
+    "extraTags": [],
+    "role": "editor"
   },
   {
-    "id": "b45",
-    "clientId": "c04",
-    "title": "The Super Bowl Of Bartan",
-    "ask": "Uncle ji watched the Super Bowl. He wants a Super Bowl ad. For steel bartan. He has already cried imagining it. Do not let him down.",
+    "id": "b40",
+    "clientId": "c_nykaa",
+    "title": "Festive Sale Shoot",
+    "ask": "Tabletop shoot for the festive sale. Sixty products, one day, lighting that makes a kajal pencil look like jewellery.",
     "finePrint": [
-      "Budget is the same as the tiffin post. Dream big anyway, beta.",
-      "It must make his late father proud. This is in the brief. In writing."
+      "Sixty products, one day, zero overtime budget. The schedule is the creative. Endless retakes sink it."
     ],
     "fee": 300000,
     "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["perfection_loop"],
+    "role": "production"
+  },
+  {
+    "id": "b41",
+    "clientId": "c_royalenfield",
+    "title": "Mountain Poster",
+    "ask": "A poster of the bike on a mountain pass. No people, no copy, no mercy. The bike and the silence do the talking.",
+    "finePrint": [
+      "No neon, no gradients, no trends. If it would not work in 1995, it does not work now."
+    ],
+    "fee": 150000,
+    "deadlineDays": 3,
+    "difficulty": 2,
+    "extraTags": ["trend_chaser", "meme_brain"],
+    "role": "designer"
+  },
+  {
+    "id": "b42",
+    "clientId": "c_royalenfield",
+    "title": "The Thump Edit",
+    "ask": "Cut the ride film with the engine as the entire soundtrack. The thump sets the tempo. You follow the thump.",
+    "finePrint": [
+      "Trending audio on the thump is grounds for ending the contract. They have done it before."
+    ],
+    "fee": 220000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["trend_chaser"],
+    "role": "editor"
+  },
+  {
+    "id": "b43",
+    "clientId": "c_royalenfield",
+    "title": "Dawn Ride Shoot",
+    "ask": "Shoot the new model at a mountain pass at dawn. The light, the mist, one rider who has clearly earned this moment.",
+    "finePrint": [
+      "Usable light exists from 5:50 to 6:20. Miss the window, wait a full day, eat the cost."
+    ],
+    "fee": 350000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["deadline_blind"],
+    "role": "production"
+  },
+  {
+    "id": "b44",
+    "clientId": "c_royalenfield",
+    "title": "Workshop Stories",
+    "ask": "A garage shoot. Hands, grease, tools, the bike mid-surgery. Honest and unhurried, like the brand pretends to be about deadlines.",
+    "finePrint": [],
+    "fee": 200000,
+    "deadlineDays": 3,
+    "difficulty": 2,
+    "extraTags": [],
+    "role": "production"
+  },
+  {
+    "id": "b45",
+    "clientId": "c_boat",
+    "title": "Drop Day Lockscreen Teaser",
+    "ask": "A teaser static for the new earbuds drop. Sneaker-launch energy, lockscreen-wallpaper quality, samosa price point visible.",
+    "finePrint": [
+      "Drop is tomorrow 6 PM. The countdown is already public. There is no moving it."
+    ],
+    "fee": 140000,
+    "deadlineDays": 1,
+    "difficulty": 2,
+    "extraTags": ["deadline_blind"],
+    "role": "designer"
+  },
+  {
+    "id": "b46",
+    "clientId": "c_boat",
+    "title": "Bass Test Reel",
+    "ask": "A reel where the bass is visible. Water jumping on a speaker, screen shake, the works. The thumbnail alone should feel loud.",
+    "finePrint": [],
+    "fee": 170000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": [],
+    "role": "editor"
+  },
+  {
+    "id": "b47",
+    "clientId": "c_boat",
+    "title": "Campus Collab Shoot",
+    "ask": "Shoot the earbuds at a college fest. Real crowd, real noise, the product surviving both. Lifestyle, fourteen times over.",
+    "finePrint": [
+      "Venue permissions are 'in progress'. Shoot anyway, but keep every frame clean enough for legal to bless later."
+    ],
+    "fee": 260000,
+    "deadlineDays": 3,
+    "difficulty": 3,
+    "extraTags": ["skips_legal"],
+    "role": "production"
+  },
+  {
+    "id": "b48",
+    "clientId": "c_boat",
+    "title": "Festival Mega Sale Blitz",
+    "ask": "The festival sale bundle: statics, stories, one reel, captions. Whoever has hands free, this is theirs now.",
+    "finePrint": [
+      "Everything ships together or nothing ships. One late asset sinks the whole bundle."
+    ],
+    "fee": 200000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": ["deadline_blind"],
+    "role": "any"
+  },
+  {
+    "id": "b49",
+    "clientId": "c_fevicol",
+    "title": "The Unbreakable Bench",
+    "ask": "A wordless static. A bench, too many people on it, the bench unbothered. The bond is the punchline. The bond is always the punchline.",
+    "finePrint": [],
+    "fee": 200000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": [],
+    "role": "designer"
+  },
+  {
+    "id": "b50",
+    "clientId": "c_fevicol",
+    "title": "Bond Film 15s",
+    "ask": "A 15 second visual gag. Something that should come apart, refusing to come apart, at the least convenient moment for everyone involved.",
+    "finePrint": [
+      "The joke is timing. Slow motion murders timing. Test it on mute, then test it on uncles."
+    ],
+    "fee": 240000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["slowmo_lover"],
+    "role": "editor"
+  },
+  {
+    "id": "b51",
+    "clientId": "c_fevicol",
+    "title": "Decades of Stuck",
+    "ask": "Lines celebrating decades of jokes about things that never come apart. Funny to a carpenter and a CEO in the same second.",
+    "finePrint": [
+      "Heritage humour only. Trending formats expire. Fevicol does not."
+    ],
+    "fee": 130000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": ["trend_chaser"],
+    "role": "content"
+  },
+  {
+    "id": "b52",
+    "clientId": "c_fevicol",
+    "title": "Impossible Chair Shoot",
+    "ask": "Shoot the chair stunt for real. No VFX, the chair genuinely holds, the crowd genuinely gasps. Practical comedy, practical glue.",
+    "finePrint": [
+      "No VFX allowed. A safety officer signs off on every setup. Skipping the paperwork ends the shoot."
+    ],
+    "fee": 320000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["skips_legal"],
+    "role": "production"
+  },
+  {
+    "id": "b53",
+    "clientId": "c_emirates",
+    "title": "Golden Hour Dune Shoot",
+    "ask": "Shoot the campaign stills on the dunes at golden hour. The sand performs once a day. Everyone else adjusts.",
+    "finePrint": [
+      "Golden hour, not silver hour. The brand can tell the difference from a moving car. The window is 40 minutes."
+    ],
+    "fee": 600000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["deadline_blind"],
+    "role": "production"
+  },
+  {
+    "id": "b54",
+    "clientId": "c_emirates",
+    "title": "Crew Lifestyle Shoot",
+    "ask": "A lifestyle shoot around the crew experience. Everything in frame must be premium. The water. The light. The air, somehow.",
+    "finePrint": [
+      "One shoot day, booked to the minute. Premium does not mean slow. Re-staging every setup burns the day."
+    ],
+    "fee": 550000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["perfection_loop"],
+    "role": "production"
+  },
+  {
+    "id": "b55",
+    "clientId": "c_emirates",
+    "title": "First Class Film Cut",
+    "ask": "Cut the first class film. Slow is fine. Cheap is not. Every transition should feel like a seat reclining into a bed.",
+    "finePrint": [
+      "Luxury whispers. Any cut faster than a heartbeat is too loud.",
+      "No memes. Not even ironic ones. Especially not ironic ones."
+    ],
+    "fee": 450000,
+    "deadlineDays": 3,
+    "difficulty": 3,
+    "extraTags": ["meme_brain", "trend_chaser"],
+    "role": "editor"
+  },
+  {
+    "id": "b56",
+    "clientId": "c_emirates",
+    "title": "Lounge Menu Elegance",
+    "ask": "A static for the lounge dining menu. Beige variant 17, gold accents, food that looks like it has a passport.",
+    "finePrint": [],
+    "fee": 300000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": [],
+    "role": "designer"
+  },
+  {
+    "id": "b57",
+    "clientId": "c_emaar",
+    "title": "Taller Than Yesterday",
+    "ask": "Launch key visual for the new tower. It must look taller than the render. The render is already taller than the tower. Nobody acknowledges this.",
+    "finePrint": [
+      "The sky must be the approved sky colour, which is not blue blue. There is a swatch. Learn the swatch."
+    ],
+    "fee": 480000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["blue_only"],
+    "role": "designer"
+  },
+  {
+    "id": "b58",
+    "clientId": "c_emaar",
+    "title": "Fountain Show Shoot",
+    "ask": "Shoot the fountain show for the destination film. Water, lights, tourists gasping in eleven languages.",
+    "finePrint": [
+      "The fountain runs on its schedule, not yours. Two passes per evening. That is all anyone gets."
+    ],
+    "fee": 650000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["deadline_blind"],
+    "role": "production"
+  },
+  {
+    "id": "b59",
+    "clientId": "c_emaar",
+    "title": "Skyline Timelapse Film",
+    "ask": "Cut a skyline timelapse film from three years of footage. Day to night, crane to tower, ambition to invoice.",
+    "finePrint": [],
+    "fee": 400000,
+    "deadlineDays": 3,
+    "difficulty": 3,
+    "extraTags": [],
+    "role": "editor"
+  },
+  {
+    "id": "b60",
+    "clientId": "c_emaar",
+    "title": "Iconic by Tuesday",
+    "ask": "Full launch support for the new district. Statics, film, copy, all of it. The brief is one line: make it iconic by Tuesday.",
+    "finePrint": [
+      "Tuesday. The chairman's office said Tuesday. Nobody asks which Tuesday twice."
+    ],
+    "fee": 700000,
+    "deadlineDays": 2,
     "difficulty": 5,
-    "extraTags": []
+    "extraTags": ["deadline_blind"],
+    "role": "any"
+  },
+  {
+    "id": "b61",
+    "clientId": "c_talabat",
+    "title": "Iftar Countdown Creative",
+    "ask": "The iftar countdown creative. The food appears the second the sun disappears. Warm, generous, perfectly timed.",
+    "finePrint": [
+      "Goes live at the exact iftar minute, which changes daily. The schedule is astronomy. Astronomy does not negotiate."
+    ],
+    "fee": 350000,
+    "deadlineDays": 2,
+    "difficulty": 3,
+    "extraTags": ["deadline_blind"],
+    "role": "designer"
+  },
+  {
+    "id": "b62",
+    "clientId": "c_talabat",
+    "title": "Hunger in Two Languages",
+    "ask": "Cut the campaign film in Arabic and English. Both versions must be equally funny. Equally is being measured.",
+    "finePrint": [
+      "One review round per language. Endless polishing breaks the launch window in both alphabets."
+    ],
+    "fee": 380000,
+    "deadlineDays": 3,
+    "difficulty": 3,
+    "extraTags": ["perfection_loop"],
+    "role": "editor"
+  },
+  {
+    "id": "b63",
+    "clientId": "c_talabat",
+    "title": "Late Night Craving Copy",
+    "ask": "Push copy for the 1 AM crowd. Short lines, deep hunger, zero judgement. The shawarma understands.",
+    "finePrint": [],
+    "fee": 300000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": [],
+    "role": "content"
+  },
+  {
+    "id": "b64",
+    "clientId": "c_talabat",
+    "title": "Rider POV Shoot",
+    "ask": "A rider point-of-view shoot through the city at dusk. Orange box, golden light, a city that orders dinner like clockwork.",
+    "finePrint": [
+      "Shoot permits cover exactly three streets. Stay on those three streets. Legal has a map and a temper."
+    ],
+    "fee": 520000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["skips_legal"],
+    "role": "production"
+  },
+  {
+    "id": "b65",
+    "clientId": "c_nike",
+    "title": "Just Do It. But Different.",
+    "ask": "The entire brief from the client, in full: 'Just do it. But different.' That is everything they sent. Write the campaign line.",
+    "finePrint": [
+      "No explanations allowed in the deck. The line stands alone or it dies alone."
+    ],
+    "fee": 900000,
+    "deadlineDays": 3,
+    "difficulty": 5,
+    "extraTags": [],
+    "role": "content"
+  },
+  {
+    "id": "b66",
+    "clientId": "c_nike",
+    "title": "The Unwatched Athlete",
+    "ask": "Shoot a film about an athlete nobody is watching. 4 AM training, empty stands, real sweat. If it looks like an ad, it failed.",
+    "finePrint": [
+      "No gloss. If it looks staged, reshoot. The budget says you will not be reshooting."
+    ],
+    "fee": 1500000,
+    "deadlineDays": 3,
+    "difficulty": 5,
+    "extraTags": ["perfection_loop"],
+    "role": "production"
+  },
+  {
+    "id": "b67",
+    "clientId": "c_nike",
+    "title": "Sixty Seconds of Truth",
+    "ask": "Cut the anthem film. Sixty seconds, no voiceover crutch, no tricks. It has to hold a phone audience using nothing but truth and pacing.",
+    "finePrint": [
+      "No trending sounds, no fast hooks. Let it breathe and still keep every thumb off the scroll."
+    ],
+    "fee": 1100000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["trend_chaser"],
+    "role": "editor"
+  },
+  {
+    "id": "b68",
+    "clientId": "c_netflix",
+    "title": "Key Art, No Spoilers",
+    "ask": "The poster for the new season. It must sell episode eight using nothing from episodes two through eight. This is considered normal here.",
+    "finePrint": [
+      "Legal cleared exactly four frames for use. Use only those four. The fifth frame is a lawsuit.",
+      "One frame of spoiler and three time zones schedule meetings about you."
+    ],
+    "fee": 750000,
+    "deadlineDays": 3,
+    "difficulty": 4,
+    "extraTags": ["skips_legal"],
+    "role": "designer"
+  },
+  {
+    "id": "b69",
+    "clientId": "c_netflix",
+    "title": "Trailer Tease Cut",
+    "ask": "Cut the teaser trailer. Tease everything, reveal nothing, and land the climax exactly on the tudum.",
+    "finePrint": [
+      "The tudum does not move for anyone. Time the cut to it.",
+      "No lingering slow motion. A trailer that drags gets skipped, and skips get reported upward."
+    ],
+    "fee": 850000,
+    "deadlineDays": 2,
+    "difficulty": 2,
+    "extraTags": ["slowmo_lover"],
+    "role": "editor"
+  },
+  {
+    "id": "b70",
+    "clientId": "c_netflix",
+    "title": "Premiere Night Content Shoot",
+    "ask": "Shoot the premiere night content. Red carpet, reactions, one perfect loop for socials. Shoot tonight, edit tonight, post tonight.",
+    "finePrint": [
+      "The premiere does not reschedule. Everything ships before the after-party ends."
+    ],
+    "fee": 1200000,
+    "deadlineDays": 1,
+    "difficulty": 5,
+    "extraTags": ["deadline_blind"],
+    "role": "production"
   }
 ]

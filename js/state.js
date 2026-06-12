@@ -5,14 +5,21 @@
 
   // ---------- balance (DESIGN.md economy first-pass, tune freely keep ratios) ----------
   G.BAL = {
-    START_MONEY: 200000,
+    START_MONEY: 100000,         // ~4 starting payrolls. Tight is the point.
     START_REP: 50,
     DAY_REAL_SECONDS: 45,        // one game day
     DAY_START_HOUR: 9,           // 9:00
     DAY_END_HOUR: 19,            // 19:00 (10 game hours per day)
-    WEEKS: 3,                    // Q1 prototype
-    DESKS_MAX: 5,
-    DESKS_START: 3,
+    WEEKS: 8,                    // local -> gujarat -> india -> dubai -> global
+
+    // departments
+    DEPT_CAPS: { designer: 5, editor: 5, content: 3, production: 4 },
+    PRODUCTION_UNLOCK_WEEK: 3,   // survive 2 weeks, production opens
+    DIRECTOR_BOOST: 1.2,         // production dept speed while the Director is hired
+
+    // client tiers: week each tier starts appearing
+    TIER_UNLOCK: { local: 1, gujarat: 2, india: 3, dubai: 3, global: 8 },
+    TIER_LABEL: ['LOCAL', 'GUJARAT', 'INDIA', 'IND+DXB', 'IND+DXB', 'IND+DXB', 'IND+DXB', 'GLOBAL'],
 
     // brief spawning: every 1.5 game-hours ± jitter, scaled by G.curve.spawnMult
     SPAWN_BASE_HOURS: 1.5,
@@ -42,6 +49,15 @@
     REP_APPROVE: 2, REP_VIRAL: 5,
     NEON_REP_BONUS: 1,           // extra rep on positive verdicts
 
+    // money penalties: bad work costs real money (clawbacks)
+    CLAWBACK_SCRAPPED: 0.25,     // of fee, when the client scraps your work
+    CLAWBACK_OVERDUE: 0.15,      // of fee, when a deadline lapses
+
+    // receivables: approved fees become invoices. Hold CALL to collect now;
+    // ignored invoices self-pay LATE (auto, after this many days)
+    INVOICE_AUTOPAY_DAYS: 2.5,
+    INVOICE_CALL_HOLD: 3,        // real seconds of holding through excuses
+
     // chaos
     CHAOS_OVERDUE: 12, CHAOS_IGNORED_CALL: 8, CHAOS_SCOPE_REFUSE: 5,
     CHAOS_DECAY_PER_SEC: 0.45,   // only when everything on-track
@@ -53,47 +69,71 @@
 
     // shop (Friday upgrade moment, one purchase)
     SHOP: {
-      desk:   { name:"Extra desk",     price:40000, desc:"room for one more hire" },
       plant:  { name:"Office plant",   price:12000, desc:"morale. allegedly." },
       coffee: { name:"Coffee machine", price:60000, desc:"burnout builds 30% slower" },
       neon:   { name:"Neon sign",      price:80000, desc:"rep gains hit harder" }
     },
 
-    FIRST_TOAST_SECONDS: 30,     // the very first brief of a run: all the time in the world
+    FIRST_TOAST_SECONDS: 45,     // the very first brief of a run: all the time in the world
     INTRO_CLIENTS_FULL: 3        // first N new clients get the full signing dossier modal
   };
 
   // ---------- difficulty curves ----------
-  // Weeks 1-3 are the authored Q1 ramp. Past week 3 = OVERTIME (endless):
+  // Weeks 1-8 are the authored ramp (local -> global). Past week 8 = OVERTIME:
   // every knob keeps tightening until it's subway-surfer pace, with floors.
+  function ramp(arr, w, overtime){
+    if(w <= arr.length) return arr[w - 1];
+    return overtime(w - arr.length, arr[arr.length - 1]);
+  }
   G.curve = {
     spawnMult: function(w){
-      if(w <= 3) return [1.4, 0.85, 0.6][w - 1];
-      return Math.max(0.18, 0.6 * Math.pow(0.92, w - 3));
+      return ramp([1.4, 1.0, 0.8, 0.7, 0.6, 0.52, 0.46, 0.4], w,
+        function(o, last){ return Math.max(0.15, last * Math.pow(0.92, o)); });
     },
     cap: function(w){
-      if(w <= 3) return [2, 4, 6][w - 1];
-      return Math.min(9, 6 + Math.floor((w - 3) / 2));
+      return ramp([2, 3, 4, 5, 6, 7, 8, 8], w,
+        function(o, last){ return Math.min(10, last + Math.floor(o / 2)); });
     },
     callChance: function(w){
-      if(w <= 3) return [0.3, 0.55, 0.8][w - 1];
-      return Math.min(0.95, 0.8 + (w - 3) * 0.03);
+      return ramp([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9], w,
+        function(o, last){ return Math.min(0.95, last + o * 0.02); });
     },
     scopeChance: function(w){
-      if(w <= 3) return [0.2, 0.4, 0.55][w - 1];
-      return Math.min(0.75, 0.55 + (w - 3) * 0.02);
+      return ramp([0.2, 0.3, 0.38, 0.45, 0.5, 0.55, 0.6, 0.65], w,
+        function(o, last){ return Math.min(0.75, last + o * 0.02); });
     },
-    // seconds to decide on a brief toast: generous early, brutal in overtime
+    // seconds to decide on a brief toast: generous early, brutal in overtime.
+    // (hovering a toast pauses its timer; reading is always free)
     toastSeconds: function(w){
-      if(w <= 3) return [20, 13, 9][w - 1];
-      return Math.max(5, 9 - (w - 3) * 0.5);
+      return ramp([30, 22, 16, 12, 10, 8, 7, 6], w,
+        function(o, last){ return Math.max(5, last - o * 0.25); });
     }
+  };
+
+  // is this client tier unlocked at week w?
+  G.tierOpen = function(tier, w){
+    var u = G.BAL.TIER_UNLOCK[tier];
+    return u !== undefined ? w >= u : true;
+  };
+
+  // censored client rage, for strike calls and scrapped verdicts
+  var RAGE = [
+    'what the f*** is this',
+    'are you f****** kidding me',
+    'b******* hai ye pura',
+    'my intern could do this s***',
+    'f****** amateurs yaar',
+    'kya b******i hai ye',
+    'this is absolute f****** garbage',
+    'h*** f****** kaam karte ho tum log'
+  ];
+  G.rage = function(){
+    return RAGE[Math.floor(Math.random() * RAGE.length)];
   };
 
   G.initialState = function(){
     var staffPool = G.data.staff.slice();
     var hired = staffPool.slice(0, 2).map(makeStaffer); // contract: first 2 = starting team
-    hired.forEach(function(s, i){ s.desk = i; });
     return {
       running: false,
       paused: false,            // hard pause (verdict/report/game-over modals)
@@ -109,7 +149,6 @@
       week: 1, day: 1,          // day 1=Mon .. 5=Fri
       dayT: 0,                  // real seconds into current day
 
-      desksUnlocked: G.BAL.DESKS_START,
       upgrades: { plant:false, coffee:false, neon:false },
 
       staff: hired,             // active staffers
@@ -125,8 +164,17 @@
       goneClients: {},          // clientId -> true (left forever)
       metClients: {},           // clientId -> true (dossier/intro shown)
       introducedCount: 0,       // how many full dossiers shown so far
-      endless: false,           // OVERTIME mode past week 3
+      endless: false,           // OVERTIME mode past week 8
       _firstToastShown: false,
+
+      // growth layer
+      leads: [],                // [{t, closeRate}] brewing leads
+      growthBonus: 0,           // permanent close-rate bonus (website, pitch deck)
+      growthOwned: {},          // one-time growth purchases
+      _growthAnnounced: false,
+
+      // receivables: approved work invoices. CALL to collect, or wait (late).
+      receivables: [],          // [{clientId, title, amount, age}]
 
       quotesWall: [],           // {text, client} survived absurdities
       activeCall: null,         // 6PM call in progress
@@ -143,8 +191,12 @@
 
   function makeStaffer(def){
     return {
-      id: def.id, name: def.name, role: def.role, skill: def.skill,
-      salaryWeekly: def.salaryWeekly, trait: def.trait, traitTag: def.traitTag,
+      id: def.id, name: def.name, dept: def.dept, level: def.level || 'junior',
+      skill: def.skill, salaryMonthly: def.salaryMonthly,
+      trait: def.trait, traitTag: def.traitTag,
+      universal: !!def.universal,
+      badges: def.badges || [],
+      lines: def.lines || null, lineT: 8 + Math.random() * 14, // gimmick bubble timer
       portraitKey: def.portraitKey || 'char1',
       burnout: 0, desk: -1, briefId: null,
       bubble: null, bubbleT: 0      // floating speech bubble

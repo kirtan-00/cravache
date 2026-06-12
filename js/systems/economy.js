@@ -9,6 +9,31 @@
   G.economy = {
     update: function(dt){
       tickSfxCooldown = Math.max(0, tickSfxCooldown - dt);
+
+      // receivables age; ignored invoices self-pay LATE
+      var s = G.state;
+      for(var i = s.receivables.length - 1; i >= 0; i--){
+        var inv = s.receivables[i];
+        inv.age += dt;
+        if(inv.age >= G.BAL.INVOICE_AUTOPAY_DAYS * G.BAL.DAY_REAL_SECONDS){
+          s.receivables.splice(i, 1);
+          this.earn(inv.amount);
+          G.audio.chaChing();
+          G.dock.infoToast('PAID (LATE)', G.fmtMoney(inv.amount) + ' for "' + inv.title + '" finally landed. No call needed, only patience and rent anxiety.', 'good');
+          G.dock.refreshCollect();
+        }
+      }
+    },
+
+    // collection call succeeded: cash the invoice now
+    collect: function(inv){
+      var s = G.state;
+      var idx = s.receivables.indexOf(inv);
+      if(idx < 0) return;
+      s.receivables.splice(idx, 1);
+      this.earn(inv.amount);
+      G.audio.chaChing();
+      G.dock.refreshCollect();
     },
 
     // called per assigned brief per frame from briefs.update
@@ -46,8 +71,11 @@
       G.hud.poke('money');
     },
 
+    // salaries are MONTHLY (real Indian numbers); Friday deducts a month/4
     payrollTotal: function(){
-      return G.state.staff.reduce(function(sum, st){ return sum + st.salaryWeekly; }, 0);
+      return G.state.staff.reduce(function(sum, st){
+        return sum + Math.round(st.salaryMonthly / 4);
+      }, 0);
     },
 
     runPayroll: function(){
@@ -76,13 +104,8 @@
       var s = G.state;
       var item = G.BAL.SHOP[key];
       if(!item || s.money < item.price) return false;
-      if(key === 'desk'){
-        if(s.desksUnlocked >= G.BAL.DESKS_MAX) return false;
-        s.desksUnlocked += 1;
-      } else {
-        if(s.upgrades[key]) return false;
-        s.upgrades[key] = true;
-      }
+      if(s.upgrades[key]) return false;
+      s.upgrades[key] = true;
       this.spend(item.price);
       G.audio.chaChing();
       return true;

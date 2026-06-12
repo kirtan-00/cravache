@@ -302,3 +302,33 @@ canvas#game{
 /* count-up flash */
 .bump{ animation:bump .15s steps(2); }
 @keyframes bump{ 50%{ transform:scale(1.18); } }
+
+/* ---------- v3: role chips, urgency, dock buttons, collection ---------- */
+.bc-role{
+  font-family:'Silkscreen', monospace; font-size:8px;
+  padding:2px 6px 1px; border:2px solid var(--ink);
+  background:var(--navy); color:var(--teal);
+}
+.brief-card .bc-role{ background:var(--navy); }
+.bc-role-production{ color:var(--sun); }
+.bc-role-content{ color:var(--green); }
+.bc-role-any{ color:var(--paper); }
+
+.toast-urgency{
+  float:right; font-family:'Silkscreen', monospace; font-size:9px;
+  padding:2px 6px 1px; border:2px solid currentColor;
+}
+.u-chill{ color:var(--green); }
+.u-tight{ color:var(--sun); }
+.u-insane{ color:var(--red); animation:chaosblink .5s steps(2) infinite; }
+
+.toast-read-hint{
+  font-size:12px; color:var(--khaki-l); margin-top:4px; display:none;
+}
+.toast.reading .toast-read-hint{ display:block; color:var(--teal); }
+.toast.reading{ border-color:var(--teal); }
+
+.dock-side{ display:flex; flex-direction:column; gap:6px; flex:0 0 auto; }
+.dock-btn{ font-size:9px; padding:6px 9px 5px; white-space:nowrap; }
+#btn-collect.has-money{ background:var(--green); animation:chaosblink 1.2s steps(2) infinite; }
+#collect-badge{ font-size:8px; }

@@ -1,158 +1,254 @@
 [
   {
-    "id": "c01",
-    "name": "Chaiyos",
-    "industry": "Chai cafe chain",
-    "personality": "Founder thinks he is the Steve Jobs of adrak chai. Calls every post a 'launch'. Sends voice notes at 7 AM with ocean sounds in the background.",
+    "id": "c_induben",
+    "name": "Induben Khakhrawala",
+    "industry": "Khakhra institution, Ahmedabad",
+    "personality": "Third generation runs the counter, fourth generation runs the Instagram. The brief is whatever the morning queue was overheard saying. Payment arrives in cash, in a rubber band, exactly on time.",
+    "patience": 4,
+    "tier": "local",
+    "quotes": [
+      "Queue starts at 7. The post should also start at 7.",
+      "Methi khakhra photo is fine. But where is the SOUND of khakhra?",
+      "My customer's grandmother is also my customer. Design for both.",
+      "No discount. Never discount. Write that, but with love."
+    ]
+  },
+  {
+    "id": "c_jaybhavani",
+    "name": "Jay Bhavani Vadapav",
+    "industry": "Vadapav chain, Ahmedabad",
+    "personality": "Started with one tawa, now there are branches and a marketing committee of six cousins. Every cousin has the final say. There are six final says.",
     "patience": 3,
+    "tier": "local",
     "quotes": [
-      "Make the steam look premium. Premium steam. You know what I mean.",
-      "I showed it to my barista and he felt nothing. FIX.",
-      "Chai is not a beverage, it is a religion. Now make the post by Friday.",
-      "Can the cup look more... visionary?"
+      "Butter should look generous. We are not that other place.",
+      "Cousin Montu feels the red is dull. Montu is joining the call.",
+      "Make people hungry in the first half second. Second half second is too late.",
+      "The queue IS the ad. Show the queue."
     ]
   },
   {
-    "id": "c02",
-    "name": "Vistaara Bank",
-    "industry": "Private bank",
-    "personality": "Every word goes through legal. Legal is one man named Mr. Kelkar who is perpetually on leave. Approvals arrive in tranches, like EMIs.",
-    "patience": 2,
-    "quotes": [
-      "Legal has 41 comments. Comment 7 is about comment 4.",
-      "Can we say 'best bank' without claiming we are the best bank?",
-      "The asterisk should be visible but not noticeable.",
-      "Mr. Kelkar is back from leave. He has concerns about the full stop."
-    ]
-  },
-  {
-    "id": "c03",
-    "name": "GlowMaxx",
-    "industry": "Skincare FMCG",
-    "personality": "CMO reviews everything from her treadmill at 6 AM. Brand book is 90 pages and contradicts itself on page 12. Wants 'clean girl aesthetic' with maximum text.",
-    "patience": 2,
-    "quotes": [
-      "Do not say fairness. The vibe is 'inner light'. Legal will explain.",
-      "Make the serum drop look like a moment.",
-      "I want it minimal. Also add the offer, the hashtag, and all six benefits.",
-      "My treadmill stopped when I saw this font. Not in a good way."
-    ]
-  },
-  {
-    "id": "c04",
-    "name": "Babloo Steel Bartan",
-    "industry": "Steel utensils, 50-year family business",
-    "personality": "Run by Uncle ji, who is genuinely kind, pays eventually, and believes steel bartan can compete with the iPhone if marketed properly. Whole family has opinions.",
+    "id": "c_daskhaman",
+    "name": "Das Khaman",
+    "industry": "Khaman and farsan house, Ahmedabad",
+    "personality": "A khaman house older than most banks. Deeply sweet people who approve everything twice, then call to approve it a third time, then send dhokla to the office as thanks.",
     "patience": 5,
+    "tier": "local",
     "quotes": [
-      "Beta, my father built this with one hammer. Show the hammer.",
-      "The tiffin should look strong. Like Sunny Deol.",
-      "Whatever you feel is right beta. But also my wife feels the logo is small.",
-      "I saw the Super Bowl. Why can't bartan have this energy?"
+      "Soft. The khaman is soft. The font should also be soft.",
+      "Beta, whatever you feel is best. Also change everything.",
+      "Sunday morning is our Super Bowl.",
+      "People say it melts in the mouth. Can the post also melt?"
     ]
   },
   {
-    "id": "c05",
-    "name": "ZippKart",
-    "industry": "10-minute grocery delivery",
-    "personality": "Everything is needed in 10 minutes, including 3-week projects. CEO communicates exclusively in screenshots of competitor ads taken at 2 AM.",
-    "patience": 1,
-    "quotes": [
-      "Why is the edit taking 2 days? We deliver onions in 9 minutes.",
-      "Saw this at 2 AM. Want exactly this. Cannot find the link.",
-      "EOD means End Of Discussion, not End Of Day. Send now.",
-      "Make it pop but also make it ship."
-    ]
-  },
-  {
-    "id": "c06",
-    "name": "Maharaja Masala",
-    "industry": "Legacy spice brand",
-    "personality": "70-year-old brand, 27-year-old 'CMO' who is the founder's son and just discovered the word 'storytelling'. The founder only checks if the red is correct.",
+    "id": "c_balaji",
+    "name": "Balaji Wafers",
+    "industry": "Wafers and namkeen, Rajkot",
+    "personality": "Factory-scale chips, family-scale decisions. A new flavour launch is treated like national security. The marketing head will eat the product in front of you and study your face for the truth.",
     "patience": 3,
+    "tier": "gujarat",
     "quotes": [
-      "Papa says the chilli red is wrong. It must match his Mercedes.",
-      "I read a case study. We need to be early on Diwali. Like, June early.",
-      "The masala should tell a story. The story of masala.",
-      "Can we make the packet the hero? But emotionally."
+      "The crunch should be audible on mute.",
+      "This wafer survived three board meetings. Respect it.",
+      "Do not show one chip. One chip looks lonely. Show a system of chips.",
+      "Simple rate, full taste. That is the whole philosophy. Now make it cinematic."
     ]
   },
   {
-    "id": "c07",
-    "name": "FitTandoor",
-    "industry": "Healthy cloud kitchen",
-    "personality": "Founder is a gym bro who appears in every asset whether briefed or not. Counts macros, not deadlines. Damage control is a recurring deliverable.",
+    "id": "c_waghbakri",
+    "name": "Wagh Bakri",
+    "industry": "Tea, Gujarat",
+    "personality": "Heritage chai with a brand book older than your agency. The marketing team wants young, the family wants timeless, and everyone wants it by Friday before the Sunday breakfast review.",
     "patience": 3,
+    "tier": "gujarat",
     "quotes": [
-      "Do not crop the biceps. The biceps are brand equity.",
-      "Protein is the hook, gains are the story, paratha is the product.",
-      "I posted a pizza story by mistake. We need content that heals this.",
-      "Make it look tasty but like, disciplined tasty."
+      "Chai brings people together. This layout is keeping them apart.",
+      "Steam should rise with dignity.",
+      "Young, but not too young. New, but exactly the same.",
+      "My grandfather would have approved this. Probably. Make it certain."
     ]
   },
   {
-    "id": "c08",
-    "name": "Soneri Jewels",
-    "industry": "Luxury jewellery",
-    "personality": "Old money, new Instagram. Wants royal but relatable, heritage but trending, expensive but approachable. Will zoom into pixels on a 2014 iPad.",
-    "patience": 4,
-    "quotes": [
-      "The gold looks yellow. Gold should look gold.",
-      "Royal but humble. Palace but homely. You understand na?",
-      "Madam ji zoomed in. The 43rd jewel is soft. Resend.",
-      "Our customer does not scroll. She glides."
-    ]
-  },
-  {
-    "id": "c09",
-    "name": "PaisaPal",
-    "industry": "Fintech UPI app",
-    "personality": "Growth team changes strategy weekly. Banned colours rotate based on which competitor raised funding. Founder wants thought leadership without thoughts.",
+    "id": "c_havmor",
+    "name": "Havmor",
+    "industry": "Ice cream, Ahmedabad",
+    "personality": "Ahmedabad's ice cream pride. Summer is war season, every flavour is a soldier, and footage of anything melting triggers a formal review with minutes and action items.",
     "patience": 2,
+    "tier": "gujarat",
     "quotes": [
-      "Blue is banned this week. Investor reasons. Do not ask.",
-      "Make the founder sound visionary. Footage is him reading his phone.",
-      "We are not saying crypto. We are saying 'digital assets of the future'.",
-      "Can the QR code be... sexy?"
+      "The scoop melted during the review meeting. This is on the agency.",
+      "Summer does not wait and neither do we.",
+      "Kids should pull their parents to the cart. Show the pulling.",
+      "Make the kulfi look like the hero of a 200 crore movie."
     ]
   },
   {
-    "id": "c10",
-    "name": "Dholakia Developers",
-    "industry": "Real estate",
-    "personality": "Owner wants helicopter-shot grandeur on bicycle-bell budget. Believes wide-angle lenses are a legitimate business strategy. Surprisingly patient, terrifyingly literal.",
-    "patience": 4,
-    "quotes": [
-      "The flat is 2BHK but the feeling should be 4BHK.",
-      "No drone was hired. Make the phone footage fly.",
-      "Put my face on the hoarding. People trust this face.",
-      "Possession in 2027. The post should say 'almost ready'."
-    ]
-  },
-  {
-    "id": "c11",
-    "name": "Resham Republic",
-    "industry": "Ethnic wear and sarees",
-    "personality": "Family-owned saree empire. Owner does not trust carousels, swiping, or models who are not relatives. Every month is festive season if you believe hard enough.",
+    "id": "c_rasna",
+    "name": "Rasna",
+    "industry": "Drink concentrate, Ahmedabad",
+    "personality": "The orange powder of every 90s summer. Wants nostalgia from the people who lived it and virality from the people who were not born yet. Both feelings, one post, no excuses.",
     "patience": 3,
+    "tier": "gujarat",
     "quotes": [
-      "18 sarees, one post. Carousel is a scam, people don't swipe.",
-      "My niece is also a model now. The model is also still the model.",
-      "Make indoor look like Udaipur. The palace, not the airport.",
-      "Festive feeling should come, even if there is no festival."
+      "One glass should look like a whole vacation.",
+      "Gen Z should feel the nostalgia too. They were not born. Solve this.",
+      "The love is already there. Just remind everyone where they kept it.",
+      "The mango launch is bigger than my daughter's wedding. Plan accordingly."
     ]
   },
   {
-    "id": "c12",
-    "name": "BroCode Clothing",
-    "industry": "Gen-Z streetwear",
-    "personality": "Founder is 24, communicates in reels, and wants a written guarantee of virality. Last week's memes are dead to him. Sends 'bro' as a complete sentence.",
+    "id": "c_amul",
+    "name": "Amul",
+    "industry": "Dairy, everywhere",
+    "personality": "Expects a topical take on the news before the news has finished happening. The legacy is so big the brief fits on a Post-it: be brilliant, be on time, be butter.",
     "patience": 2,
+    "tier": "india",
     "quotes": [
-      "Bro.",
-      "This meme format died Tuesday. It is Wednesday. Why am I seeing it?",
-      "If it doesn't hit 100k views we redo it free, right? That's standard.",
-      "Make it self-aware but not cringe self-aware. Cool self-aware."
+      "The headline broke 40 minutes ago. Where is our take?",
+      "Witty, warm, offends no one, due tonight.",
+      "Butter goes on everything. Including current affairs.",
+      "If it is not topical by morning, it is history by lunch."
+    ]
+  },
+  {
+    "id": "c_zomato",
+    "name": "Zomato",
+    "industry": "Food delivery app",
+    "personality": "Wants notification copy so good that people order food they were not hungry for. Every word gets A/B tested and the B always wins, which nobody can explain.",
+    "patience": 2,
+    "tier": "india",
+    "quotes": [
+      "13 words max. Make the user emotional about biryani.",
+      "This copy pushed a 2 percent lift. We need 3. Find the missing percent.",
+      "Funny is fine, but the hunger has to be real.",
+      "Can the copy smell like the food? Figure out the writing version of that."
+    ]
+  },
+  {
+    "id": "c_nykaa",
+    "name": "Nykaa",
+    "industry": "Beauty e-commerce",
+    "personality": "Sale season runs on a calendar with no off days. Pink is a science here. Shade 47 is not shade 48, and they will know from across the room.",
+    "patience": 3,
+    "tier": "india",
+    "quotes": [
+      "The pink is 6 percent off. Our customer will see it from another room.",
+      "Sale starts Friday. Teaser Wednesday. Regret never.",
+      "Swatches must look like swatches, not like candy.",
+      "Every product is the hero. Yes, all four thousand of them."
+    ]
+  },
+  {
+    "id": "c_royalenfield",
+    "name": "Royal Enfield",
+    "industry": "Motorcycles",
+    "personality": "The bike sells itself, which makes briefs harder, not easier. Everything must feel like a mountain pass at 6 AM. Nobody smiles in the photographs and everybody is happy.",
+    "patience": 4,
+    "tier": "india",
+    "quotes": [
+      "The thump is the brand. Do not put a trending audio on the thump.",
+      "Fewer words. The road talks.",
+      "If it looks easy, reshoot it.",
+      "Mountains in the frame, goosebumps in the comments."
+    ]
+  },
+  {
+    "id": "c_boat",
+    "name": "boAt",
+    "industry": "Audio and wearables",
+    "personality": "Moves at meme speed, launches at festival speed, and expects both on an intern budget. The word lifestyle appears fourteen times in every call, twice in the goodbye.",
+    "patience": 2,
+    "tier": "india",
+    "quotes": [
+      "Drop it like a sneaker, price it like a samosa.",
+      "The bass should be visible in the thumbnail.",
+      "Collab energy. With whom? Find whom.",
+      "If Gen Z scrolls past this, I want an explanation in writing."
+    ]
+  },
+  {
+    "id": "c_fevicol",
+    "name": "Fevicol",
+    "industry": "Adhesives",
+    "personality": "Carries decades of legendary advertising on its shoulders and knows it. Every new idea auditions against the greatest hits. The bar is not high, it is historic.",
+    "patience": 4,
+    "tier": "india",
+    "quotes": [
+      "It should be funny without a single word. Start there.",
+      "The bond is the punchline. The bond is always the punchline.",
+      "Make people forward it to the family group. That is our KPI.",
+      "Good ad. But is it a Fevicol ad? Sit with that question."
+    ]
+  },
+  {
+    "id": "c_emirates",
+    "name": "Emirates",
+    "industry": "Airline, Dubai",
+    "personality": "Everything is premium. The brief is premium, the feedback is premium, the deadline is somehow also premium. There are thirty approved variants of beige and you will learn them.",
+    "patience": 3,
+    "tier": "dubai",
+    "quotes": [
+      "It should feel first class even on an economy budget. Especially then.",
+      "Golden hour. Not silver hour. Golden.",
+      "Luxury whispers. This layout is shouting.",
+      "We do not follow trends. Trends ask us for an upgrade."
+    ]
+  },
+  {
+    "id": "c_emaar",
+    "name": "Emaar",
+    "industry": "Real estate, Dubai",
+    "personality": "Builds the skyline and expects creative on the same scale. Every render must look taller than the last one. The word iconic is used here as a unit of measurement.",
+    "patience": 2,
+    "tier": "dubai",
+    "quotes": [
+      "Taller. The building, the font, the ambition.",
+      "The fountain show has more drama than this edit.",
+      "Iconic by Tuesday.",
+      "If a skyline is visible, we are in it. Act accordingly."
+    ]
+  },
+  {
+    "id": "c_talabat",
+    "name": "Talabat",
+    "industry": "Food delivery, Middle East",
+    "personality": "Orange, fast, everywhere. Wants Ramadan campaigns planned months out and hunger-inducing copy in two languages, ideally three, billed as one.",
+    "patience": 3,
+    "tier": "dubai",
+    "quotes": [
+      "It must work in Arabic and English, and be funny in both.",
+      "Iftar timing is not a suggestion. The post lands at the exact minute.",
+      "Hungry people do not read. Design for hungry people.",
+      "Orange. Ours, not the fruit. There is a difference and it is contractual."
+    ]
+  },
+  {
+    "id": "c_nike",
+    "name": "Nike",
+    "industry": "Sportswear, global",
+    "personality": "Sends three-word briefs and expects the agency to fill in the universe. Feedback arrives as one cryptic line that is somehow always correct, which is the most annoying part.",
+    "patience": 2,
+    "tier": "global",
+    "quotes": [
+      "Just do it. But different.",
+      "Less ad. More truth.",
+      "Show me the athlete nobody is watching.",
+      "You are explaining. Stop explaining."
+    ]
+  },
+  {
+    "id": "c_netflix",
+    "name": "Netflix",
+    "industry": "Streaming, global",
+    "personality": "Everything must feel binge-worthy, including the brief, which is sixty pages with a recap at the top. Spoilers are a fireable offence in three time zones simultaneously.",
+    "patience": 2,
+    "tier": "global",
+    "quotes": [
+      "Tease everything, reveal nothing, trend everywhere.",
+      "If one frame spoils episode four, we will know within the hour.",
+      "The tudum is sacred. Time the cut to it.",
+      "Make people cancel their plans, not their subscription."
     ]
   }
 ]

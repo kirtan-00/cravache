@@ -7,23 +7,46 @@
   window.G = window.G || {};
   G.render = G.render || {};
 
-  // desk slots (centers). Hitboxes derived from these.
-  // back row stops at the door (x>860 is door territory); third+ desks fill the front row
+  // desk slots (centers) grouped in department clusters. Hitboxes derived.
+  // Back row ends before the doors (x>860); production = front-right strip.
   var DESKS = [
-    { x: 230, y: 330 },
-    { x: 590, y: 330 },
-    { x: 380, y: 510 },
-    { x: 700, y: 510 },
-    { x: 1010, y: 510 }
+    // DESIGN (5)
+    { x: 80,  y: 335, dept: 'designer' },
+    { x: 200, y: 335, dept: 'designer' },
+    { x: 320, y: 335, dept: 'designer' },
+    { x: 80,  y: 520, dept: 'designer' },
+    { x: 200, y: 520, dept: 'designer' },
+    // EDIT (5)
+    { x: 440, y: 335, dept: 'editor' },
+    { x: 560, y: 335, dept: 'editor' },
+    { x: 680, y: 335, dept: 'editor' },
+    { x: 380, y: 520, dept: 'editor' },
+    { x: 500, y: 520, dept: 'editor' },
+    // CONTENT (3)
+    { x: 800, y: 335, dept: 'content' },
+    { x: 660, y: 520, dept: 'content' },
+    { x: 780, y: 520, dept: 'content' },
+    // PRODUCTION (4) — front-right studio strip
+    { x: 940,  y: 520, dept: 'production' },
+    { x: 1060, y: 520, dept: 'production' },
+    { x: 1180, y: 520, dept: 'production' },
+    { x: 1120, y: 400, dept: 'production' }
   ];
-  var DESK_W = 180, DESK_H = 110;       // drawn size
-  var CHAR_W = 84, CHAR_H = 126;
+  var DESK_W = 104, DESK_H = 64;        // drawn size
+  var CHAR_W = 48, CHAR_H = 72;
+
+  var CLUSTERS = [
+    { dept: 'designer',   label: 'DESIGN',     x: 200,  y: 222 },
+    { dept: 'editor',     label: 'EDIT BAY',   x: 560,  y: 222 },
+    { dept: 'content',    label: 'CONTENT',    x: 800,  y: 222 },
+    { dept: 'production', label: 'PRODUCTION', x: 1060, y: 418 }
+  ];
 
   var t = 0; // anim clock
 
   function deskHitbox(i){
     var d = DESKS[i];
-    return { x: d.x - 110, y: d.y - 130, w: 220, h: 220 };
+    return { x: d.x - 60, y: d.y - 125, w: 120, h: 175 };
   }
 
   // ---------- sprite helper (THE fallback contract) ----------
@@ -141,30 +164,44 @@
     }
   }
 
-  // ---------- desks + staff ----------
+  // ---------- department clusters + desks + staff ----------
+  function drawClusters(ctx){
+    for(var c = 0; c < CLUSTERS.length; c++){
+      var cl = CLUSTERS[c];
+      var unlocked = G.staff.deptUnlocked(cl.dept);
+      pxText(ctx, cl.label, cl.x, cl.y, 9,
+             unlocked ? 'rgba(159,232,255,0.55)' : 'rgba(255,92,92,0.5)', 'center', true);
+      if(!unlocked){
+        // tape off the production strip
+        var slots = [];
+        DESKS.forEach(function(d, i){ if(d.dept === cl.dept) slots.push(d); });
+        var minX = 1e9, maxX = 0, minY = 1e9, maxY = 0;
+        slots.forEach(function(d){
+          minX = Math.min(minX, d.x - 62); maxX = Math.max(maxX, d.x + 62);
+          minY = Math.min(minY, d.y - 95); maxY = Math.max(maxY, d.y + 40);
+        });
+        ctx.strokeStyle = 'rgba(255,224,102,0.5)';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([14, 8]);
+        ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+        ctx.setLineDash([]);
+        pxText(ctx, 'OPENS WK ' + G.BAL.PRODUCTION_UNLOCK_WEEK, (minX + maxX) / 2, (minY + maxY) / 2, 14, 'rgba(255,224,102,0.7)', 'center');
+      }
+    }
+  }
+
   function drawDesks(ctx){
     var s = G.state;
-    for(var i = 0; i < G.BAL.DESKS_MAX; i++){
+    for(var i = 0; i < DESKS.length; i++){
       var d = DESKS[i];
-      var unlocked = i < s.desksUnlocked;
-
-      if(!unlocked){
-        // ghost slot
-        ctx.strokeStyle = 'rgba(159,232,255,0.18)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([6, 6]);
-        ctx.strokeRect(d.x - DESK_W / 2, d.y - DESK_H / 2, DESK_W, DESK_H);
-        ctx.setLineDash([]);
-        pxText(ctx, 'locked', d.x, d.y + 5, 16, 'rgba(159,232,255,0.3)', 'center');
-        continue;
-      }
+      if(!G.staff.deptUnlocked(d.dept)) continue; // taped-off zone draws nothing
 
       var st = G.staff.atDesk(i);
       var hover = G.dock.dragHoverDesk === i;
 
-      // drop highlight
+      // drop highlight (dept-aware: green only if this person can take the brief)
       if(G.dock.dragging){
-        var ok = st && !st.briefId;
+        var ok = st && !st.briefId && G.staff.canWork(st, G.dock.dragging);
         ctx.fillStyle = hover
           ? (ok ? 'rgba(126,224,138,0.25)' : 'rgba(255,92,92,0.25)')
           : (ok ? 'rgba(159,232,255,0.10)' : 'rgba(0,0,0,0)');
@@ -180,56 +217,63 @@
       // staffer behind desk (bob + typing frames while working)
       if(st){
         var working = !!st.briefId;
-        var bob = working ? Math.round(Math.sin(t * 7 + i) * 3) : 0;
+        var bob = working ? Math.round(Math.sin(t * 7 + i) * 2) : 0;
         var frame = working ? Math.floor(t * 5 + i) % 2 : 0;
-        drawSprite(ctx, st.portraitKey, d.x - CHAR_W / 2, d.y - DESK_H / 2 - CHAR_H + 26 + bob, CHAR_W, CHAR_H, frame);
+        drawSprite(ctx, st.portraitKey, d.x - CHAR_W / 2, d.y - DESK_H / 2 - CHAR_H + 16 + bob, CHAR_W, CHAR_H, frame);
       }
 
       // desk + monitor
       drawSprite(ctx, 'desk', d.x - DESK_W / 2, d.y - DESK_H / 2, DESK_W, DESK_H);
       if(st && st.briefId){
         // steady on, with an occasional one-frame CRT blink
-        if(Math.floor(t * 6) % 9 !== 8) drawSprite(ctx, 'monitor_on', d.x - 28, d.y - DESK_H / 2 - 6, 56, 42);
+        if(Math.floor(t * 6) % 9 !== 8) drawSprite(ctx, 'monitor_on', d.x - 16, d.y - DESK_H / 2 - 4, 32, 24);
       }
 
       if(!st){
-        pxText(ctx, 'empty desk', d.x, d.y + 8, 16, 'rgba(244,232,207,0.45)', 'center');
+        ctx.strokeStyle = 'rgba(159,232,255,0.15)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(d.x - DESK_W / 2 + 1, d.y - DESK_H / 2 + 1, DESK_W - 2, DESK_H - 2);
         continue;
       }
 
-      // name plate
-      pxText(ctx, st.name, d.x, d.y + DESK_H / 2 + 18, 9, '#f4e8cf', 'center', true);
+      // name plate + badge icons
+      var first = st.name.split(' ')[0];
+      pxText(ctx, first, d.x - 6, d.y + DESK_H / 2 + 14, 8, '#f4e8cf', 'center', true);
+      if(st.badges.length){
+        ctx.font = '11px serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(st.badges.map(function(b){ return b.icon; }).join(''), d.x + (first.length * 4.5), d.y + DESK_H / 2 + 15);
+      }
+      // skill stars
+      pxText(ctx, '★'.repeat(st.skill), d.x, d.y + DESK_H / 2 + 26, 9, '#ffe066', 'center');
 
-      // burnout bar (red, under name)
-      bar(ctx, d.x - 40, d.y + DESK_H / 2 + 26, 80, 7,
+      // burnout bar (under stars)
+      bar(ctx, d.x - 30, d.y + DESK_H / 2 + 31, 60, 5,
           st.burnout / 100,
           st.burnout > 75 ? '#ff5c5c' : (st.burnout > 45 ? '#ff9a56' : '#7ee08a'));
       if(st.burnout > 75 && Math.floor(t * 4) % 2 === 0){
-        pxText(ctx, '!!', d.x + 52, d.y + DESK_H / 2 + 34, 18, '#ff5c5c', 'left');
+        pxText(ctx, '!!', d.x + 38, d.y + DESK_H / 2 + 38, 14, '#ff5c5c', 'left');
       }
 
       // assigned brief: deadline timer + progress floating over desk
       if(st.briefId){
         var b = G.briefs.byId(st.briefId);
         if(b){
-          var top = d.y - DESK_H / 2 - CHAR_H - 6;
+          var top = d.y - DESK_H / 2 - CHAR_H - 4;
           var frac = b.deadlineLeft / b.deadlineTotal;
           var col = frac > 0.5 ? '#7ee08a' : (frac > 0.22 ? '#ffe066' : '#ff5c5c');
-          // deadline
-          bar(ctx, d.x - 55, top, 110, 9, frac, col);
+          bar(ctx, d.x - 45, top, 90, 7, frac, col);
           var daysleft = (b.deadlineLeft / G.BAL.DAY_REAL_SECONDS);
           var dtxt = daysleft >= 1 ? daysleft.toFixed(1) + 'd' : Math.ceil(daysleft * 10) * 10 + '%';
           var blink = frac < 0.22 && Math.floor(t * 4) % 2 === 0;
-          pxText(ctx, '⏱ ' + dtxt, d.x + 64, top + 9, 16, blink ? '#ff5c5c' : col, 'left');
-          // progress
-          bar(ctx, d.x - 55, top + 14, 110, 7, b.workDone / b.workNeeded, '#9fe8ff');
-          pxText(ctx, b.title, d.x, top - 6, 14, '#f4e8cf', 'center');
+          pxText(ctx, dtxt, d.x + 50, top + 7, 13, blink ? '#ff5c5c' : col, 'left');
+          bar(ctx, d.x - 45, top + 11, 90, 5, b.workDone / b.workNeeded, '#9fe8ff');
+          pxText(ctx, b.title.length > 18 ? b.title.slice(0, 17) + '…' : b.title, d.x, top - 5, 12, '#f4e8cf', 'center');
         }
       }
 
       // speech bubble: above the timer bars, off to the right
       if(st.bubble){
-        drawBubble(ctx, d.x + 60, d.y - DESK_H / 2 - CHAR_H - 28, st.bubble);
+        drawBubble(ctx, d.x + 30, d.y - DESK_H / 2 - CHAR_H - 24, st.bubble);
       }
     }
   }
@@ -252,8 +296,8 @@
   // ---------- props ----------
   function drawProps(ctx){
     var s = G.state;
-    if(s.upgrades.coffee) drawSprite(ctx, 'coffee_machine', 60, 170, 72, 96);
-    if(s.upgrades.plant) drawSprite(ctx, 'plant', 1180, 190, 60, 84);
+    if(s.upgrades.coffee) drawSprite(ctx, 'coffee_machine', 16, 150, 60, 80);
+    if(s.upgrades.plant) drawSprite(ctx, 'plant', 836, 168, 48, 68);
     if(s.upgrades.neon){
       var on = Math.floor(t * 2) % 7 !== 6; // occasional flicker, it's that kind of sign
       if(on){
@@ -265,8 +309,8 @@
     }
     // phone rings when a call is live
     if(s.activeCall && Math.floor(t * 8) % 2 === 0){
-      drawSprite(ctx, 'phone_prop', 1120, 300, 48, 48);
-      pxText(ctx, 'RING', 1144, 290, 10, '#ff5c5c', 'center', true);
+      drawSprite(ctx, 'phone_prop', 905, 170, 40, 40);
+      pxText(ctx, 'RING', 925, 162, 10, '#ff5c5c', 'center', true);
     }
   }
 
@@ -307,6 +351,7 @@
       drawBackground(ctx);
       drawQuotesWall(ctx);
       drawProps(ctx);
+      drawClusters(ctx);
       drawDesks(ctx);
       drawFire(ctx);
     },
@@ -322,7 +367,8 @@
           return;
         }
       }
-      for(var d = 0; d < s.desksUnlocked; d++){
+      for(var d = 0; d < DESKS.length; d++){
+        if(!G.staff.deptUnlocked(DESKS[d].dept)) continue;
         var hb = deskHitbox(d);
         if(lx >= hb.x && lx <= hb.x + hb.w && ly >= hb.y && ly <= hb.y + hb.h){
           var st = G.staff.atDesk(d);

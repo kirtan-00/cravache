@@ -43,8 +43,10 @@
     start: function(){
       G.state = G.initialState();
       G.state.running = true;
+      G.state.staff.forEach(function(st){ G.staff.seat(st); });
       G.briefs.init();
       G.dock.refreshTray();
+      G.dock.refreshCollect();
       G.hud.flashDayBanner();
     },
 
@@ -98,6 +100,7 @@
     G.briefs.update(dt);
     G.staff.update(dt);
     G.economy.update(dt);
+    G.growth.update(dt);
     G.chaos.update(dt);
     G.events.update(dt);
   }

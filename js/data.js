@@ -16,19 +16,19 @@
   // ---------- inline sample dataset (used only when content/*.json missing) ----------
   var SAMPLE_CLIENTS = [
     { id:"chaiyos", name:"Chaiyos", industry:"tea cafe chain", personality:"sweet until the invoice",
-      patience:3, quotes:[
+      patience:3, tier:"local", quotes:[
         "Make it viral. We have budget for one boost of 500 rupees.",
         "My nephew said the logo should be bigger. He is in class 8 but very creative.",
         "Can the tea look hotter? Steam is our brand promise."
       ]},
     { id:"vistaara", name:"Vistaara Bank", industry:"private bank", personality:"legal reviews everything twice",
-      patience:2, quotes:[
+      patience:2, tier:"local", quotes:[
         "Compliance has approved the word 'growth'. Please build the campaign around it.",
         "The CEO hates blue. Yes we are a bank. Find a way.",
         "Can we say number one without saying number one?"
       ]},
     { id:"glowmaxx", name:"GlowMaxx", industry:"skincare D2C", personality:"pivots weekly, pays monthly",
-      patience:4, quotes:[
+      patience:4, tier:"local", quotes:[
         "We are no longer a cream. We are a ritual. Update everything.",
         "The founder wants to be in the ad. And her dog. The dog is non negotiable.",
         "Make it premium but also mass. You know?"
@@ -39,36 +39,39 @@
     { id:"b_chai_reel", clientId:"chaiyos", title:"Monsoon Chai Reel",
       ask:"A 15 second reel where rain and chai have a love story.",
       finePrint:["Founder hates slow motion. Says it is 'lazy editing'."],
-      fee:80000, deadlineDays:2, difficulty:2, extraTags:["slowmo_lover"] },
+      fee:80000, deadlineDays:2, difficulty:2, extraTags:["slowmo_lover"], role:"editor" },
     { id:"b_bank_blue", clientId:"vistaara", title:"Rebrand Teaser",
       ask:"Announce the new identity. Modern, trustworthy, exciting, safe, bold, calm.",
       finePrint:["CEO hates blue. The brand book is 90% blue. Handle it."],
-      fee:300000, deadlineDays:3, difficulty:5, extraTags:["blue_only"] },
+      fee:300000, deadlineDays:3, difficulty:5, extraTags:["blue_only"], role:"designer" },
     { id:"b_glow_dog", clientId:"glowmaxx", title:"Founder + Dog Film",
       ask:"Brand film starring the founder and Biscuit the labrador.",
       finePrint:["Biscuit gets top billing. This is in writing."],
-      fee:150000, deadlineDays:2, difficulty:3, extraTags:[] },
+      fee:150000, deadlineDays:2, difficulty:3, extraTags:[], role:"production" },
     { id:"b_chai_menu", clientId:"chaiyos", title:"Menu Redesign Post",
       ask:"One static post announcing 4 new flavours. Nephew has shared a reference.",
       finePrint:[],
-      fee:50000, deadlineDays:1, difficulty:1, extraTags:[] },
+      fee:50000, deadlineDays:1, difficulty:1, extraTags:[], role:"designer" },
     { id:"b_bank_fd", clientId:"vistaara", title:"FD Rates Carousel",
       ask:"Make fixed deposit interest rates feel like a Marvel trailer.",
       finePrint:["Legal must see every frame. Allow 4 working days. Deadline is 2."],
-      fee:120000, deadlineDays:2, difficulty:4, extraTags:["skips_legal"] },
+      fee:120000, deadlineDays:2, difficulty:4, extraTags:["skips_legal"], role:"designer" },
     { id:"b_glow_ritual", clientId:"glowmaxx", title:"The Ritual Launch",
       ask:"We pivoted again. Launch 'The Ritual'. No product shots, only vibes.",
       finePrint:["Founder wants 'vibes' but will ask where the product is."],
-      fee:200000, deadlineDays:3, difficulty:4, extraTags:[] }
+      fee:200000, deadlineDays:3, difficulty:4, extraTags:[], role:"content" }
   ];
 
   var SAMPLE_STAFF = [
-    { id:"s_meera", name:"Meera", role:"designer", skill:3, salaryWeekly:45000,
-      trait:"Fast but sloppy. Skips legal review emails.", traitTag:"skips_legal", portraitKey:"char1" },
-    { id:"s_arjun", name:"Arjun", role:"editor", skill:4, salaryWeekly:60000,
-      trait:"Everything becomes slow motion. Everything.", traitTag:"slowmo_lover", portraitKey:"char2" },
-    { id:"s_tanvi", name:"Tanvi", role:"copy", skill:2, salaryWeekly:35000,
-      trait:"Junior. Hungry. Uses blue in every deck.", traitTag:"blue_only", portraitKey:"char3" }
+    { id:"s_meera", name:"Meera", dept:"designer", level:"junior", skill:3, salaryMonthly:45000,
+      trait:"Fast but sloppy. Skips legal review emails.", traitTag:"skips_legal", portraitKey:"char1",
+      badges:[{ icon:"🎨", label:"Dependable Hands", desc:"Shows up, ships." }] },
+    { id:"s_arjun", name:"Arjun", dept:"editor", level:"junior", skill:4, salaryMonthly:60000,
+      trait:"Everything becomes slow motion. Everything.", traitTag:"slowmo_lover", portraitKey:"char2",
+      badges:[{ icon:"🎵", label:"Beat Cutter", desc:"Reels feel expensive." }] },
+    { id:"s_tanvi", name:"Tanvi", dept:"content", level:"junior", skill:2, salaryMonthly:35000,
+      trait:"Junior. Hungry. Uses blue in every deck.", traitTag:"blue_only", portraitKey:"char3",
+      badges:[{ icon:"✍️", label:"Option Machine", desc:"Volume is a strategy." }] }
   ];
 
   var SAMPLE_EVENTS = [

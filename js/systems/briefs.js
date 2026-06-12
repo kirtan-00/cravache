@@ -53,8 +53,7 @@
         if(b.status === 'assigned'){
           var st = G.staff.byId(b.staffId);
           if(!st) { this.returnToTray(b, 1); continue; }
-          var speed = G.BAL.SPEED_BASE + st.skill * G.BAL.SPEED_PER_SKILL;
-          b.workDone += speed * dt;
+          b.workDone += G.staff.effectiveSpeed(st, b) * dt;
           G.economy.tickEscrow(b, dt);
           if(b.workDone >= b.workNeeded){
             this.complete(b, st);
@@ -63,24 +62,38 @@
       }
     },
 
+    // a brief is offerable if its client is still here, its tier is unlocked,
+    // and production briefs wait for the production dept to exist
+    offerable: function(b){
+      var s = G.state;
+      if(s.goneClients[b.clientId]) return false;
+      var c = G.data.clientById(b.clientId);
+      if(c && c.tier && !G.tierOpen(c.tier, s.week)) return false;
+      if(b.role === 'production' && s.week < G.BAL.PRODUCTION_UNLOCK_WEEK) return false;
+      return true;
+    },
+
     offerNext: function(){
       var s = G.state;
-      // skip briefs from clients who left forever
-      var def = null;
+      var def = null, skipped = [];
       while(s.briefDeck.length){
         var cand = s.briefDeck.shift();
-        if(!s.goneClients[cand.clientId]){ def = cand; break; }
+        if(this.offerable(cand)){ def = cand; break; }
+        if(!s.goneClients[cand.clientId]) skipped.push(cand); // locked tier/role: back in the pile
       }
+      s.briefDeck = s.briefDeck.concat(skipped);
       if(!def){
-        // deck exhausted. In OVERTIME the city never runs out of bad ideas:
-        // reshuffle every brief whose client is still talking to us.
-        if(!s.endless) return;
+        // deck exhausted: the city never runs out of bad ideas. Reshuffle.
+        var self = this;
         s.briefDeck = G.data.briefs.filter(function(b){ return !s.goneClients[b.clientId]; });
         for(var i = s.briefDeck.length - 1; i > 0; i--){
           var j = Math.floor(Math.random() * (i + 1));
           var t = s.briefDeck[i]; s.briefDeck[i] = s.briefDeck[j]; s.briefDeck[j] = t;
         }
-        def = s.briefDeck.shift();
+        while(s.briefDeck.length){
+          var c2 = s.briefDeck.shift();
+          if(self.offerable(c2)){ def = c2; break; }
+        }
         if(!def) return;
       }
 
@@ -124,6 +137,7 @@
         finePrint: def.finePrint || [],
         extraTags: def.extraTags || [],
         fee: def.fee,
+        role: def.role || 'any',
         difficulty: def.difficulty,
         status: 'tray',                    // tray | assigned | done | scrapped
         staffId: null,
@@ -152,6 +166,13 @@
     assign: function(brief, staffer){
       if(brief.status !== 'tray') return false;
       if(staffer.briefId) return false;
+      if(!G.staff.canWork(staffer, brief)){
+        G.dock.infoToast('WRONG DEPARTMENT',
+          staffer.name + ' (' + staffer.dept + ') stares at the ' + brief.role +
+          ' brief like it is in another language.', 'bad');
+        G.audio.decline();
+        return false;
+      }
       brief.status = 'assigned';
       brief.staffId = staffer.id;
       staffer.briefId = brief.id;
@@ -173,6 +194,10 @@
     },
 
     complete: function(brief, staffer){
+      if(brief.internal){
+        G.growth.completeInternal(brief, staffer);
+        return;
+      }
       brief.status = 'done';
       staffer.briefId = null;
       brief.staffId = staffer.id; // remember who made it (fine-print check)
@@ -189,7 +214,14 @@
       s.stats.weekScrapped++;
       G.audio.alarm();
       G.dock.refreshTray();
-      G.dock.infoToast('MISSED DEADLINE', '"' + brief.title + '" got auto-scrapped. The client noticed.', 'bad');
+      if(brief.internal){
+        G.dock.infoToast('GROWTH DROPPED', '"' + brief.title + '" never happened. The agency stays unfamous.', 'bad');
+        return;
+      }
+      // late = clawback. The client bills YOU for their disappointment.
+      var penalty = Math.round(brief.fee * G.BAL.CLAWBACK_OVERDUE);
+      G.economy.spend(penalty);
+      G.dock.infoToast('MISSED DEADLINE', '"' + brief.title + '" auto-scrapped. Client: "' + G.rage() + '" Penalty: ' + G.fmtMoney(penalty), 'bad');
       G.hud.poke('rep');
     },
 

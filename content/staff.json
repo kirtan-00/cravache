@@ -1,82 +1,174 @@
 [
   {
-    "id": "s01",
-    "name": "Tanvi Kulkarni",
-    "role": "designer",
-    "skill": 4,
-    "salaryWeekly": 60000,
-    "trait": "Diva. Will not touch soap, serum, masala, or anything sold in a sachet. FMCG briefs give her a migraine she will describe in detail.",
-    "traitTag": "hates-fmcg",
-    "portraitKey": "char1"
+    "id": "s_palak", "name": "Palak Trivedi", "dept": "designer", "level": "junior",
+    "skill": 2, "salaryMonthly": 35000,
+    "trait": "Dependable. Puts blue in everything because blue is safe.",
+    "traitTag": "blue_only", "portraitKey": "char1",
+    "badges": [
+      { "icon": "🎨", "label": "Dependable Hands", "desc": "No drama, no genius. Shows up, ships." }
+    ]
   },
   {
-    "id": "s02",
-    "name": "Ronak Shah",
-    "role": "editor",
-    "skill": 3,
-    "salaryWeekly": 45000,
-    "trait": "Fast like a Mumbai local, sloppy like a Mumbai local. Anything needing frame-perfect detail comes back with one frame missing.",
-    "traitTag": "fast-sloppy",
-    "portraitKey": "char2"
+    "id": "s_arya", "name": "Arya", "dept": "editor", "level": "senior",
+    "skill": 5, "salaryMonthly": 60000,
+    "trait": "Smart but lazy. Magic on hard cuts, allergic to boring ones. Alive only after dark.",
+    "traitTag": "boring_allergy", "portraitKey": "char2",
+    "badges": [
+      { "icon": "🌙", "label": "Night Magic", "desc": "+70% speed after 6 PM. Mornings are a rumour." },
+      { "icon": "🧠", "label": "Hard-Brief Genius", "desc": "Flies on ★★★★+ briefs. Crawls and complains on easy ones." }
+    ],
+    "lines": ["this brief insults me", "wake me at 6pm", "give me something IMPOSSIBLE", "render farm is my bed", "boring. next.", "night shift = god mode"]
   },
   {
-    "id": "s03",
-    "name": "Meher Bhandari",
-    "role": "designer",
-    "skill": 3,
-    "salaryWeekly": 50000,
-    "trait": "Hears 'less blue' and adds more blue. Every time. Colour feedback enters her ears and evaporates.",
-    "traitTag": "colour-blind-to-feedback",
-    "portraitKey": "char3"
+    "id": "s_devang", "name": "Devang Mistry", "dept": "designer", "level": "senior",
+    "skill": 3, "salaryMonthly": 55000, "universal": true,
+    "trait": "Sab ho jayega. Statics, reels, decks, shoots. Everything. One man. So many briefs.",
+    "traitTag": "deadline_blind", "portraitKey": "char3",
+    "badges": [
+      { "icon": "🛠", "label": "Sab Ho Jayega", "desc": "Takes ANY brief from ANY department. The whole agency on one chair." },
+      { "icon": "🚨", "label": "Clutch Gene", "desc": "+50% speed when the deadline is under 30%. Thrives on panic." }
+    ],
+    "lines": ["ho jayega", "done means 90% done", "send it, I will fix live"]
   },
   {
-    "id": "s04",
-    "name": "Joseph D'Costa",
-    "role": "editor",
-    "skill": 5,
-    "salaryWeekly": 80000,
-    "trait": "Did 41 Diwali edits last year. One more diya, one more dhol drop, one more rangoli transition and he walks into the sea.",
-    "traitTag": "allergic-to-festive",
-    "portraitKey": "char4"
+    "id": "s_ritu", "name": "Ritu Nair", "dept": "designer", "level": "senior",
+    "skill": 4, "salaryMonthly": 70000,
+    "trait": "Senior. Fast. Will show you two options and both are hers.",
+    "traitTag": "perfection_loop", "portraitKey": "char4",
+    "badges": [
+      { "icon": "⚡", "label": "Fast Hands", "desc": "Senior speed. Costs senior money." },
+      { "icon": "🎯", "label": "Punctual", "desc": "Has never met a deadline she feared." }
+    ]
   },
   {
-    "id": "s05",
-    "name": "Ankit Jha",
-    "role": "allrounder",
-    "skill": 2,
-    "salaryWeekly": 35000,
-    "trait": "Junior, eager, cheap. Thinks drop shadow is a luxury finish. Premium briefs come back looking like a tuition flyer.",
-    "traitTag": "no-luxury-polish",
-    "portraitKey": "char5"
+    "id": "s_kavya", "name": "Kavya Shah", "dept": "designer", "level": "junior",
+    "skill": 3, "salaryMonthly": 45000,
+    "trait": "Sees a trend on Tuesday, ships it Wednesday, cringes at it Thursday.",
+    "traitTag": "meme_brain", "portraitKey": "char5",
+    "badges": [
+      { "icon": "🔥", "label": "Trend Radar", "desc": "Great on meme/topical briefs. Risky on legacy brands." }
+    ]
   },
   {
-    "id": "s06",
-    "name": "Farah Khambatta",
-    "role": "copy",
-    "skill": 4,
-    "salaryWeekly": 65000,
-    "trait": "Writes gold. Has no concept of clocks. A 1-day deadline is, to her, a fun rumour.",
-    "traitTag": "deadline-blind",
-    "portraitKey": "char6"
+    "id": "s_jignesh", "name": "Jignesh", "dept": "designer", "level": "intern",
+    "skill": 1, "salaryMonthly": 12000,
+    "trait": "Intern. Enthusiasm of ten people, output of 0.7 people.",
+    "traitTag": "skips_legal", "portraitKey": "char6",
+    "badges": [
+      { "icon": "🐣", "label": "Intern", "desc": "Cheap. Chaotic. Once exported a JPEG as a Word file." }
+    ]
+  },
+
+  {
+    "id": "s_farhan", "name": "Farhan Qureshi", "dept": "editor", "level": "senior",
+    "skill": 4, "salaryMonthly": 80000,
+    "trait": "Senior editor. 'One more pass' means three more passes. They are worth it.",
+    "traitTag": "perfection_loop", "portraitKey": "char3",
+    "badges": [
+      { "icon": "⚡", "label": "Fast Hands", "desc": "Senior speed on every cut." },
+      { "icon": "🏅", "label": "Award Bait", "desc": "His showreel has its own showreel." }
+    ]
   },
   {
-    "id": "s07",
-    "name": "Suresh Nair",
-    "role": "allrounder",
-    "skill": 3,
-    "salaryWeekly": 48000,
-    "trait": "20 years of experience, zero years of memes. Once asked if 'skibidi' was a client. Gen-Z briefs age 40 years in his hands.",
-    "traitTag": "meme-illiterate",
-    "portraitKey": "char3"
+    "id": "s_sneha", "name": "Sneha Kulkarni", "dept": "editor", "level": "junior",
+    "skill": 3, "salaryMonthly": 50000,
+    "trait": "Cuts on beat. Every beat. Including the client's heartbeat. Loves slow motion a little too much.",
+    "traitTag": "slowmo_lover", "portraitKey": "char1",
+    "badges": [
+      { "icon": "🎵", "label": "Beat Cutter", "desc": "Reels feel expensive. Slow-mo sneaks in everywhere." }
+    ]
   },
   {
-    "id": "s08",
-    "name": "Dia Malhotra",
-    "role": "designer",
-    "skill": 5,
-    "salaryWeekly": 75000,
-    "trait": "First version is final version. Revision rounds give her hives. Briefs promising 'multiple finals' end in cold war.",
-    "traitTag": "hates-revisions",
-    "portraitKey": "char1"
+    "id": "s_om", "name": "Om Patel", "dept": "editor", "level": "junior",
+    "skill": 2, "salaryMonthly": 30000,
+    "trait": "Junior. Renders on time, every time. The most boring superpower. The most valuable one.",
+    "traitTag": "blue_only", "portraitKey": "char4",
+    "badges": [
+      { "icon": "🎯", "label": "Punctual", "desc": "Has never missed a deadline. Ever. Check the records." }
+    ]
+  },
+  {
+    "id": "s_chirag", "name": "Chirag", "dept": "editor", "level": "intern",
+    "skill": 1, "salaryMonthly": 12000,
+    "trait": "Intern. Learned editing from reels about editing.",
+    "traitTag": "trend_chaser", "portraitKey": "char6",
+    "badges": [
+      { "icon": "🐣", "label": "Intern", "desc": "Cheap. Once colour-graded a podcast." }
+    ]
+  },
+
+  {
+    "id": "s_mahesh", "name": "Mahesh Joshi", "dept": "content", "level": "senior",
+    "skill": 4, "salaryMonthly": 65000,
+    "trait": "Senior content. Has only done this. Also, everything. Simultaneously.",
+    "traitTag": "perfection_loop", "portraitKey": "char2",
+    "badges": [
+      { "icon": "🏆", "label": "Living Legend (self-certified)", "desc": "Claims credit for the universe. Copy is genuinely great though." }
+    ],
+    "lines": [
+      "I've only done this.",
+      "The universe? My campaign. You're welcome.",
+      "Dinosaurs ignored my brief. Look what happened.",
+      "This company runs because I exhale.",
+      "I taught fonts the alphabet.",
+      "Before me, brands were just shops."
+    ]
+  },
+  {
+    "id": "s_priya", "name": "Priya Desai", "dept": "content", "level": "junior",
+    "skill": 2, "salaryMonthly": 28000,
+    "trait": "Junior content. Writes 40 caption options when you ask for 3.",
+    "traitTag": "meme_brain", "portraitKey": "char5",
+    "badges": [
+      { "icon": "✍️", "label": "Option Machine", "desc": "Volume is a strategy." }
+    ]
+  },
+  {
+    "id": "s_henil", "name": "Henil", "dept": "content", "level": "intern",
+    "skill": 1, "salaryMonthly": 10000,
+    "trait": "Content intern. Thinks 'tone of voice' is a singing class.",
+    "traitTag": "trend_chaser", "portraitKey": "char6",
+    "badges": [
+      { "icon": "🐣", "label": "Intern", "desc": "Cheap. Hashtags everything. #literally #everything" }
+    ]
+  },
+
+  {
+    "id": "s_vicky", "name": "Vicky Rathod", "dept": "production", "level": "junior",
+    "skill": 2, "salaryMonthly": 25000,
+    "trait": "Shoots everything on an iPhone 13. 'Cinema is intent, boss.'",
+    "traitTag": "trend_chaser", "portraitKey": "char4",
+    "badges": [
+      { "icon": "📱", "label": "Shot on iPhone", "desc": "And proud. Gimbal is his personality." }
+    ]
+  },
+  {
+    "id": "s_imran", "name": "Imran Sheikh", "dept": "production", "level": "junior",
+    "skill": 3, "salaryMonthly": 40000,
+    "trait": "Camera operator. Owns lenses worth more than the office deposit.",
+    "traitTag": "slowmo_lover", "portraitKey": "char3",
+    "badges": [
+      { "icon": "🎥", "label": "Glass Collector", "desc": "Real camera, real footage, real invoices." }
+    ]
+  },
+  {
+    "id": "s_natasha", "name": "Natasha Fernandes", "dept": "production", "level": "senior",
+    "skill": 4, "salaryMonthly": 60000, "universal": true,
+    "trait": "Producer. Does everything about a project: permissions, budgets, tantrums, miracles.",
+    "traitTag": "deadline_blind", "portraitKey": "char1",
+    "badges": [
+      { "icon": "🧰", "label": "The Producer", "desc": "Can take ANY brief. Has everyone's number. Including yours." }
+    ],
+    "lines": ["handled.", "I know a guy", "budget? we'll find it"]
+  },
+  {
+    "id": "s_dev_anand", "name": "Dev Anand Iyer", "dept": "production", "level": "lead",
+    "skill": 5, "salaryMonthly": 75000,
+    "trait": "Director. Production head. Speaks in frames. Night shoots with Arya are legend.",
+    "traitTag": "perfection_loop", "portraitKey": "char2",
+    "badges": [
+      { "icon": "🎬", "label": "Production Head", "desc": "Whole production dept works +20% faster while he's hired. Only one exists." }
+    ],
+    "lines": ["one more take", "we lost the light. we WILL find it", "Arya, tonight?"]
   }
 ]

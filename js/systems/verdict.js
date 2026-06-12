@@ -25,8 +25,8 @@
         o.viral = Math.max(1, o.viral - 4);
       }
 
-      // quality: skill vs difficulty
-      var q = (staffer ? staffer.skill : 3) - brief.difficulty;
+      // quality: skill vs difficulty (Arya's hard-brief magic counts here)
+      var q = (staffer ? G.staff.effectiveSkill(staffer, brief) : 3) - brief.difficulty;
       o.approve = Math.max(8, o.approve + q * 5);
       o.scrapped = Math.max(2, o.scrapped - q * 2);
       if(q > 0) o.viral += q; // good people make lucky things
@@ -78,19 +78,23 @@
 
       switch(outcome){
         case 'approve':
-          G.economy.earn(payout);
+          // approved ≠ paid. It becomes an invoice; go CALL for your money.
+          s.receivables.push({ clientId: brief.clientId, title: brief.title, amount: payout, age: 0 });
           s.rep += G.BAL.REP_APPROVE + repBonus;
           s.stats.weekShipped++; s.stats.totalShipped++;
           G.audio.chaChing();
+          G.dock.refreshCollect();
           break;
 
         case 'viral':
-          G.economy.earn(payout);
+          // viral money also needs collecting. Fame is not cashflow.
+          s.receivables.push({ clientId: brief.clientId, title: brief.title, amount: payout, age: 0 });
           s.rep += G.BAL.REP_VIRAL + repBonus;
           s.stats.weekShipped++; s.stats.totalShipped++; s.stats.totalViral++;
           G.audio.viral();
           G.main.screenShake();
           G.modals.confetti();
+          G.dock.refreshCollect();
           if(client){
             s.quotesWall.push({ text: '"' + brief.title + '" went viral. The client is taking credit.', client: client.name });
           }
@@ -114,6 +118,8 @@
           s.rep = Math.max(0, s.rep + G.BAL.REP_SCRAPPED);
           s.stats.weekScrapped++;
           G.chaos.add(6);
+          // really bad work costs real money
+          G.economy.spend(Math.round(brief.fee * G.BAL.CLAWBACK_SCRAPPED));
           if(conflict && client){
             G.events.bumpRelationship(client.id, -1);
           }

@@ -110,3 +110,28 @@ cravache/
 ## Definition of done (prototype)
 Playable Q1 run start→win/lose in a real browser with zero console errors, all art on-palette and
 viewed, drag-drop works, payroll/chaos/burnout/verdict all firing, screenshots verified by Playwright.
+
+## v3 — Departments, real brands, 8-week run (2026-06-13)
+- **Run = 8 weeks.** Client tiers unlock by week: wk1 local (Ahmedabad), wk2 Gujarat brands,
+  wk3-7 Indian + Dubai brands, wk8+ global/American. REAL brand names (Balaji Wafers, Wagh Bakri,
+  Amul, Zomato, Emirates, Nike...) — satire; swap to parody names before any public ship.
+- **Departments + caps:** designers 5, editors 5, content 3, production 4. Start = 1 junior
+  designer + Arya (editor). Production dept locked until week 3 ("survive 2 weeks").
+- **Briefs carry `role`:** designer | editor | content | production | any. Drag to wrong dept =
+  rejected with a toast. `universal` staffers (Devang the do-everything designer, the Producer)
+  take anything.
+- **Special characters (mechanics):**
+  - Arya (first editor): ★5. +70% speed after 6PM, flies on difficulty 4-5 briefs (skill+2 in
+    verdict), crawls at 0.45x on difficulty ≤2 and grumbles. traitTag boring_allergy.
+  - Devang "Sab Ho Jayega" Mistry (designer, universal): ★3, +50% speed when deadline <30% left.
+  - Mahesh Joshi (senior content): "I've only done this." Random legend bubbles every ~20s.
+  - Director (₹75k/mo, production head): all production staff +20% speed while hired. Only one.
+  - Producer (₹60k/mo): universal. Only one. iPhone shooter ₹25k, camera op ₹40k.
+- **Salaries are MONTHLY** (real Indian numbers); Friday payroll deducts monthly/4.
+- **Badges:** every staffer has 1-2 descriptive badges (icon + label + effect text) shown on
+  desk nameplates and in the hire shop — the player matches brief urgency/depth to badges.
+- **Brief toasts:** role chip + urgency label (CHILL/TIGHT/INSANE); hovering a toast PAUSES its
+  decide timer (reading is free); first toast 45s, then 30/22/16/12/10/8/7/6s, floor 5 overtime.
+- **Brief deck recycles** when exhausted (8 weeks > 45 briefs).
+- traitTags shared by staff+briefs: skips_legal, slowmo_lover, blue_only, meme_brain,
+  deadline_blind, perfection_loop, boring_allergy, trend_chaser.

@@ -205,12 +205,13 @@
         applyCb(); // applies money/rep/chaos + sfx + confetti/shake
 
         if(info.payout > 0){
-          countUp(payEl, info.payout, function(v){ return '+' + G.fmtMoney(v); }, 0.9);
+          countUp(payEl, info.payout, function(v){ return '+' + G.fmtMoney(v) + ' INVOICED'; }, 0.9);
+          payEl.title = 'approved is not paid. CALL to collect.';
         } else if(info.outcome === 'small'){
           payEl.textContent = '+₹0 · same deadline · 40% more work';
           payEl.style.color = '#ff9a56';
         } else if(info.outcome === 'scrapped'){
-          payEl.textContent = '₹0. They want the raw files anyway.';
+          payEl.textContent = '"' + G.rage() + '" · penalty ' + G.fmtMoney(Math.round(info.brief.fee * G.BAL.CLAWBACK_SCRAPPED));
           payEl.style.color = '#ff5c5c';
         }
 
@@ -293,7 +294,8 @@
 
       var stamp = info.cleared
         ? '<div class="stamp">PAYROLL CLEARED ✔</div>'
-        : '<div class="stamp fail">PAYROLL BOUNCED · STRIKE ' + info.strikes + '/3</div>';
+        : '<div class="stamp fail">PAYROLL BOUNCED · STRIKE ' + info.strikes + '/3</div>' +
+          '<div class="modal-fine" style="color:#ff5c5c">The team group chat right now: "' + esc(G.rage()) + '"</div>';
 
       var quote = s.quotesWall.length
         ? '<div class="quote-of-week">"' + esc(s.quotesWall[s.quotesWall.length - 1].text) + '" — ' +
@@ -323,25 +325,37 @@
         }
       });
 
-      // shop: upgrades not owned + up to 2 hire candidates
+      // shop: upgrades not owned + the next candidate from EACH department
       var shopEl = el.querySelector('[data-shop]');
       var items = [];
       Object.keys(G.BAL.SHOP).forEach(function(key){
         var it = G.BAL.SHOP[key];
-        if(key === 'desk' && s.desksUnlocked >= G.BAL.DESKS_MAX) return;
-        if(key !== 'desk' && s.upgrades[key]) return;
+        if(s.upgrades[key]) return;
         items.push({ name: it.name, desc: it.desc, price: it.price,
           buy: function(){ return G.economy.buyUpgrade(key); } });
       });
-      s.hirePool.slice(0, 2).forEach(function(cand){
+      ['designer', 'editor', 'content', 'production'].forEach(function(dept){
+        var cand = null;
+        for(var i = 0; i < s.hirePool.length; i++)
+          if(s.hirePool[i].dept === dept){ cand = s.hirePool[i]; break; }
+        if(!cand) return;
+        if(!G.staff.deptUnlocked(dept)){
+          items.push({ name: dept.toUpperCase() + ': locked', desc: 'Opens week ' + G.BAL.PRODUCTION_UNLOCK_WEEK + '.', price: 0, locked: true, buy: function(){ return false; } });
+          return;
+        }
+        if(G.staff.deptCount(dept) >= G.BAL.DEPT_CAPS[dept]) return;
+        var advance = Math.round(cand.salaryMonthly / 4);
+        var badges = (cand.badges || []).map(function(b){ return b.icon + ' ' + b.label; }).join(' · ');
         items.push({
-          name: 'HIRE ' + cand.name + ' (' + cand.role + ' ★' + cand.skill + ')',
-          desc: cand.trait + ' · ' + G.fmtMoney(cand.salaryWeekly) + '/wk',
-          price: cand.salaryWeekly,
+          name: 'HIRE ' + cand.name + ' · ' + dept.toUpperCase() + ' ★' + cand.skill,
+          desc: badges + ' — ' + cand.trait + ' · ' + G.fmtMoney(cand.salaryMonthly) + '/mo',
+          price: advance,
           buy: function(){
-            if(s.money < cand.salaryWeekly || !G.staff.canHire()) return false;
-            G.economy.spend(cand.salaryWeekly); // signing advance
-            return G.staff.hire(s.hirePool.indexOf(cand));
+            if(s.money < advance) return false;
+            var idx = s.hirePool.indexOf(cand);
+            if(!G.staff.canHire(cand)) return false;
+            G.economy.spend(advance); // signing advance = one week's pay
+            return G.staff.hire(idx);
           }
         });
       });
@@ -354,8 +368,8 @@
           '<span class="sr-desc">' + esc(it.desc) + '</span></div>';
         var b = document.createElement('button');
         b.className = 'px-btn';
-        b.textContent = G.fmtMoney(it.price);
-        b.disabled = s.money < it.price;
+        b.textContent = it.locked ? 'LOCKED' : G.fmtMoney(it.price);
+        b.disabled = it.locked || s.money < it.price;
         b.addEventListener('click', function(){
           if(bought) return;
           if(it.buy()){
@@ -389,6 +403,133 @@
         });
       }
       addButtons(el, rcBtns);
+    },
+
+    // ---------- GROWTH: spend money or staff time for leads ----------
+    showGrowth: function(){
+      var s = G.state;
+      var el = modalShell({
+        kicker: 'BUSINESS DEVELOPMENT · LEADS BREWING: ' + s.leads.length +
+          (s.growthBonus ? ' · CLOSE BONUS +' + Math.round(s.growthBonus * 100) + '%' : ''),
+        title: 'GROW THE AGENCY',
+        bodyHTML: '<div class="modal-fine">New clients cost money or staff time. Staff doing growth work are not doing client work. That is the whole game.</div><div data-gshop></div>'
+      });
+      var entry = push(el, { pausing: true });
+      var shopEl = el.querySelector('[data-gshop]');
+
+      function row(name, desc, btnLabel, disabled, onBuy){
+        var rowEl = document.createElement('div');
+        rowEl.className = 'shop-row';
+        rowEl.innerHTML = '<div><span class="sr-name">' + esc(name) + '</span>' +
+          '<span class="sr-desc">' + esc(desc) + '</span></div>';
+        var b = document.createElement('button');
+        b.className = 'px-btn';
+        b.textContent = btnLabel;
+        b.disabled = disabled;
+        b.addEventListener('click', function(){
+          if(onBuy()){ b.textContent = 'DONE ✔'; b.disabled = true; }
+          else G.audio.decline();
+        });
+        rowEl.appendChild(b);
+        shopEl.appendChild(rowEl);
+      }
+
+      Object.keys(G.GROWTH_ACTIONS).forEach(function(key){
+        var a = G.GROWTH_ACTIONS[key];
+        var owned = a.oneTime && s.growthOwned[a.oneTime];
+        row(a.name, a.desc, owned ? 'OWNED' : G.fmtMoney(a.price),
+            owned || s.money < a.price,
+            function(){ return G.growth.buy(key); });
+      });
+      G.INTERNAL_BRIEFS.forEach(function(def){
+        var live = s.briefs.some(function(b){ return b.id === def.id && (b.status === 'tray' || b.status === 'assigned'); });
+        row(def.title + ' (staff time)', def.ask, live ? 'IN PROGRESS' : 'ADD TO TRAY', live,
+            function(){ return G.growth.startInternal(def.id); });
+      });
+
+      addButtons(el, [{ label: 'BACK TO THE GRIND', onClick: function(){ G.audio.click(); close(entry); } }]);
+    },
+
+    // ---------- COLLECT: hold the call through the excuses to get paid ----------
+    showCollect: function(){
+      var s = G.state;
+      var total = s.receivables.reduce(function(sum, i){ return sum + i.amount; }, 0);
+      var el = modalShell({
+        kicker: 'RECEIVABLES · ' + s.receivables.length + ' INVOICES · ' + G.fmtMoney(total) + ' STUCK',
+        title: 'COLLECTION CALLS',
+        bodyHTML: s.receivables.length
+          ? '<div class="modal-fine">Hold CALL and survive the excuses. Release early and the money stays theirs. Unchased invoices pay by themselves, eventually, painfully late.</div><div data-invoices></div>'
+          : '<div class="modal-body">Nothing to collect. Either you are paid up or you have shipped nothing. Both are suspicious.</div>'
+      });
+      var entry = push(el, { pausing: true });
+      var invEl = el.querySelector('[data-invoices]');
+
+      var EXCUSES = [
+        'processing hai, system me hai',
+        'finance person is at a wedding',
+        'GST portal is down (it is not)',
+        'CEO has to personally approve (he is golfing)',
+        'can you resend the invoice? 4th time lucky',
+        'next week pakka. PAKKA.',
+        'we pay on the 32nd of every month'
+      ];
+
+      if(invEl) s.receivables.slice().forEach(function(inv){
+        var c = G.data.clientById(inv.clientId);
+        var rowEl = document.createElement('div');
+        rowEl.className = 'shop-row';
+        rowEl.innerHTML = '<div><span class="sr-name">' + esc(c ? c.name : '???') + ' · ' + G.fmtMoney(inv.amount) + '</span>' +
+          '<span class="sr-desc" data-excuse>"' + esc(inv.title) + '" · invoice aging</span>' +
+          '<div class="hold-track" style="width:160px"><div class="hold-fill"></div></div></div>';
+        var b = document.createElement('button');
+        b.className = 'px-btn';
+        b.textContent = 'CALL (HOLD)';
+        var fill = rowEl.querySelector('.hold-fill');
+        var exEl = rowEl.querySelector('[data-excuse]');
+        var held = 0, holding = false, raf = null, exIdx = -1, paid = false;
+
+        function tick(){
+          if(paid) return;
+          if(holding){
+            held += 1 / 60;
+            var frac = Math.min(1, held / G.BAL.INVOICE_CALL_HOLD);
+            fill.style.width = (frac * 100) + '%';
+            var ex = Math.min(EXCUSES.length - 1, Math.floor(frac * 2.999));
+            if(ex !== exIdx){
+              exIdx = ex;
+              exEl.textContent = '"' + EXCUSES[Math.floor(Math.random() * EXCUSES.length)] + '"';
+            }
+            if(frac >= 1){
+              paid = true;
+              G.economy.collect(inv);
+              exEl.textContent = '"theek hai theek hai, transferred. happy?"';
+              b.textContent = 'PAID ✔';
+              b.disabled = true;
+              return;
+            }
+          }
+          raf = requestAnimationFrame(tick);
+        }
+        b.addEventListener('pointerdown', function(e){
+          e.preventDefault();
+          if(paid) return;
+          holding = true;
+          G.audio.phoneRing();
+          if(!raf) raf = requestAnimationFrame(tick);
+        });
+        window.addEventListener('pointerup', function(){
+          holding = false;
+          if(!paid && held > 0){
+            held = 0;
+            fill.style.width = '0%';
+            exEl.textContent = '"hello? hello? network..." They hung up.';
+          }
+        });
+        rowEl.appendChild(b);
+        invEl.appendChild(rowEl);
+      });
+
+      addButtons(el, [{ label: 'CLOSE', onClick: function(){ G.audio.click(); close(entry); } }]);
     },
 
     // ---------- quotes wall ----------
