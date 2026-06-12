@@ -321,6 +321,13 @@
         pausing: true,
         onClose: function(){
           st.weekEarned = 0; st.weekSpent = 0; st.weekShipped = 0; st.weekScrapped = 0;
+          st.weekViral = 0; st.weekFollowers = 0;
+          s.staff.forEach(function(x){ x.shippedWeek = 0; });
+          // every 4th friday: the industry gathers to applaud itself
+          if(!s.gameOver && s.week % G.BAL.CRAANES_EVERY_WEEKS === 0 && !s.craanesDone[s.week]){
+            G.modals.showCraanes(function(){ G.time.advanceToMonday(); });
+            return;
+          }
           G.time.advanceToMonday();
         }
       });
@@ -591,6 +598,252 @@
       });
 
       addButtons(el, [{ label: 'CLOSE', onClick: function(){ G.audio.click(); close(entry); } }]);
+    },
+
+    // ---------- friday IG recap reel: @cravache.agency weekly wrap ----------
+    // a phone-frame story. Tap through, then the report card lands.
+    showWeeklyReel: function(info){
+      var s = G.state, st = s.stats;
+      var fmtK = function(n){
+        n = Math.round(n);
+        return n >= 100000 ? (n / 100000).toFixed(1) + 'L' : (n >= 1000 ? (n / 1000).toFixed(1) + 'k' : '' + n);
+      };
+
+      // MVP: who shipped the most this week
+      var mvp = null;
+      s.staff.forEach(function(x){
+        if((x.shippedWeek || 0) > 0 && (!mvp || x.shippedWeek > mvp.shippedWeek)) mvp = x;
+      });
+
+      var slides = [];
+      slides.push(
+        '<div class="ig-big">WK ' + s.week + '<br>WRAPPED 🎬</div>' +
+        '<div class="ig-sub">another week at the agency<br>nobody slept. everybody posted.</div>'
+      );
+      var delta = st.weekFollowers;
+      slides.push(
+        '<div class="ig-label">THE ALGORITHM SAYS</div>' +
+        '<div class="ig-big" data-count-followers>' + fmtK(s.followers) + '</div>' +
+        '<div class="ig-sub">followers</div>' +
+        '<div class="ig-delta ' + (delta >= 0 ? 'pos' : 'neg') + '">' +
+          (delta >= 0 ? '+' : '') + fmtK(delta) + ' this week</div>'
+      );
+      slides.push(
+        '<div class="ig-label">SHIPPED</div>' +
+        '<div class="ig-big">' + st.weekShipped + '</div>' +
+        '<div class="ig-sub">brief' + (st.weekShipped === 1 ? '' : 's') + ' out the door</div>' +
+        '<div class="ig-delta pos">' + G.fmtMoney(Math.round(st.weekEarned)) + ' billed</div>' +
+        (st.weekScrapped ? '<div class="ig-delta neg">' + st.weekScrapped + ' scrapped (we do not talk about those)</div>' : '')
+      );
+      if(mvp){
+        var sp = G.data.sprite(mvp.portraitKey);
+        var img = sp && sp.meta && sp.meta.file
+          ? '<div class="ig-mvp-wrap"><img class="ig-mvp" src="art/' + sp.meta.file + '" alt=""></div>'
+          : '<div class="ig-big">👑</div>';
+        slides.push(
+          '<div class="ig-label">MVP OF THE WEEK</div>' + img +
+          '<div class="ig-big" style="font-size:26px">' + esc(mvp.name.split(' ')[0].toUpperCase()) + '</div>' +
+          '<div class="ig-sub">' + mvp.shippedWeek + ' brief' + (mvp.shippedWeek === 1 ? '' : 's') + ' shipped · ' +
+          esc(mvp.dept) + '</div>'
+        );
+      }
+      if(st.weekViral > 0){
+        slides.push(
+          '<div class="ig-big" style="color:#ffe066">WE WENT<br>VIRAL 🔥</div>' +
+          '<div class="ig-sub">' + st.weekViral + ' post' + (st.weekViral === 1 ? '' : 's') + ' escaped containment.<br>the client is taking credit.</div>'
+        );
+      } else if(st.weekShipped === 0){
+        slides.push(
+          '<div class="ig-big" style="color:#ff5c5c">0 POSTS</div>' +
+          '<div class="ig-sub">the algorithm has forgotten us.<br>the algorithm is lucky.</div>'
+        );
+      }
+      slides.push(
+        '<div class="ig-big" style="font-size:24px">SAME TIME<br>NEXT WEEK</div>' +
+        '<div class="ig-sub">follow @cravache.agency<br>(the interns run this account)</div>'
+      );
+
+      var bars = slides.map(function(_, i){
+        return '<div class="ig-bar" data-bar="' + i + '"><div></div></div>';
+      }).join('');
+
+      var el = modalShell({
+        cls: 'modal-reel',
+        bodyHTML:
+          '<div class="ig-phone" data-phone>' +
+            '<div class="ig-bars">' + bars + '</div>' +
+            '<div class="ig-head"><span class="ig-avatar">C</span>cravache.agency <span class="ig-dim">· weekly recap</span></div>' +
+            '<div class="ig-slide" data-slide></div>' +
+            '<div class="ig-foot">♡ &nbsp; 💬 &nbsp; ✈ <span class="ig-dim" style="float:right">tap to continue</span></div>' +
+          '</div>'
+      });
+      var entry = push(el, {
+        pausing: true,
+        onClose: function(){ G.modals.showReportCard(info); }
+      });
+
+      var idx = 0;
+      var slideEl = el.querySelector('[data-slide]');
+      function paint(){
+        slideEl.innerHTML = slides[idx];
+        for(var i = 0; i < slides.length; i++){
+          var b = el.querySelector('[data-bar="' + i + '"] > div');
+          if(b) b.style.width = i < idx ? '100%' : (i === idx ? '100%' : '0%');
+        }
+        // follower slide gets the count-up treatment
+        var cEl = slideEl.querySelector('[data-count-followers]');
+        if(cEl) countUp(cEl, s.followers, fmtK, 1.1);
+        G.audio.click();
+      }
+      el.querySelector('[data-phone]').addEventListener('click', function(){
+        idx++;
+        if(idx >= slides.length){ close(entry); return; }
+        paint();
+      });
+      paint();
+    },
+
+    // ---------- the Craanes: award night parody. You pay. They clap. ----------
+    showCraanes: function(onDone){
+      var s = G.state;
+      s.craanesDone[s.week] = true;
+
+      var cats = [
+        { key: 'reel', label: 'BEST REEL UNDER DURESS',
+          desc: 'For work shipped while the deadline was actively on fire.',
+          chance: Math.min(0.85, 0.25 + s.stats.totalViral * 0.15) },
+        { key: 'tantrum', label: 'EXCELLENCE IN CLIENT TANTRUM MANAGEMENT',
+          desc: 'Judged on the wall of "just one small thing".',
+          chance: Math.min(0.85, 0.2 + s.quotesWall.length * 0.08) },
+        { key: 'agency', label: 'BREAKTHROUGH AGENCY OF THE EVENING',
+          desc: 'Sponsored. The sponsor also has an agency. Unrelated.',
+          chance: Math.min(0.8, 0.15 + s.rep * 0.005) }
+      ];
+      var entered = {};
+
+      var el = modalShell({
+        cls: 'modal-craanes',
+        kicker: 'FRIDAY NIGHT · A HOTEL BALLROOM WITH BAD ACOUSTICS',
+        title: '🏆 THE CRAANES',
+        bodyHTML:
+          '<div class="modal-fine">Indian advertising\'s biggest night of applauding itself. ' +
+          'Entry is ' + G.fmtMoney(G.BAL.CRAANES_ENTRY) + ' per category. Yes, you pay to maybe win. ' +
+          'That part is not satire.</div><div data-cats></div>'
+      });
+      var entry = push(el, { pausing: true, onClose: onDone || null });
+
+      var catsEl = el.querySelector('[data-cats]');
+      cats.forEach(function(cat){
+        var rowEl = document.createElement('div');
+        rowEl.className = 'shop-row';
+        rowEl.innerHTML = '<div><span class="sr-name">' + cat.label + '</span>' +
+          '<span class="sr-desc">' + cat.desc + '</span></div>';
+        var b = document.createElement('button');
+        b.className = 'px-btn';
+        b.textContent = 'ENTER ' + G.fmtMoney(G.BAL.CRAANES_ENTRY);
+        b.addEventListener('click', function(){
+          if(entered[cat.key]){
+            entered[cat.key] = false;
+            s.money += G.BAL.CRAANES_ENTRY; // straight refund, not "earnings"
+            s.stats.weekSpent -= G.BAL.CRAANES_ENTRY;
+            G.hud.poke('money');
+            b.textContent = 'ENTER ' + G.fmtMoney(G.BAL.CRAANES_ENTRY);
+            b.classList.add('px-btn');
+            b.classList.remove('px-btn-dim');
+            G.audio.click();
+            return;
+          }
+          if(s.money < G.BAL.CRAANES_ENTRY){ G.audio.decline(); return; }
+          entered[cat.key] = true;
+          G.economy.spend(G.BAL.CRAANES_ENTRY);
+          b.textContent = 'ENTERED ✔ (undo)';
+          b.classList.add('px-btn-dim');
+          G.audio.accept();
+        });
+        rowEl.appendChild(b);
+        catsEl.appendChild(rowEl);
+      });
+
+      addButtons(el, [
+        { label: 'ATTEND CEREMONY', onClick: function(){
+            G.audio.click();
+            var picked = cats.filter(function(c){ return entered[c.key]; });
+            if(!picked.length){
+              G.dock.infoToast('THE CRAANES', 'You sat at the back, ate the buffet, entered nothing. Honestly? Power move.', '');
+              close(entry);
+              return;
+            }
+            entry.onClose = null; // ceremony takes over the chain
+            close(entry);
+            ceremony(picked, onDone);
+          } },
+        { label: 'SKIP (SLEEP)', cls: 'px-btn-dim', onClick: function(){
+            G.audio.click();
+            // refund anything entered, then bail
+            cats.forEach(function(c){
+              if(entered[c.key]){
+                s.money += G.BAL.CRAANES_ENTRY;
+                s.stats.weekSpent -= G.BAL.CRAANES_ENTRY;
+              }
+            });
+            G.hud.poke('money');
+            G.dock.infoToast('THE CRAANES', 'You slept. Somewhere, a jury wept into its lanyards.', '');
+            close(entry);
+          } }
+      ]);
+
+      // envelope-by-envelope reveal
+      function ceremony(picked, done){
+        var results = picked.map(function(c){
+          return { cat: c, won: Math.random() < c.chance };
+        });
+        var el2 = modalShell({
+          cls: 'modal-craanes',
+          kicker: 'THE LIGHTS DIM · A DRUM ROLL FROM A LAPTOP SPEAKER',
+          title: 'AND THE CRAANE GOES TO...',
+          bodyHTML: '<div data-envelopes></div>'
+        });
+        var entry2 = push(el2, { pausing: true, onClose: done || null });
+        var envEl = el2.querySelector('[data-envelopes]');
+        var ri = 0, wins = 0;
+
+        var btnRow = addButtons(el2, [{ label: 'OPEN ENVELOPE', onClick: openNext }]);
+        var openBtn = btnRow.querySelector('button');
+
+        function openNext(){
+          if(ri >= results.length) return;
+          var r = results[ri];
+          var rowEl = document.createElement('div');
+          rowEl.className = 'craanes-result ' + (r.won ? 'won' : 'lost');
+          if(r.won){
+            wins++;
+            s.trophies.push({ label: r.cat.label, week: s.week });
+            s.rep += G.BAL.CRAANES_WIN_REP;
+            G.verdict.gainFollowers(G.BAL.CRAANES_WIN_FOLLOWERS);
+            rowEl.innerHTML = '<div class="cr-cat">' + r.cat.label + '</div>' +
+              '<div class="cr-verdict">🏆 CRAVACHE! <span class="ig-dim">+' + G.BAL.CRAANES_WIN_REP + ' rep · +' +
+              G.BAL.CRAANES_WIN_FOLLOWERS + ' followers</span></div>';
+            G.audio.win();
+            G.modals.confetti();
+          } else {
+            rowEl.innerHTML = '<div class="cr-cat">' + r.cat.label + '</div>' +
+              '<div class="cr-verdict">went to the sponsor\'s nephew\'s agency. <span class="ig-dim">the jury avoided eye contact.</span></div>';
+            G.audio.decline();
+          }
+          envEl.appendChild(rowEl);
+          ri++;
+          if(ri >= results.length){
+            openBtn.textContent = wins ? 'CARRY THE TROPHIES HOME' : 'LONG DRIVE HOME';
+            openBtn.onclick = null;
+            openBtn.addEventListener('click', function(){
+              G.audio.click();
+              if(wins) G.dock.infoToast('AWARD SHELF', wins + ' Craane' + (wins > 1 ? 's' : '') + ' now living on the office wall. Clients will pretend not to notice.', 'good');
+              close(entry2);
+            }, { once: true });
+            openBtn.removeEventListener('click', openNext);
+          }
+        }
+      }
     },
 
     // ---------- quotes wall ----------

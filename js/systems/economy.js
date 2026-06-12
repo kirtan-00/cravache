@@ -93,7 +93,8 @@
           return;
         }
       }
-      G.modals.showReportCard({
+      // friday chain: IG recap reel -> report card -> (craanes night) -> monday
+      G.modals.showWeeklyReel({
         cleared: cleared,
         payroll: total,
         strikes: s.strikes

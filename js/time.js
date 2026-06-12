@@ -141,6 +141,10 @@
       s.callFiredToday = false;
       s.officeEventToday = false;
       s._officeEventAt = null;
+      // the printer wakes up wrong some mornings; stays jammed until clicked
+      if(!s.printerJammed && Math.random() < G.BAL.PRINTER_JAM_CHANCE){
+        s.printerJammed = true;
+      }
     },
 
     spawnIntervalReal: function(){

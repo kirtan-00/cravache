@@ -102,6 +102,27 @@
       }
     },
 
+    // ---------- the shoulder-stand: click a working staffer ----------
+    // tiny chunk of real progress (30 clicks = 1 game hour of their output)
+    // plus one excuse from the pool. Free-ish: each click adds a sliver of
+    // burnout, because being watched IS work.
+    nudge: function(st){
+      var b = st.briefId ? G.briefs.byId(st.briefId) : null;
+      if(!b) return;
+      var realSec = G.time.realPerHour() / G.BAL.NUDGE_CLICKS_PER_HOUR;
+      b.workDone += this.effectiveSpeed(st, b) * realSec;
+      st.burnout = Math.min(100, st.burnout + G.BAL.NUDGE_BURNOUT);
+      // one excuse per click; characters with their own lines mix them in
+      var pool = EXCUSES;
+      if(st.lines && Math.random() < 0.25) pool = st.lines;
+      var line = pool[Math.floor(Math.random() * pool.length)];
+      if(line === st._lastExcuse) line = pool[(pool.indexOf(line) + 1) % pool.length];
+      st._lastExcuse = line;
+      this.say(st, line);
+      G.audio.click();
+      if(b.workDone >= b.workNeeded) G.briefs.complete(b, st);
+    },
+
     quit: function(st){
       var s = G.state;
       // their assigned brief returns to tray with 25% deadline remaining
@@ -185,6 +206,35 @@
       return null;
     }
   };
+
+  // ---------- the excuse pool (one per shoulder-stand click) ----------
+  var EXCUSES = [
+    'haan haan, almost done', 'rendering, I swear', '2 minutes boss', 'it is exporting only',
+    'wifi is slow today', 'file got corrupt, redoing', 'premiere crashed again', 'autosave betrayed me',
+    'just polishing it', 'one last pass', 'fonts are not loading', 'the plugin expired',
+    'mac is heating up', 'I was just about to', 'send hi on whatsapp, sending', 'cloud is syncing',
+    'taking backup first', 'this is the final final', 'colour grading, very close', 'audio is 90% there',
+    'client ref was blurry', 'the brief changed na', 'waiting on assets', 'drive link is broken',
+    'storage full, deleting', 'it looks done but it is not', 'trust the process', 'I work better watched. lie.',
+    'caffeine loading', 'just opened the file', 'was fixing margins', 'kerning takes time boss',
+    'the gradient is fighting me', 'mood board first na', 'exploring directions', 'two options coming',
+    'making it pop, as asked', 'less is more, removing', 'more is more, adding', 'version 14 is the one',
+    'saving as final_v3_FINAL', 'layers are a mess, sorting', 'masking takes patience', 'pen tool is spiritual work',
+    'timeline is heavy', 'proxies are building', 'cache is clearing', 'GPU is thinking',
+    'frame rate issue, solving', 'the cut needs to breathe', 'music is not sitting right', 'syncing to the beat',
+    'subtitle timing, very close', 'one transition left', 'colour looks different here', 'monitor is lying to me',
+    'it works on my screen', 'exporting draft for you', 'compressing, almost', 'upload at 97%',
+    'hashtag research, serious work', 'caption needs one more draft', 'tone of voice check', 'grammarly is judging me',
+    'the hook is not hooking', 'thesaurus broke me', 'writing the third option', 'shorter version coming',
+    'longer version also coming', 'client will love this one', 'this line slaps, wait', 'deleting my best work, fine',
+    'lunch was heavy boss', 'chai break was research', 'bathroom is networking', 'stand-up ran long',
+    'I replied to the client first', 'mail draft is ready', 'was helping Palak', 'was helping literally everyone',
+    'phone died, charging', 'notifications attacked me', 'instagram was for reference', 'youtube tutorial, 2x speed',
+    'learning the new tool', 'old tool was better', 'shortcut keys changed', 'my mouse is double clicking',
+    'chair is wobbling, focus gone', 'AC is directly on me', 'it is too quiet to work', 'it is too loud to work',
+    'monday brain, sorry', 'friday brain, sorry', 'post lunch dip, scientific', 'deadline makes me faster, watch',
+    'I do my best work at night', 'almost had it, restarting', 'do not stand there na', 'ok ok ok doing it now'
+  ];
 
   // ---------- walk-in generator ----------
   var FIRST = ['Hardik','Mansi','Rohan','Khushi','Parth','Avni','Yash','Disha','Kunal',

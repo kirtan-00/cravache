@@ -44,6 +44,34 @@
 
   var t = 0; // anim clock
 
+  // hotspot flavor rotors (not saved; the city has infinite material)
+  var windowIdx = 0, boardIdx = 0, printerIdx = 0;
+  var WINDOW_LINES = [
+    'SG Highway is jammed. Like your printer.',
+    'An auto just overtook a Fortuner. Both honked. Neither moved.',
+    'It is 41°C. The client wants "monsoon vibes" by Thursday.',
+    'A wedding band is rehearsing somewhere. It is 3 PM on a Tuesday.',
+    'The chai tapri downstairs has better client retention than you.',
+    'Two pigeons are fighting over samosa. The strong one wins. Nature is an agency.',
+    'Somewhere out there, a brand manager is typing "make it pop".',
+    'The Sabarmati riverfront looks calm. It has never taken a client call.'
+  ];
+  var BOARD_LINES = [
+    '"HUSTLE IS A MINDSET" (the CEO read this on LinkedIn at 6 AM)',
+    '"WE ARE A FAMILY" (families do not have appraisal cycles)',
+    '"DO MORE WITH LESS" (the less is you)',
+    '"EVERY BRIEF IS AN OPPORTUNITY" (to suffer beautifully)',
+    '"CLIENTS FIRST" (sleep last)',
+    '"THINK OUTSIDE THE BOX" (the box is your salary band)',
+    '"GREAT WORK SPEAKS FOR ITSELF" (it still invoices net-90)'
+  ];
+  var PRINTER_LINES = [
+    'You hit it once, with feeling. It works. You are now IT support.',
+    'Paper jam cleared. The printer holds a grudge.',
+    'Fixed. It printed someone\'s resume on the way back. Awkward.',
+    'Un-jammed. It made the noise anyway, out of spite.'
+  ];
+
   function deskHitbox(i){
     var d = DESKS[i];
     return { x: d.x - 60, y: d.y - 125, w: 120, h: 175 };
@@ -323,9 +351,95 @@
     ctx.fillText(text, x + 8, y - 8);
   }
 
+  // ---------- clickable hotspots (chai / printer / window / board) ----------
+  var HOTSPOTS = {
+    chai:    { x: 100, y: 158, w: 72, h: 78 },
+    printer: { x: 700, y: 178, w: 60, h: 58 },
+    window:  { x: 950, y: 245, w: 100, h: 135 }, // upper door panel: peek outside
+    board:   { x: 40,  y: 50,  w: 210, h: 58 }
+  };
+
+  // motivational poster (the board hotspot needs something to click)
+  function drawBoard(ctx){
+    var h = HOTSPOTS.board;
+    ctx.fillStyle = '#16203a'; ctx.fillRect(h.x - 3, h.y - 3, h.w + 6, h.h + 6);
+    ctx.fillStyle = '#f4e8cf'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 3;
+    ctx.strokeRect(h.x + 1.5, h.y + 1.5, h.w - 3, h.h - 3);
+    pxText(ctx, 'HUSTLE™', h.x + h.w / 2, h.y + 26, 14, '#7a4a21', 'center', true);
+    pxText(ctx, 'mandatory inspiration', h.x + h.w / 2, h.y + 44, 13, '#5a4632', 'center');
+  }
+
+  function drawChaiStation(ctx){
+    var s = G.state;
+    var h = HOTSPOTS.chai;
+    var used = s.chaiDay === s.week * 10 + s.day;
+    // counter
+    ctx.fillStyle = '#16203a'; ctx.fillRect(h.x, h.y + 46, h.w, 30);
+    ctx.fillStyle = '#2a3654'; ctx.fillRect(h.x + 3, h.y + 49, h.w - 6, 24);
+    // kettle
+    ctx.fillStyle = used ? '#5a5a52' : '#c0c0b4';
+    ctx.fillRect(h.x + 10, h.y + 22, 26, 24);
+    ctx.fillRect(h.x + 36, h.y + 28, 8, 6); // spout
+    ctx.fillStyle = '#16203a'; ctx.fillRect(h.x + 16, h.y + 16, 14, 6); // lid
+    // kulhad glasses
+    ctx.fillStyle = '#b06a3a';
+    ctx.fillRect(h.x + 48, h.y + 36, 9, 10);
+    ctx.fillRect(h.x + 59, h.y + 36, 9, 10);
+    // steam (only while chai is still on offer)
+    if(!used){
+      var sy = Math.floor(t * 3) % 3;
+      ctx.fillStyle = 'rgba(244,232,207,0.5)';
+      ctx.fillRect(h.x + 18, h.y + 6 - sy * 2, 4, 4);
+      ctx.fillRect(h.x + 26, h.y + 10 - sy * 2, 4, 4);
+    }
+    pxText(ctx, used ? 'CHAI (kal)' : 'CHAI ☕', h.x + h.w / 2, h.y + h.h + 12, 9,
+           used ? 'rgba(159,232,255,0.35)' : '#ffe066', 'center', true);
+  }
+
+  function drawPrinter(ctx){
+    var s = G.state;
+    var h = HOTSPOTS.printer;
+    ctx.fillStyle = '#16203a'; ctx.fillRect(h.x - 3, h.y - 3, h.w + 6, h.h + 6);
+    ctx.fillStyle = '#8a8a80'; ctx.fillRect(h.x, h.y, h.w, h.h - 14);
+    ctx.fillStyle = '#6a6a62'; ctx.fillRect(h.x, h.y + h.h - 14, h.w, 14); // tray
+    ctx.fillStyle = '#f4e8cf'; ctx.fillRect(h.x + 10, h.y + h.h - 18, h.w - 20, 6); // paper
+    // status light + jam drama
+    if(s.printerJammed){
+      if(Math.floor(t * 4) % 2 === 0){
+        ctx.fillStyle = '#ff5c5c'; ctx.fillRect(h.x + h.w - 12, h.y + 6, 6, 6);
+        pxText(ctx, 'JAM!', h.x + h.w / 2, h.y - 8, 10, '#ff5c5c', 'center', true);
+      }
+    } else {
+      ctx.fillStyle = '#7ee08a'; ctx.fillRect(h.x + h.w - 12, h.y + 6, 6, 6);
+    }
+  }
+
+  function drawTrophies(ctx){
+    var tr = G.state.trophies;
+    if(!tr || !tr.length) return;
+    var x0 = 46, y0 = 120;
+    pxText(ctx, 'AWARD SHELF', x0, y0 - 4, 8, 'rgba(255,224,102,0.6)', 'left', true);
+    // shelf plank
+    ctx.fillStyle = '#16203a'; ctx.fillRect(x0 - 4, y0 + 24, Math.min(tr.length, 8) * 26 + 8, 5);
+    for(var i = 0; i < Math.min(tr.length, 8); i++){
+      var x = x0 + i * 26;
+      ctx.fillStyle = '#ffe066';
+      ctx.fillRect(x + 4, y0 + 2, 12, 10);  // cup
+      ctx.fillRect(x + 7, y0 + 12, 6, 5);   // stem
+      ctx.fillRect(x + 3, y0 + 17, 14, 4);  // base
+      ctx.fillStyle = '#b8860b';
+      ctx.fillRect(x + 4, y0 + 9, 12, 3);   // shading band
+    }
+  }
+
   // ---------- props ----------
   function drawProps(ctx){
     var s = G.state;
+    drawChaiStation(ctx);
+    drawPrinter(ctx);
+    drawBoard(ctx);
+    drawTrophies(ctx);
     if(s.upgrades.coffee) drawSprite(ctx, 'coffee_machine', 16, 150, 60, 80);
     if(s.upgrades.plant) drawSprite(ctx, 'plant', 836, 168, 48, 68);
     if(s.upgrades.neon){
@@ -406,9 +520,64 @@
       }
     },
 
-    // canvas click: quote frames, staffers (shows trait), desks (shows fine print)
+    // canvas click: hotspots, quote frames, staffers (nudge if working), desks
     handleClick: function(lx, ly){
       var s = G.state;
+
+      function inBox(h){ return lx >= h.x && lx <= h.x + h.w && ly >= h.y && ly <= h.y + h.h; }
+
+      // chai station: one round a day, whole office exhales
+      if(inBox(HOTSPOTS.chai)){
+        var key = s.week * 10 + s.day;
+        if(s.chaiDay === key){
+          G.dock.infoToast('CHAI', 'One round a day. The chai budget is a line item now.', '');
+        } else if(s.money < G.BAL.CHAI_COST){
+          G.dock.infoToast('CHAI', 'Cannot afford chai. Let that sink in.', 'bad');
+          G.audio.decline();
+        } else {
+          s.chaiDay = key;
+          G.economy.spend(G.BAL.CHAI_COST);
+          var sipped = 0;
+          s.staff.forEach(function(st){
+            if(!G.time.onClock(st)) return;
+            st.burnout = Math.max(0, st.burnout - G.BAL.CHAI_RELIEF);
+            sipped++;
+            if(Math.random() < 0.4) G.staff.say(st, 'chai ☕');
+          });
+          G.audio.chaChing();
+          G.dock.infoToast('CHAI ROUND ☕', sipped + ' cutting chais. Burnout −' + G.BAL.CHAI_RELIEF + '%. Morale: briefly real.', 'good');
+        }
+        return;
+      }
+
+      // printer: fix the jam, calm the room
+      if(inBox(HOTSPOTS.printer)){
+        if(s.printerJammed){
+          s.printerJammed = false;
+          G.chaos.add(-G.BAL.PRINTER_FIX_CHAOS);
+          G.audio.accept();
+          G.dock.infoToast('PRINTER FIXED', PRINTER_LINES[printerIdx++ % PRINTER_LINES.length], 'good');
+        } else {
+          G.dock.infoToast('PRINTER', 'It works. Nobody knows why. Do not touch it.', '');
+          G.audio.click();
+        }
+        return;
+      }
+
+      // window: ahmedabad is out there
+      if(inBox(HOTSPOTS.window)){
+        G.audio.click();
+        G.dock.infoToast('OUT THE WINDOW', WINDOW_LINES[windowIdx++ % WINDOW_LINES.length], '');
+        return;
+      }
+
+      // agency board: ceo-grade motivation
+      if(inBox(HOTSPOTS.board)){
+        G.audio.click();
+        G.dock.infoToast('THE BOARD SAYS', BOARD_LINES[boardIdx++ % BOARD_LINES.length], '');
+        return;
+      }
+
       for(var i = 0; i < quoteFrames.length; i++){
         var f = quoteFrames[i];
         if(lx >= f.x && lx <= f.x + f.w && ly >= f.y && ly <= f.y + f.h){
@@ -423,8 +592,13 @@
         if(lx >= hb.x && lx <= hb.x + hb.w && ly >= hb.y && ly <= hb.y + hb.h){
           var st = G.staff.atDesk(d);
           if(st){
-            G.staff.say(st, st.trait);
-            G.audio.click();
+            if(st.briefId && G.time.onClock(st)){
+              // standing over them: work moves a little, an excuse comes free
+              G.staff.nudge(st);
+            } else {
+              G.staff.say(st, st.trait);
+              G.audio.click();
+            }
           }
           return;
         }

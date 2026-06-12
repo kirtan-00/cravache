@@ -355,3 +355,67 @@ canvas#game{
 .rs-title{ font-family:'Silkscreen', monospace; font-size:18px; color:var(--brass); }
 .rs-sub{ font-size:17px; color:var(--paper); max-width:560px; }
 #btn-letsgo{ pointer-events:auto; margin-top:10px; animation:bump 1.6s steps(2) infinite; }
+
+/* ---------- friday IG recap reel ---------- */
+.modal.modal-reel{
+  background:transparent; border:none; box-shadow:none; padding:0;
+  display:flex; justify-content:center;
+}
+.ig-phone{
+  width:300px; height:560px; background:#0b0f1e;
+  border:4px solid #16203a; box-shadow:8px 8px 0 #000;
+  display:flex; flex-direction:column; cursor:pointer; user-select:none;
+  position:relative; overflow:hidden;
+}
+.ig-bars{ display:flex; gap:4px; padding:8px 10px 0; }
+.ig-bar{ flex:1; height:4px; background:#2a3654; }
+.ig-bar > div{ height:100%; width:0%; background:#f4e8cf; }
+.ig-head{
+  font-family:'Silkscreen',monospace; font-size:9px; color:#f4e8cf;
+  padding:10px 12px; display:flex; align-items:center; gap:8px;
+}
+.ig-avatar{
+  width:22px; height:22px; background:#ffe066; color:#0b0f1e;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:11px; border:2px solid #f4e8cf;
+}
+.ig-dim{ color:#5a6a8a; }
+.ig-slide{
+  flex:1; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; text-align:center; padding:0 18px; gap:10px;
+}
+.ig-label{
+  font-family:'Silkscreen',monospace; font-size:9px; color:#9fe8ff;
+  letter-spacing:1px;
+}
+.ig-big{
+  font-family:'Silkscreen',monospace; font-size:34px; color:#f4e8cf;
+  line-height:1.15; text-shadow:3px 3px 0 #000;
+}
+.ig-sub{ font-family:'VT323',monospace; font-size:18px; color:#9aa7c4; line-height:1.3; }
+.ig-delta{ font-family:'VT323',monospace; font-size:19px; }
+.ig-delta.pos{ color:#7ee08a; }
+.ig-delta.neg{ color:#ff5c5c; }
+.ig-mvp-wrap{
+  width:128px; height:192px; overflow:hidden; image-rendering:pixelated;
+  border:3px solid #ffe066; background:#16203a; box-shadow:4px 4px 0 #000;
+}
+.ig-mvp{ width:256px; height:192px; image-rendering:pixelated; }
+.ig-foot{
+  font-family:'VT323',monospace; font-size:16px; color:#9aa7c4;
+  padding:10px 14px 12px; border-top:2px solid #16203a;
+}
+
+/* ---------- the craanes ---------- */
+.modal.modal-craanes{ border-color:#ffe066; }
+.craanes-result{ margin:8px 0; padding:8px 10px; border:2px solid #2a3654; }
+.craanes-result.won{ border-color:#ffe066; background:rgba(255,224,102,0.07); }
+.craanes-result.lost{ opacity:0.85; }
+.craanes-result .cr-cat{
+  font-family:'Silkscreen',monospace; font-size:9px; color:#9fe8ff; margin-bottom:4px;
+}
+.craanes-result .cr-verdict{ font-family:'VT323',monospace; font-size:19px; color:#f4e8cf; }
+.craanes-result.won .cr-verdict{ color:#ffe066; }
+
+/* fine print inside dark toasts: the brief-card brown is unreadable on navy */
+.toast .bc-fine{ color:#d8c9a8; border-top-color:#5a6a8a; }

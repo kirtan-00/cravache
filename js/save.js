@@ -53,6 +53,15 @@
         s.briefDeck = (s.briefDeck || []).map(function(d){
           return d && d.__defId ? defById(d.__defId) : d;
         }).filter(Boolean);
+        // older saves predate the IG/craanes/clickables fields: fill defaults
+        if(s.followers === undefined) s.followers = G.BAL.START_FOLLOWERS;
+        s.trophies = s.trophies || [];
+        s.craanesDone = s.craanesDone || {};
+        if(s.chaiDay === undefined) s.chaiDay = -1;
+        s.printerJammed = !!s.printerJammed;
+        s.stats.weekViral = s.stats.weekViral || 0;
+        s.stats.weekFollowers = s.stats.weekFollowers || 0;
+        s.staff.forEach(function(st){ st.shippedWeek = st.shippedWeek || 0; });
         return s;
       } catch(e){ return null; }
     },

@@ -85,7 +85,30 @@
     },
 
     FIRST_TOAST_SECONDS: 45,     // the very first brief of a run: all the time in the world
-    INTRO_CLIENTS_FULL: 3        // first N new clients get the full signing dossier modal
+    INTRO_CLIENTS_FULL: 3,       // first N new clients get the full signing dossier modal
+
+    // standing over shoulders: click a working staffer -> tiny work boost +
+    // one excuse. 30 clicks = one game hour of their output. Not free: burnout.
+    NUDGE_CLICKS_PER_HOUR: 30,
+    NUDGE_BURNOUT: 0.35,
+
+    // office clickables: idle hands get things to do
+    CHAI_COST: 200,              // one chai round, whole office
+    CHAI_RELIEF: 12,             // burnout shaved off everyone on the clock
+    PRINTER_JAM_CHANCE: 0.3,     // rolled each morning; stays jammed until clicked
+    PRINTER_FIX_CHAOS: 3,        // fixing it calms the room
+
+    // instagram: followers move with shipped/viral/scrapped work
+    START_FOLLOWERS: 800,
+    FOLLOWERS_APPROVE: [40, 140],    // random in range per approved brief
+    FOLLOWERS_VIRAL: [600, 2400],
+    FOLLOWERS_SCRAPPED: -60,
+
+    // the Craanes: award-night parody. Pay to enter. Like the real thing.
+    CRAANES_EVERY_WEEKS: 4,      // fires Friday of week 4, 8, 12...
+    CRAANES_ENTRY: 25000,        // per category. The jury thanks you.
+    CRAANES_WIN_REP: 6,
+    CRAANES_WIN_FOLLOWERS: 900
   };
 
   // ---------- difficulty curves ----------
@@ -191,6 +214,13 @@
       restructure: false,       // sim frozen, free management, LET'S GO resumes
       bailouts: 0,              // investor rescues used (max 2)
 
+      // instagram + award shelf + office clickables
+      followers: G.BAL.START_FOLLOWERS,
+      trophies: [],             // craanes wins: {label, week}
+      craanesDone: {},          // week -> true (award night already happened)
+      chaiDay: -1,              // week*10+day of the last chai round
+      printerJammed: false,
+
       quotesWall: [],           // {text, client} survived absurdities
       activeCall: null,         // 6PM call in progress
       callFiredToday: false,
@@ -198,6 +228,7 @@
 
       stats: {                  // week-scoped (reset each Friday) + run totals
         weekEarned: 0, weekSpent: 0, weekShipped: 0, weekScrapped: 0,
+        weekViral: 0, weekFollowers: 0,
         totalEarned: 0, totalShipped: 0, totalViral: 0, quotesSurvived: 0
       },
       shake: 0
@@ -214,6 +245,7 @@
       lines: def.lines || null, lineT: 8 + Math.random() * 14, // gimmick bubble timer
       portraitKey: def.portraitKey || 'char1',
       burnout: 0, desk: -1, briefId: null,
+      shippedWeek: 0,               // MVP race for the friday IG reel
       bubble: null, bubbleT: 0      // floating speech bubble
     };
   }

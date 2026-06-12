@@ -70,6 +70,16 @@
       }, function(){ G.verdict.applyOutcome(brief, staffer, outcome, payout, comp.conflict); });
     },
 
+    // instagram followers: the other scoreboard
+    gainFollowers: function(range){
+      var s = G.state;
+      var n = Array.isArray(range)
+        ? Math.round(range[0] + Math.random() * (range[1] - range[0]))
+        : range;
+      s.followers = Math.max(0, s.followers + n);
+      s.stats.weekFollowers += n;
+    },
+
     // called the moment the slot lands (modal still open, count-up visible)
     applyOutcome: function(brief, staffer, outcome, payout, conflict){
       var s = G.state;
@@ -82,6 +92,8 @@
           s.receivables.push({ clientId: brief.clientId, title: brief.title, amount: payout, age: 0 });
           s.rep += G.BAL.REP_APPROVE + repBonus;
           s.stats.weekShipped++; s.stats.totalShipped++;
+          if(staffer) staffer.shippedWeek = (staffer.shippedWeek || 0) + 1;
+          this.gainFollowers(G.BAL.FOLLOWERS_APPROVE);
           G.audio.chaChing();
           G.dock.refreshCollect();
           break;
@@ -90,7 +102,9 @@
           // viral money also needs collecting. Fame is not cashflow.
           s.receivables.push({ clientId: brief.clientId, title: brief.title, amount: payout, age: 0 });
           s.rep += G.BAL.REP_VIRAL + repBonus;
-          s.stats.weekShipped++; s.stats.totalShipped++; s.stats.totalViral++;
+          s.stats.weekShipped++; s.stats.totalShipped++; s.stats.totalViral++; s.stats.weekViral++;
+          if(staffer) staffer.shippedWeek = (staffer.shippedWeek || 0) + 1;
+          this.gainFollowers(G.BAL.FOLLOWERS_VIRAL);
           G.audio.viral();
           G.main.screenShake();
           G.modals.confetti();
@@ -117,6 +131,7 @@
         case 'scrapped':
           s.rep = Math.max(0, s.rep + G.BAL.REP_SCRAPPED);
           s.stats.weekScrapped++;
+          this.gainFollowers(G.BAL.FOLLOWERS_SCRAPPED);
           G.chaos.add(6);
           // really bad work costs real money
           G.economy.spend(Math.round(brief.fee * G.BAL.CLAWBACK_SCRAPPED));
