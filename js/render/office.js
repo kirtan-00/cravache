@@ -119,6 +119,20 @@
     ctx.fillText(txt, x, y);
   }
 
+  // dark underlay behind wall-mounted labels so light text stays legible on the
+  // new BRIGHT bg (cream walls + pale window glass would otherwise wash it out).
+  // measures the text at the given size/font, draws a translucent dark pill.
+  function labelChip(ctx, txt, x, y, size, align, silk){
+    ctx.font = size + 'px ' + (silk ? "'Silkscreen', monospace" : "'VT323', monospace");
+    var w = ctx.measureText(txt).width;
+    var padX = 6, padY = 3, h = size + padY;
+    var bx = x;
+    if(align === 'center') bx = x - w / 2;
+    else if(align === 'right') bx = x - w;
+    ctx.fillStyle = 'rgba(17,20,29,0.62)';
+    ctx.fillRect(Math.round(bx - padX), Math.round(y - size + 1), Math.round(w + padX * 2), Math.round(h));
+  }
+
   function bar(ctx, x, y, w, h, frac, fg, bg){
     ctx.fillStyle = '#000';
     ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
@@ -169,6 +183,151 @@
     pxText(ctx, 'estd. monday', 196, 86, 16, '#9fe8ff');
   }
 
+  // ---------- animated window sky ----------
+  // The new bright bg (office_bg_shoebox 640x360, drawn to 1280x720) has one big
+  // multi-pane studio window. Its glass rect, measured off the art in logical
+  // (1280x720) coords: x 512..922, y 84..274. We paint a live sky inside it —
+  // hour-tinted, with slow drifting clouds, the odd kite (it IS Ahmedabad) and a
+  // rare bird pair — then redraw the mullion grid so the panes still read.
+  // Everything is clipped to the glass; night is left to the existing overlay.
+  var WIN = { x: 512, y: 84, w: 410, h: 190 };           // glass rect (logical)
+  var WIN_MUL_X = [612, 716, 820];                        // vertical mullions
+  var WIN_MUL_Y = [150];                                  // horizontal mullion(s)
+  var WIN_FRAME = '#b8814a';                              // matches art frame brown
+  var WIN_FRAME_SH = '#7a4a21';
+
+  // a few clouds with their own x/speed/size; positions wrap across the glass
+  var CLOUDS = [
+    { y: 18, speed: 5.0,  w: 46, x0: 0.05 },
+    { y: 52, speed: 3.4,  w: 64, x0: 0.55 },
+    { y: 86, speed: 6.6,  w: 38, x0: 0.30 }
+  ];
+
+  function lerp(a, b, f){ return a + (b - a) * f; }
+  function mix(c1, c2, f){
+    return 'rgb(' + Math.round(lerp(c1[0], c2[0], f)) + ',' +
+                    Math.round(lerp(c1[1], c2[1], f)) + ',' +
+                    Math.round(lerp(c1[2], c2[2], f)) + ')';
+  }
+
+  // sky as up-to-3 horizontal bands [topColor, midColor, bottomColor] by hour
+  function skyBands(hour){
+    // day 9..15 bright; 15..17 golden; 17..19 sunset; night = overlay handles dim
+    if(hour < 15){
+      // flat bright day — matches the art's pale blue
+      return [[150, 205, 240], [186, 224, 248], [206, 237, 250]];
+    } else if(hour < 17){
+      var f = (hour - 15) / 2;                     // -> golden
+      return [
+        [lerp(150, 122, f), lerp(205, 170, f), lerp(240, 210, f)],
+        [lerp(186, 240, f), lerp(224, 198, f), lerp(248, 150, f)],
+        [lerp(206, 255, f), lerp(237, 224, f), lerp(250, 150, f)]
+      ];
+    } else {
+      var g = Math.min(1, (hour - 17) / 2);        // -> sunset bands
+      return [
+        [lerp(122, 90,  g), lerp(170, 90,  g), lerp(210, 140, g)],
+        [lerp(240, 255, g), lerp(198, 154, g), lerp(150, 86,  g)],
+        [lerp(255, 211, g), lerp(224, 93,  g), lerp(150, 110, g)]
+      ];
+    }
+  }
+
+  function drawWindowSky(ctx){
+    // only over the real art window; the procedural fallback draws its own sky
+    if(!G.data.hasArt('office_bg_shoebox')) return;
+    var w = WIN;
+    var hour = G.time.hour();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(w.x, w.y, w.w, w.h);
+    ctx.clip();
+
+    // 1) sky gradient as three flat bands (no smooth gradient — keep it pixel)
+    var bands = skyBands(hour);
+    var bh = w.h / 3;
+    for(var b = 0; b < 3; b++){
+      ctx.fillStyle = 'rgb(' + Math.round(bands[b][0]) + ',' +
+                               Math.round(bands[b][1]) + ',' +
+                               Math.round(bands[b][2]) + ')';
+      ctx.fillRect(w.x, w.y + b * bh, w.w, Math.ceil(bh) + 1);
+    }
+
+    // golden/sunset sun disc low in the sky after 3pm
+    if(hour >= 15){
+      var sf = Math.min(1, (hour - 15) / 4);
+      var sx = w.x + w.w * 0.5;
+      var sy = w.y + w.h * (0.35 + sf * 0.45);
+      ctx.fillStyle = hour < 17 ? '#fff0b0' : '#ff9a56';
+      var sr = 14;
+      ctx.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);          // chunky square sun
+      ctx.fillStyle = 'rgba(255,224,102,0.30)';
+      ctx.fillRect(sx - sr - 4, sy - sr - 4, sr * 2 + 8, sr * 2 + 8);
+    }
+
+    // 2) drifting clouds — chunky 3-rect clusters, wrap horizontally
+    var cloudCol = hour >= 17 ? 'rgba(255,210,180,0.85)' : 'rgba(255,255,255,0.9)';
+    for(var c = 0; c < CLOUDS.length; c++){
+      var cl = CLOUDS[c];
+      var span = w.w + cl.w + 20;
+      var cx = w.x - cl.w - 10 + ((cl.x0 * span + t * cl.speed) % span);
+      var cy = w.y + cl.y;
+      ctx.fillStyle = cloudCol;
+      ctx.fillRect(cx,            cy + 6, cl.w,            10);
+      ctx.fillRect(cx + cl.w * 0.18, cy,     cl.w * 0.5,  10);
+      ctx.fillRect(cx + cl.w * 0.5,  cy + 3, cl.w * 0.4,  9);
+    }
+
+    // 3) a tiny kite drifts across every ~46s (Ahmedabad uttarayan energy)
+    var kitePeriod = 46;
+    var kp = (t % kitePeriod) / kitePeriod;
+    if(kp < 0.62){
+      var kf = kp / 0.62;
+      var kx = w.x - 24 + kf * (w.w + 48);
+      var ky = w.y + 24 + Math.sin(kf * 7) * 14;             // bob on the breeze
+      ctx.fillStyle = '#ff5c5c';
+      ctx.fillRect(kx,     ky - 5, 5, 5);
+      ctx.fillRect(kx - 5, ky,     5, 5);
+      ctx.fillRect(kx + 5, ky,     5, 5);
+      ctx.fillRect(kx,     ky + 5, 5, 5);
+      ctx.fillStyle = '#ffe066';                              // tail
+      ctx.fillRect(kx + 1, ky + 10, 2, 2);
+      ctx.fillRect(kx + 3, ky + 14, 2, 2);
+    }
+
+    // 4) a rare bird pair flaps past every ~70s, 2-frame wings
+    var birdPeriod = 70;
+    var bp = (t % birdPeriod) / birdPeriod;
+    if(bp < 0.5){
+      var bf = bp / 0.5;
+      var bx = w.x + w.w + 16 - bf * (w.w + 60);              // fly right->left
+      var by = w.y + 30 + Math.sin(bf * 5) * 8;
+      var up = Math.floor(t * 6) % 2 === 0;
+      ctx.fillStyle = hour >= 17 ? '#3a2a30' : '#33414f';
+      for(var k = 0; k < 2; k++){
+        var ox = bx + k * 18, oy = by + (k ? 6 : 0);
+        if(up){ ctx.fillRect(ox - 4, oy - 2, 3, 2); ctx.fillRect(ox + 1, oy - 2, 3, 2); ctx.fillRect(ox - 1, oy, 2, 2); }
+        else  { ctx.fillRect(ox - 4, oy, 3, 2);     ctx.fillRect(ox + 1, oy, 3, 2);     ctx.fillRect(ox - 1, oy - 1, 2, 2); }
+      }
+    }
+
+    ctx.restore();
+
+    // 5) redraw the window frame + mullions over the sky so panes still read
+    var i;
+    ctx.fillStyle = WIN_FRAME;
+    for(i = 0; i < WIN_MUL_X.length; i++) ctx.fillRect(WIN_MUL_X[i] - 3, w.y, 6, w.h);
+    for(i = 0; i < WIN_MUL_Y.length; i++) ctx.fillRect(w.x, WIN_MUL_Y[i] - 3, w.w, 6);
+    // mullion shading (lower/right edge) for a touch of depth
+    ctx.fillStyle = WIN_FRAME_SH;
+    for(i = 0; i < WIN_MUL_X.length; i++) ctx.fillRect(WIN_MUL_X[i] + 1, w.y, 2, w.h);
+    for(i = 0; i < WIN_MUL_Y.length; i++) ctx.fillRect(w.x, WIN_MUL_Y[i] + 1, w.w, 2);
+    // inner frame border (4px) so the sky never bleeds onto the wall edge
+    ctx.lineWidth = 5; ctx.strokeStyle = WIN_FRAME;
+    ctx.strokeRect(w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1);
+  }
+
   // ---------- quotes wall ----------
   var quoteFrames = []; // computed hitboxes for clicks
   function drawQuotesWall(ctx){
@@ -176,6 +335,7 @@
     quoteFrames = [];
     var maxFrames = 8;
     var startX = 340, y = 86, fw = 64, fh = 50, gap = 14;
+    labelChip(ctx, 'WALL OF "JUST ONE SMALL THING"', startX, y - 12, 10, 'left', true);
     pxText(ctx, 'WALL OF "JUST ONE SMALL THING"', startX, y - 12, 10, '#9fe8ff', 'left', true);
     for(var i = 0; i < maxFrames; i++){
       var x = startX + i * (fw + gap);
@@ -197,8 +357,9 @@
     for(var c = 0; c < CLUSTERS.length; c++){
       var cl = CLUSTERS[c];
       var unlocked = G.staff.deptUnlocked(cl.dept);
+      labelChip(ctx, cl.label, cl.x, cl.y, 9, 'center', true);
       pxText(ctx, cl.label, cl.x, cl.y, 9,
-             unlocked ? 'rgba(159,232,255,0.55)' : 'rgba(255,92,92,0.5)', 'center', true);
+             unlocked ? 'rgba(159,232,255,0.92)' : 'rgba(255,92,92,0.85)', 'center', true);
       if(!unlocked){
         // tape off the production strip
         var slots = [];
@@ -213,7 +374,8 @@
         ctx.setLineDash([14, 8]);
         ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
         ctx.setLineDash([]);
-        pxText(ctx, 'OPENS WK ' + G.BAL.PRODUCTION_UNLOCK_WEEK, (minX + maxX) / 2, (minY + maxY) / 2, 14, 'rgba(255,224,102,0.7)', 'center');
+        labelChip(ctx, 'OPENS WK ' + G.BAL.PRODUCTION_UNLOCK_WEEK, (minX + maxX) / 2, (minY + maxY) / 2, 14, 'center');
+        pxText(ctx, 'OPENS WK ' + G.BAL.PRODUCTION_UNLOCK_WEEK, (minX + maxX) / 2, (minY + maxY) / 2, 14, 'rgba(255,224,102,0.95)', 'center');
       }
     }
   }
@@ -299,6 +461,7 @@
 
       // name plate + badge icons
       var first = st.name.split(' ')[0];
+      labelChip(ctx, first, d.x - 6, d.y + DESK_H / 2 + 14, 8, 'center', true);
       pxText(ctx, first, d.x - 6, d.y + DESK_H / 2 + 14, 8, '#f4e8cf', 'center', true);
       if(st.badges.length){
         ctx.font = '11px serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
@@ -376,7 +539,7 @@
   // ---------- clickable hotspots (chai / printer / window / board) ----------
   var HOTSPOTS = {
     chai:    { x: 100, y: 158, w: 72, h: 78 },
-    printer: { x: 700, y: 178, w: 60, h: 58 },
+    printer: { x: 960, y: 170, w: 60, h: 58 }, // cream wall right of the window
     window:  { x: 950, y: 245, w: 100, h: 135 }, // upper door panel: peek outside
     board:   { x: 40,  y: 50,  w: 210, h: 58 },
     tv:      { x: 285, y: 150, w: 120, h: 80 }   // wall-mounted, only when owned
@@ -801,6 +964,7 @@
       t += dt;
       ctx.clearRect(0, 0, 1280, 720);
       drawBackground(ctx);
+      drawWindowSky(ctx);   // live hour-tinted sky in the studio window
       // night: the office goes dark blue, monitors become the light source
       if(G.state.night){
         ctx.fillStyle = 'rgba(8,12,28,0.52)';
