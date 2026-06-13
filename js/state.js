@@ -5,7 +5,11 @@
 
   // ---------- balance (DESIGN.md economy first-pass, tune freely keep ratios) ----------
   G.BAL = {
-    START_MONEY: 100000,         // ~4 starting payrolls. Tight is the point.
+    START_MONEY: 80000,          // ~2.5 starting weeks of costs. Tight is the point.
+
+    // economy rebalance (2026-06-13 design pass): fees were paying 6 weeks of
+    // payroll per brief. One global multiplier instead of 70 json edits.
+    FEE_GLOBAL_MULT: 0.20,
     START_REP: 50,
     DAY_REAL_SECONDS: 45,        // one game day (9AM-7PM)
     DAY_START_HOUR: 9,           // 9:00
@@ -22,6 +26,12 @@
     DEPT_CAPS: { designer: 5, editor: 5, content: 3, production: 4 },
     PRODUCTION_UNLOCK_WEEK: 3,   // survive 2 weeks, production opens
     DIRECTOR_BOOST: 1.2,         // production dept speed while the Director is hired
+    ARYA_SPEED_CAP: 2.0,         // night+hard-brief stack used to hit x2.38
+
+    // weekly office overhead beyond payroll: rent, AC, the one Adobe bill.
+    // Scales with headcount so growth costs something ongoing.
+    OVERHEAD_BASE: 9000,
+    OVERHEAD_PER_STAFF: 1500,
 
     // client tiers: week each tier starts appearing
     TIER_UNLOCK: { local: 1, gujarat: 2, india: 3, dubai: 3, global: 8 },
@@ -45,13 +55,13 @@
     COFFEE_BURNOUT_MULT: 0.7,    // coffee machine: burnout rate −30%
     QUIT_DEADLINE_FACTOR: 0.25,  // brief returns to tray with 25% deadline left
 
-    // money ticks (cosmetic escrow share, ≈30% of fee total)
-    ESCROW_SHARE: 0.30,
-    TICK_MIN: 80, TICK_MAX: 150,
+    // money ticks (cosmetic escrow share of fee total; the rest must be CHASED)
+    ESCROW_SHARE: 0.18,
+    TICK_MIN: 20, TICK_MAX: 90,
 
     // verdict base odds (verdict.js normalizes)
     ODDS: { approve: 50, small: 33, scrapped: 7, viral: 6 },
-    VIRAL_FEE_MULT: 6,
+    VIRAL_FEE_MULT: 3,
     SMALL_EXTRA_WORK: 0.40,
 
     // rep deltas
@@ -64,8 +74,9 @@
     CLAWBACK_OVERDUE: 0.15,      // of fee, when a deadline lapses
 
     // receivables: approved fees become invoices. Hold CALL to collect now;
-    // ignored invoices self-pay LATE (auto, after this many days)
-    INVOICE_AUTOPAY_DAYS: 2.5,
+    // ignored invoices self-pay LATE and SHORT (the client "adjusted" it)
+    INVOICE_AUTOPAY_DAYS: 3.5,
+    INVOICE_AUTOPAY_HAIRCUT: 0.80, // lazy collectors get 80 paise on the rupee
     INVOICE_CALL_HOLD: 3,        // real seconds of holding through excuses
 
     // chaos
@@ -91,8 +102,8 @@
 
     // standing over shoulders: click a working staffer -> tiny work boost +
     // one excuse. 30 clicks = one game hour of their output. Not free: burnout.
-    NUDGE_CLICKS_PER_HOUR: 30,
-    NUDGE_BURNOUT: 0.35,
+    NUDGE_CLICKS_PER_HOUR: 45,
+    NUDGE_BURNOUT: 0.8,
 
     // office clickables: idle hands get things to do
     CHAI_COST: 200,              // one chai round, whole office

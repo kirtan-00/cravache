@@ -289,6 +289,7 @@
         row('Earned this week', '+' + G.fmtMoney(st.weekEarned), 'pos') +
         row('Spent this week', '-' + G.fmtMoney(st.weekSpent), 'neg') +
         row('Payroll', '-' + G.fmtMoney(info.payroll), info.cleared ? '' : 'neg') +
+        row('Office overhead', '-' + G.fmtMoney(info.overhead || 0), info.cleared ? '' : 'neg') +
         row('Briefs shipped', st.weekShipped, st.weekShipped > 0 ? 'pos' : '') +
         row('Briefs scrapped', st.weekScrapped, st.weekScrapped > 0 ? 'neg' : '') +
         row('Cash on hand', G.fmtMoney(s.money), s.money < 0 ? 'neg' : '');

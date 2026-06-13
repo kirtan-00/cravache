@@ -33,11 +33,14 @@
     effectiveSpeed: function(st, brief){
       var speed = G.BAL.SPEED_BASE + st.skill * G.BAL.SPEED_PER_SKILL;
 
-      // Arya: night magic + hard-brief genius + allergic to boring
+      // Arya: night magic + hard-brief genius + allergic to boring.
+      // Buffs stack but cap out; the debuff does not get capped. Obviously.
       if(st.id === 's_arya'){
-        if(G.time.hour() >= 18) speed *= 1.7;
-        if(brief && brief.difficulty >= 4) speed *= 1.4;
-        if(brief && brief.difficulty <= 2) speed *= 0.45;
+        var am = 1;
+        if(G.time.hour() >= 18) am *= 1.7;
+        if(brief && brief.difficulty >= 4) am *= 1.4;
+        if(brief && brief.difficulty <= 2) am *= 0.45;
+        speed *= Math.min(am, G.BAL.ARYA_SPEED_CAP || 2);
       }
       // Devang: clutch gene, +50% when deadline under 30%
       if(st.id === 's_devang' && brief && brief.deadlineLeft < brief.deadlineTotal * 0.3){

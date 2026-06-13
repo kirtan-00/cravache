@@ -206,6 +206,13 @@
         if(data.usingSampleContent)
           console.log('[CravAche] content/*.json missing or partial, running on inline sample dataset (by design).');
 
+        // economy: scale all client fees once at load (display + payout agree)
+        var mult = (G.BAL && G.BAL.FEE_GLOBAL_MULT) || 1;
+        if(mult !== 1 && !data._feesScaled){
+          data._feesScaled = true;
+          data.briefs.forEach(function(b){ b.fee = Math.round(b.fee * mult / 500) * 500 || 500; });
+        }
+
         if(manifest){
           data.manifest = manifest;
           var keys = Object.keys(manifest);

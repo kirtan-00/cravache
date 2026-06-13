@@ -17,9 +17,12 @@
         inv.age += dt;
         if(inv.age >= G.BAL.INVOICE_AUTOPAY_DAYS * G.BAL.DAY_REAL_SECONDS){
           s.receivables.splice(i, 1);
-          this.earn(inv.amount);
+          // never called? the client "adjusted" the invoice. 80 paise on the rupee.
+          var paid = Math.round(inv.amount * G.BAL.INVOICE_AUTOPAY_HAIRCUT);
+          this.earn(paid);
           G.audio.chaChing();
-          G.dock.infoToast('PAID (LATE)', G.fmtMoney(inv.amount) + ' for "' + inv.title + '" finally landed. No call needed, only patience and rent anxiety.', 'good');
+          G.dock.infoToast('PAID (LATE, SHORT)', G.fmtMoney(paid) + ' of ' + G.fmtMoney(inv.amount) +
+            ' for "' + inv.title + '" landed. "TDS, GST adjustment, goodwill discount." CALL next time.', 'bad');
           G.dock.refreshCollect();
         }
       }
@@ -78,9 +81,14 @@
       }, 0);
     },
 
+    // rent + AC + software: the office costs money even when nobody works
+    overheadTotal: function(){
+      return G.BAL.OVERHEAD_BASE + G.state.staff.length * G.BAL.OVERHEAD_PER_STAFF;
+    },
+
     runPayroll: function(){
       var s = G.state;
-      var total = this.payrollTotal();
+      var total = this.payrollTotal() + this.overheadTotal();
       var cleared = s.money >= total;
       if(cleared){
         this.spend(total);
@@ -96,7 +104,8 @@
       // friday chain: IG recap reel -> report card -> (craanes night) -> monday
       G.modals.showWeeklyReel({
         cleared: cleared,
-        payroll: total,
+        payroll: this.payrollTotal(),
+        overhead: this.overheadTotal(),
         strikes: s.strikes
       });
     },
