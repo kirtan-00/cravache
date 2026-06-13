@@ -192,6 +192,12 @@
         tryLoad('art/manifest.json')
       ]).then(function(res){
         var clients = res[0], briefs = res[1], staff = res[2], events = res[3], manifest = res[4];
+        // fetch blocked (file:// double-click)? fall back to the embedded
+        // snapshot (js/embed-data.js, regenerate with: node tools/embed.js)
+        var em = G.EMBED || {};
+        clients = clients || em.clients; briefs = briefs || em.briefs;
+        staff = staff || em.staff; events = events || em.events;
+        manifest = manifest || em.manifest;
         if(clients && clients.length) data.clients = clients;
         if(briefs && briefs.length) data.briefs = briefs;
         if(staff && staff.length) data.staff = staff;

@@ -407,8 +407,14 @@
     ctx.fillStyle = '#f4e8cf'; ctx.fillRect(h.x, h.y, h.w, h.h);
     ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 3;
     ctx.strokeRect(h.x + 1.5, h.y + 1.5, h.w - 3, h.h - 3);
-    pxText(ctx, 'HUSTLE™', h.x + h.w / 2, h.y + 26, 14, '#7a4a21', 'center', true);
-    pxText(ctx, 'mandatory inspiration', h.x + h.w / 2, h.y + 44, 13, '#5a4632', 'center');
+    // plain ink, no pxText shadow: tiny type on light paper smears otherwise
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.font = "16px 'Silkscreen', monospace";
+    ctx.fillStyle = '#1a1410';
+    ctx.fillText('HUSTLE', h.x + h.w / 2, h.y + 27);
+    ctx.font = "16px 'VT323', monospace";
+    ctx.fillStyle = '#4a3a28';
+    ctx.fillText('mandatory inspiration', h.x + h.w / 2, h.y + 46);
   }
 
   function drawChaiStation(ctx){

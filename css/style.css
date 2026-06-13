@@ -215,7 +215,7 @@ canvas#game{
 .modal-body{ font-size:21px; line-height:1.12; color:var(--paper); margin-bottom:12px; }
 .modal-body .q{ color:var(--teal); }
 .modal-btns{ display:flex; gap:10px; flex-wrap:wrap; }
-.modal-fine{ font-size:15px; color:var(--khaki-l); margin-top:10px; }
+.modal-fine{ font-size:16px; color:#b9ac8e; margin-top:10px; }
 
 /* verdict slot */
 .slot-box{
@@ -241,7 +241,7 @@ canvas#game{
 
 /* report card */
 .report-grid{ display:grid; grid-template-columns:1fr auto; gap:3px 14px; font-size:20px; margin-bottom:10px; }
-.report-grid .rg-k{ color:var(--teal); }
+.report-grid .rg-k{ color:var(--teal); white-space:nowrap; }
 .report-grid .rg-v{ text-align:right; color:var(--paper); }
 .report-grid .rg-v.neg{ color:var(--red); }
 .report-grid .rg-v.pos{ color:var(--green); }
