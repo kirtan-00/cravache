@@ -5,7 +5,7 @@
     "title": "The 27 Flavour Board",
     "ask": "One static post showing all 27 khakhra flavours. Methi is the captain, the rest are the team. The queue should be able to read it from across the road.",
     "finePrint": [],
-    "fee": 22000,
+    "fee": 8000,
     "deadlineDays": 2,
     "difficulty": 1,
     "extraTags": [],
@@ -19,10 +19,12 @@
     "finePrint": [
       "This is a plain announcement post. Anyone trying to make it 'interesting' gets a call from the family."
     ],
-    "fee": 18000,
+    "fee": 8000,
     "deadlineDays": 2,
     "difficulty": 1,
-    "extraTags": ["boring_allergy"],
+    "extraTags": [
+      "boring_allergy"
+    ],
     "role": "designer"
   },
   {
@@ -33,10 +35,12 @@
     "finePrint": [
       "The queue must look fast and joyful. No slow motion, slow queues scare customers."
     ],
-    "fee": 30000,
+    "fee": 16000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["slowmo_lover"],
+    "extraTags": [
+      "slowmo_lover"
+    ],
     "role": "editor"
   },
   {
@@ -45,7 +49,7 @@
     "title": "Khakhra Caption Pack",
     "ask": "Ten captions for the month. Tone: your grandmother, if your grandmother were extremely confident on the internet.",
     "finePrint": [],
-    "fee": 15000,
+    "fee": 4000,
     "deadlineDays": 1,
     "difficulty": 1,
     "extraTags": [],
@@ -57,7 +61,7 @@
     "title": "Butter Hero Shot",
     "ask": "One static of the vadapav with butter that looks like a lifestyle choice. The pav glistens. The vada commands respect.",
     "finePrint": [],
-    "fee": 25000,
+    "fee": 8000,
     "deadlineDays": 2,
     "difficulty": 1,
     "extraTags": [],
@@ -71,10 +75,12 @@
     "finePrint": [
       "Six cousins approve this poster. Feedback arrives in waves. Lock a version early or drown."
     ],
-    "fee": 35000,
+    "fee": 13000,
     "deadlineDays": 3,
     "difficulty": 2,
-    "extraTags": ["perfection_loop"],
+    "extraTags": [
+      "perfection_loop"
+    ],
     "role": "designer"
   },
   {
@@ -85,10 +91,13 @@
     "finePrint": [
       "No meme audio. The cousin committee voted on this. It was unanimous, eventually."
     ],
-    "fee": 40000,
+    "fee": 16000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["meme_brain", "trend_chaser"],
+    "extraTags": [
+      "meme_brain",
+      "trend_chaser"
+    ],
     "role": "editor"
   },
   {
@@ -97,7 +106,7 @@
     "title": "Menu Board Rewrite",
     "ask": "Rewrite the names of 12 menu items so each one sounds like a legend without changing what it is. The cheese vadapav has notions. Honour them.",
     "finePrint": [],
-    "fee": 16000,
+    "fee": 4000,
     "deadlineDays": 2,
     "difficulty": 1,
     "extraTags": [],
@@ -109,7 +118,7 @@
     "title": "Sunday Khaman Ritual",
     "ask": "A static for Sunday morning. Khaman, sev, green chutney, one beam of sunlight that has clearly been arranged in advance.",
     "finePrint": [],
-    "fee": 20000,
+    "fee": 8000,
     "deadlineDays": 2,
     "difficulty": 1,
     "extraTags": [],
@@ -123,10 +132,12 @@
     "finePrint": [
       "Fast cuts only. In slow motion the khaman looks cold by the end and Uncle ji will notice."
     ],
-    "fee": 32000,
+    "fee": 16000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["slowmo_lover"],
+    "extraTags": [
+      "slowmo_lover"
+    ],
     "role": "editor"
   },
   {
@@ -137,10 +148,12 @@
     "finePrint": [
       "Heritage tone only. Anything trending dies at this counter."
     ],
-    "fee": 18000,
+    "fee": 4000,
     "deadlineDays": 2,
     "difficulty": 1,
-    "extraTags": ["trend_chaser"],
+    "extraTags": [
+      "trend_chaser"
+    ],
     "role": "content"
   },
   {
@@ -151,10 +164,12 @@
     "finePrint": [
       "Needed before tomorrow's first batch. The first batch is at 6 AM. The 6 is not flexible."
     ],
-    "fee": 28000,
+    "fee": 21000,
     "deadlineDays": 1,
     "difficulty": 2,
-    "extraTags": ["deadline_blind"],
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "any"
   },
   {
@@ -165,10 +180,12 @@
     "finePrint": [
       "The flavour is under NDA until launch day. One leaked hint and legal calls before the chip cools."
     ],
-    "fee": 90000,
+    "fee": 32000,
     "deadlineDays": 3,
     "difficulty": 3,
-    "extraTags": ["skips_legal"],
+    "extraTags": [
+      "skips_legal"
+    ],
     "role": "designer"
   },
   {
@@ -177,7 +194,7 @@
     "title": "Family Pack Pyramid",
     "ask": "A static of the full range stacked into a pyramid. Not one chip. A system of chips. The marketing head was very clear about the system.",
     "finePrint": [],
-    "fee": 60000,
+    "fee": 14000,
     "deadlineDays": 2,
     "difficulty": 1,
     "extraTags": [],
@@ -192,10 +209,12 @@
       "The crunch must read on mute. Captions, waveforms, whatever it takes.",
       "No trending audio. The crunch IS the audio."
     ],
-    "fee": 85000,
+    "fee": 40000,
     "deadlineDays": 2,
     "difficulty": 3,
-    "extraTags": ["trend_chaser"],
+    "extraTags": [
+      "trend_chaser"
+    ],
     "role": "editor"
   },
   {
@@ -206,10 +225,12 @@
     "finePrint": [
       "Names get printed on lakhs of packets. Legal checks every word for accidental meanings in nine languages."
     ],
-    "fee": 55000,
+    "fee": 13000,
     "deadlineDays": 3,
     "difficulty": 2,
-    "extraTags": ["skips_legal"],
+    "extraTags": [
+      "skips_legal"
+    ],
     "role": "content"
   },
   {
@@ -218,7 +239,7 @@
     "title": "Morning Cup Static",
     "ask": "One static of the morning cup. Steam, a newspaper, the specific peace that exists before everyone else wakes up.",
     "finePrint": [],
-    "fee": 55000,
+    "fee": 14000,
     "deadlineDays": 2,
     "difficulty": 1,
     "extraTags": [],
@@ -232,10 +253,12 @@
     "finePrint": [
       "The founder family finds slow motion 'too filmy'. The steam rises slowly. The edit does not."
     ],
-    "fee": 95000,
+    "fee": 40000,
     "deadlineDays": 3,
     "difficulty": 3,
-    "extraTags": ["slowmo_lover"],
+    "extraTags": [
+      "slowmo_lover"
+    ],
     "role": "editor"
   },
   {
@@ -246,10 +269,12 @@
     "finePrint": [
       "Young, but no memes. Everything gets reviewed at the family's Sunday breakfast and memes do not survive breakfast."
     ],
-    "fee": 70000,
+    "fee": 29000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["meme_brain"],
+    "extraTags": [
+      "meme_brain"
+    ],
     "role": "editor"
   },
   {
@@ -260,10 +285,12 @@
     "finePrint": [
       "This is a tribute post, not a trend post. Keep it timeless or keep it to yourself."
     ],
-    "fee": 60000,
+    "fee": 13000,
     "deadlineDays": 3,
     "difficulty": 2,
-    "extraTags": ["trend_chaser"],
+    "extraTags": [
+      "trend_chaser"
+    ],
     "role": "content"
   },
   {
@@ -274,10 +301,12 @@
     "finePrint": [
       "Due before the heatwave peaks. The heatwave peaks tomorrow. The weather report is the project plan."
     ],
-    "fee": 80000,
+    "fee": 32000,
     "deadlineDays": 1,
     "difficulty": 3,
-    "extraTags": ["deadline_blind"],
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "designer"
   },
   {
@@ -286,7 +315,7 @@
     "title": "Kulfi Hero Poster",
     "ask": "Poster for the kulfi range. The kulfi gets the lighting of a 200 crore movie hero. Entry shot energy, dessert format.",
     "finePrint": [],
-    "fee": 65000,
+    "fee": 23000,
     "deadlineDays": 2,
     "difficulty": 2,
     "extraTags": [],
@@ -300,24 +329,28 @@
     "finePrint": [
       "One pass only. The scoop budget is finished. No reshoots, no endless polish rounds."
     ],
-    "fee": 75000,
+    "fee": 40000,
     "deadlineDays": 2,
     "difficulty": 3,
-    "extraTags": ["perfection_loop"],
+    "extraTags": [
+      "perfection_loop"
+    ],
     "role": "editor"
   },
   {
     "id": "b24",
     "clientId": "c_havmor",
     "title": "Cart Rush Shoot",
-    "ask": "Shoot kids pulling their parents toward the cart. Real carts, real kids, real heat. Capture the pulling. The pulling is the brand.",
+    "ask": "Shoot kids pulling their parents toward the cart. Real carts, real kids, real heat. Capture the pulling. The pulling is the brand. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "Product melts in four minutes under this sun. Every shot is scheduled like a heist."
     ],
-    "fee": 120000,
+    "fee": 95000,
     "deadlineDays": 3,
-    "difficulty": 3,
-    "extraTags": ["deadline_blind"],
+    "difficulty": 4,
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "production"
   },
   {
@@ -326,7 +359,7 @@
     "title": "One Glass Vacation",
     "ask": "A static where one glass of orange looks like an entire summer holiday. The condensation does the heavy lifting.",
     "finePrint": [],
-    "fee": 55000,
+    "fee": 23000,
     "deadlineDays": 2,
     "difficulty": 2,
     "extraTags": [],
@@ -340,10 +373,12 @@
     "finePrint": [
       "Pure nostalgia. One trending transition and the whole feeling dies on the table."
     ],
-    "fee": 85000,
+    "fee": 40000,
     "deadlineDays": 3,
     "difficulty": 3,
-    "extraTags": ["trend_chaser"],
+    "extraTags": [
+      "trend_chaser"
+    ],
     "role": "editor"
   },
   {
@@ -354,10 +389,12 @@
     "finePrint": [
       "The old jingle is off limits. Rights reasons. Legal was very calm and very clear."
     ],
-    "fee": 50000,
+    "fee": 13000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["skips_legal"],
+    "extraTags": [
+      "skips_legal"
+    ],
     "role": "content"
   },
   {
@@ -368,10 +405,12 @@
     "finePrint": [
       "Launch day is fixed. The mangoes are already ripe. Nothing moves."
     ],
-    "fee": 110000,
+    "fee": 50000,
     "deadlineDays": 1,
     "difficulty": 3,
-    "extraTags": ["deadline_blind"],
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "any"
   },
   {
@@ -383,10 +422,13 @@
       "Due before the news cycle turns. You have hours, not days.",
       "Witty, never mean. One offended community and everyone in this office retires together."
     ],
-    "fee": 150000,
+    "fee": 70000,
     "deadlineDays": 1,
     "difficulty": 3,
-    "extraTags": ["deadline_blind", "meme_brain"],
+    "extraTags": [
+      "deadline_blind",
+      "meme_brain"
+    ],
     "role": "designer"
   },
   {
@@ -395,7 +437,7 @@
     "title": "Butter on Everything",
     "ask": "A campaign static where butter improves an everyday situation. Breakfast, traffic, a Monday. Pick a misery, apply butter.",
     "finePrint": [],
-    "fee": 120000,
+    "fee": 50000,
     "deadlineDays": 2,
     "difficulty": 2,
     "extraTags": [],
@@ -409,10 +451,12 @@
     "finePrint": [
       "The jingle is untouchable. One approved cut, no extra polish rounds, the slot is booked."
     ],
-    "fee": 180000,
+    "fee": 90000,
     "deadlineDays": 2,
     "difficulty": 3,
-    "extraTags": ["perfection_loop"],
+    "extraTags": [
+      "perfection_loop"
+    ],
     "role": "editor"
   },
   {
@@ -423,10 +467,12 @@
     "finePrint": [
       "Puns, not memes. There is a difference and the brand IS the difference."
     ],
-    "fee": 100000,
+    "fee": 33000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["meme_brain"],
+    "extraTags": [
+      "meme_brain"
+    ],
     "role": "content"
   },
   {
@@ -437,10 +483,12 @@
     "finePrint": [
       "Every line ships to millions of phones. Legal reads all twenty for slang that means something else somewhere."
     ],
-    "fee": 140000,
+    "fee": 33000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["skips_legal"],
+    "extraTags": [
+      "skips_legal"
+    ],
     "role": "content"
   },
   {
@@ -449,7 +497,7 @@
     "title": "Rainy Day Push Copy",
     "ask": "It is raining. Five notifications that turn weather into orders. Pakora is implied, never stated. That is the art.",
     "finePrint": [],
-    "fee": 100000,
+    "fee": 22000,
     "deadlineDays": 1,
     "difficulty": 1,
     "extraTags": [],
@@ -463,10 +511,12 @@
     "finePrint": [
       "The biryani must look exactly like the biryani that arrives. Expectation lawsuits route through us, then to you."
     ],
-    "fee": 130000,
+    "fee": 50000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["skips_legal"],
+    "extraTags": [
+      "skips_legal"
+    ],
     "role": "designer"
   },
   {
@@ -477,10 +527,12 @@
     "finePrint": [
       "First bite lands by second three. Slow motion pushes it to second nine. Do the math."
     ],
-    "fee": 160000,
+    "fee": 90000,
     "deadlineDays": 2,
     "difficulty": 3,
-    "extraTags": ["slowmo_lover"],
+    "extraTags": [
+      "slowmo_lover"
+    ],
     "role": "editor"
   },
   {
@@ -492,10 +544,13 @@
       "The pink is a specific pink. Close enough is a resignation letter.",
       "Sale assets lock tonight. There is no second pass."
     ],
-    "fee": 250000,
+    "fee": 100000,
     "deadlineDays": 2,
     "difficulty": 4,
-    "extraTags": ["blue_only", "perfection_loop"],
+    "extraTags": [
+      "blue_only",
+      "perfection_loop"
+    ],
     "role": "designer"
   },
   {
@@ -504,7 +559,7 @@
     "title": "Shade 47 Swatch Reel",
     "ask": "A swatch reel for the new lipstick line. Shade 47 and shade 48 must be visibly different on a 2018 phone in sunlight. This is the whole job.",
     "finePrint": [],
-    "fee": 180000,
+    "fee": 90000,
     "deadlineDays": 2,
     "difficulty": 3,
     "extraTags": [],
@@ -516,7 +571,7 @@
     "title": "GRWM Cutdown Marathon",
     "ask": "Nine creator videos arrive in nine formats. Cut them into one launch reel that looks like it was always one video.",
     "finePrint": [],
-    "fee": 150000,
+    "fee": 65000,
     "deadlineDays": 3,
     "difficulty": 2,
     "extraTags": [],
@@ -526,14 +581,16 @@
     "id": "b40",
     "clientId": "c_nykaa",
     "title": "Festive Sale Shoot",
-    "ask": "Tabletop shoot for the festive sale. Sixty products, one day, lighting that makes a kajal pencil look like jewellery.",
+    "ask": "Tabletop shoot for the festive sale. Sixty products, one day, lighting that makes a kajal pencil look like jewellery. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "Sixty products, one day, zero overtime budget. The schedule is the creative. Endless retakes sink it."
     ],
-    "fee": 300000,
+    "fee": 270000,
     "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["perfection_loop"],
+    "difficulty": 5,
+    "extraTags": [
+      "perfection_loop"
+    ],
     "role": "production"
   },
   {
@@ -544,10 +601,13 @@
     "finePrint": [
       "No neon, no gradients, no trends. If it would not work in 1995, it does not work now."
     ],
-    "fee": 150000,
+    "fee": 50000,
     "deadlineDays": 3,
     "difficulty": 2,
-    "extraTags": ["trend_chaser", "meme_brain"],
+    "extraTags": [
+      "trend_chaser",
+      "meme_brain"
+    ],
     "role": "designer"
   },
   {
@@ -558,35 +618,39 @@
     "finePrint": [
       "Trending audio on the thump is grounds for ending the contract. They have done it before."
     ],
-    "fee": 220000,
+    "fee": 125000,
     "deadlineDays": 3,
     "difficulty": 4,
-    "extraTags": ["trend_chaser"],
+    "extraTags": [
+      "trend_chaser"
+    ],
     "role": "editor"
   },
   {
     "id": "b43",
     "clientId": "c_royalenfield",
     "title": "Dawn Ride Shoot",
-    "ask": "Shoot the new model at a mountain pass at dawn. The light, the mist, one rider who has clearly earned this moment.",
+    "ask": "Shoot the new model at a mountain pass at dawn. The light, the mist, one rider who has clearly earned this moment. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "Usable light exists from 5:50 to 6:20. Miss the window, wait a full day, eat the cost."
     ],
-    "fee": 350000,
+    "fee": 270000,
     "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["deadline_blind"],
+    "difficulty": 5,
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "production"
   },
   {
     "id": "b44",
     "clientId": "c_royalenfield",
     "title": "Workshop Stories",
-    "ask": "A garage shoot. Hands, grease, tools, the bike mid-surgery. Honest and unhurried, like the brand pretends to be about deadlines.",
+    "ask": "A garage shoot. Hands, grease, tools, the bike mid-surgery. Honest and unhurried, like the brand pretends to be about deadlines. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [],
-    "fee": 200000,
+    "fee": 130000,
     "deadlineDays": 3,
-    "difficulty": 2,
+    "difficulty": 3,
     "extraTags": [],
     "role": "production"
   },
@@ -598,10 +662,12 @@
     "finePrint": [
       "Drop is tomorrow 6 PM. The countdown is already public. There is no moving it."
     ],
-    "fee": 140000,
+    "fee": 50000,
     "deadlineDays": 1,
     "difficulty": 2,
-    "extraTags": ["deadline_blind"],
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "designer"
   },
   {
@@ -610,7 +676,7 @@
     "title": "Bass Test Reel",
     "ask": "A reel where the bass is visible. Water jumping on a speaker, screen shake, the works. The thumbnail alone should feel loud.",
     "finePrint": [],
-    "fee": 170000,
+    "fee": 90000,
     "deadlineDays": 2,
     "difficulty": 3,
     "extraTags": [],
@@ -620,14 +686,16 @@
     "id": "b47",
     "clientId": "c_boat",
     "title": "Campus Collab Shoot",
-    "ask": "Shoot the earbuds at a college fest. Real crowd, real noise, the product surviving both. Lifestyle, fourteen times over.",
+    "ask": "Shoot the earbuds at a college fest. Real crowd, real noise, the product surviving both. Lifestyle, fourteen times over. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "Venue permissions are 'in progress'. Shoot anyway, but keep every frame clean enough for legal to bless later."
     ],
-    "fee": 260000,
+    "fee": 190000,
     "deadlineDays": 3,
-    "difficulty": 3,
-    "extraTags": ["skips_legal"],
+    "difficulty": 4,
+    "extraTags": [
+      "skips_legal"
+    ],
     "role": "production"
   },
   {
@@ -638,10 +706,12 @@
     "finePrint": [
       "Everything ships together or nothing ships. One late asset sinks the whole bundle."
     ],
-    "fee": 200000,
+    "fee": 115000,
     "deadlineDays": 2,
     "difficulty": 3,
-    "extraTags": ["deadline_blind"],
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "any"
   },
   {
@@ -650,7 +720,7 @@
     "title": "The Unbreakable Bench",
     "ask": "A wordless static. A bench, too many people on it, the bench unbothered. The bond is the punchline. The bond is always the punchline.",
     "finePrint": [],
-    "fee": 200000,
+    "fee": 100000,
     "deadlineDays": 3,
     "difficulty": 4,
     "extraTags": [],
@@ -664,10 +734,12 @@
     "finePrint": [
       "The joke is timing. Slow motion murders timing. Test it on mute, then test it on uncles."
     ],
-    "fee": 240000,
+    "fee": 125000,
     "deadlineDays": 3,
     "difficulty": 4,
-    "extraTags": ["slowmo_lover"],
+    "extraTags": [
+      "slowmo_lover"
+    ],
     "role": "editor"
   },
   {
@@ -678,52 +750,60 @@
     "finePrint": [
       "Heritage humour only. Trending formats expire. Fevicol does not."
     ],
-    "fee": 130000,
+    "fee": 44000,
     "deadlineDays": 2,
     "difficulty": 3,
-    "extraTags": ["trend_chaser"],
+    "extraTags": [
+      "trend_chaser"
+    ],
     "role": "content"
   },
   {
     "id": "b52",
     "clientId": "c_fevicol",
     "title": "Impossible Chair Shoot",
-    "ask": "Shoot the chair stunt for real. No VFX, the chair genuinely holds, the crowd genuinely gasps. Practical comedy, practical glue.",
+    "ask": "Shoot the chair stunt for real. No VFX, the chair genuinely holds, the crowd genuinely gasps. Practical comedy, practical glue. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "No VFX allowed. A safety officer signs off on every setup. Skipping the paperwork ends the shoot."
     ],
-    "fee": 320000,
+    "fee": 270000,
     "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["skips_legal"],
+    "difficulty": 5,
+    "extraTags": [
+      "skips_legal"
+    ],
     "role": "production"
   },
   {
     "id": "b53",
     "clientId": "c_emirates",
     "title": "Golden Hour Dune Shoot",
-    "ask": "Shoot the campaign stills on the dunes at golden hour. The sand performs once a day. Everyone else adjusts.",
+    "ask": "Shoot the campaign stills on the dunes at golden hour. The sand performs once a day. Everyone else adjusts. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "Golden hour, not silver hour. The brand can tell the difference from a moving car. The window is 40 minutes."
     ],
-    "fee": 600000,
+    "fee": 520000,
     "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["deadline_blind"],
+    "difficulty": 5,
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "production"
   },
   {
     "id": "b54",
     "clientId": "c_emirates",
     "title": "Crew Lifestyle Shoot",
-    "ask": "A lifestyle shoot around the crew experience. Everything in frame must be premium. The water. The light. The air, somehow.",
+    "ask": "A lifestyle shoot around the crew experience. Everything in frame must be premium. The water. The light. The air, somehow. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "One shoot day, booked to the minute. Premium does not mean slow. Re-staging every setup burns the day."
     ],
-    "fee": 550000,
+    "fee": 520000,
     "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["perfection_loop"],
+    "difficulty": 5,
+    "extraTags": [
+      "perfection_loop"
+    ],
     "role": "production"
   },
   {
@@ -735,10 +815,13 @@
       "Luxury whispers. Any cut faster than a heartbeat is too loud.",
       "No memes. Not even ironic ones. Especially not ironic ones."
     ],
-    "fee": 450000,
+    "fee": 175000,
     "deadlineDays": 3,
     "difficulty": 3,
-    "extraTags": ["meme_brain", "trend_chaser"],
+    "extraTags": [
+      "meme_brain",
+      "trend_chaser"
+    ],
     "role": "editor"
   },
   {
@@ -747,7 +830,7 @@
     "title": "Lounge Menu Elegance",
     "ask": "A static for the lounge dining menu. Beige variant 17, gold accents, food that looks like it has a passport.",
     "finePrint": [],
-    "fee": 300000,
+    "fee": 100000,
     "deadlineDays": 2,
     "difficulty": 2,
     "extraTags": [],
@@ -761,24 +844,28 @@
     "finePrint": [
       "The sky must be the approved sky colour, which is not blue blue. There is a swatch. Learn the swatch."
     ],
-    "fee": 480000,
+    "fee": 200000,
     "deadlineDays": 3,
     "difficulty": 4,
-    "extraTags": ["blue_only"],
+    "extraTags": [
+      "blue_only"
+    ],
     "role": "designer"
   },
   {
     "id": "b58",
     "clientId": "c_emaar",
     "title": "Fountain Show Shoot",
-    "ask": "Shoot the fountain show for the destination film. Water, lights, tourists gasping in eleven languages.",
+    "ask": "Shoot the fountain show for the destination film. Water, lights, tourists gasping in eleven languages. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "The fountain runs on its schedule, not yours. Two passes per evening. That is all anyone gets."
     ],
-    "fee": 650000,
+    "fee": 520000,
     "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["deadline_blind"],
+    "difficulty": 5,
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "production"
   },
   {
@@ -787,7 +874,7 @@
     "title": "Skyline Timelapse Film",
     "ask": "Cut a skyline timelapse film from three years of footage. Day to night, crane to tower, ambition to invoice.",
     "finePrint": [],
-    "fee": 400000,
+    "fee": 175000,
     "deadlineDays": 3,
     "difficulty": 3,
     "extraTags": [],
@@ -801,10 +888,12 @@
     "finePrint": [
       "Tuesday. The chairman's office said Tuesday. Nobody asks which Tuesday twice."
     ],
-    "fee": 700000,
+    "fee": 460000,
     "deadlineDays": 2,
     "difficulty": 5,
-    "extraTags": ["deadline_blind"],
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "any"
   },
   {
@@ -815,10 +904,12 @@
     "finePrint": [
       "Goes live at the exact iftar minute, which changes daily. The schedule is astronomy. Astronomy does not negotiate."
     ],
-    "fee": 350000,
+    "fee": 140000,
     "deadlineDays": 2,
     "difficulty": 3,
-    "extraTags": ["deadline_blind"],
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "designer"
   },
   {
@@ -829,10 +920,12 @@
     "finePrint": [
       "One review round per language. Endless polishing breaks the launch window in both alphabets."
     ],
-    "fee": 380000,
+    "fee": 175000,
     "deadlineDays": 3,
     "difficulty": 3,
-    "extraTags": ["perfection_loop"],
+    "extraTags": [
+      "perfection_loop"
+    ],
     "role": "editor"
   },
   {
@@ -841,7 +934,7 @@
     "title": "Late Night Craving Copy",
     "ask": "Push copy for the 1 AM crowd. Short lines, deep hunger, zero judgement. The shawarma understands.",
     "finePrint": [],
-    "fee": 300000,
+    "fee": 55000,
     "deadlineDays": 2,
     "difficulty": 2,
     "extraTags": [],
@@ -851,14 +944,16 @@
     "id": "b64",
     "clientId": "c_talabat",
     "title": "Rider POV Shoot",
-    "ask": "A rider point-of-view shoot through the city at dusk. Orange box, golden light, a city that orders dinner like clockwork.",
+    "ask": "A rider point-of-view shoot through the city at dusk. Orange box, golden light, a city that orders dinner like clockwork. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "Shoot permits cover exactly three streets. Stay on those three streets. Legal has a map and a temper."
     ],
     "fee": 520000,
     "deadlineDays": 3,
-    "difficulty": 4,
-    "extraTags": ["skips_legal"],
+    "difficulty": 5,
+    "extraTags": [
+      "skips_legal"
+    ],
     "role": "production"
   },
   {
@@ -869,7 +964,7 @@
     "finePrint": [
       "No explanations allowed in the deck. The line stands alone or it dies alone."
     ],
-    "fee": 900000,
+    "fee": 260000,
     "deadlineDays": 3,
     "difficulty": 5,
     "extraTags": [],
@@ -879,14 +974,16 @@
     "id": "b66",
     "clientId": "c_nike",
     "title": "The Unwatched Athlete",
-    "ask": "Shoot a film about an athlete nobody is watching. 4 AM training, empty stands, real sweat. If it looks like an ad, it failed.",
+    "ask": "Shoot a film about an athlete nobody is watching. 4 AM training, empty stands, real sweat. If it looks like an ad, it failed. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "No gloss. If it looks staged, reshoot. The budget says you will not be reshooting."
     ],
-    "fee": 1500000,
+    "fee": 900000,
     "deadlineDays": 3,
     "difficulty": 5,
-    "extraTags": ["perfection_loop"],
+    "extraTags": [
+      "perfection_loop"
+    ],
     "role": "production"
   },
   {
@@ -897,10 +994,12 @@
     "finePrint": [
       "No trending sounds, no fast hooks. Let it breathe and still keep every thumb off the scroll."
     ],
-    "fee": 1100000,
+    "fee": 470000,
     "deadlineDays": 3,
     "difficulty": 4,
-    "extraTags": ["trend_chaser"],
+    "extraTags": [
+      "trend_chaser"
+    ],
     "role": "editor"
   },
   {
@@ -912,10 +1011,12 @@
       "Legal cleared exactly four frames for use. Use only those four. The fifth frame is a lawsuit.",
       "One frame of spoiler and three time zones schedule meetings about you."
     ],
-    "fee": 750000,
+    "fee": 380000,
     "deadlineDays": 3,
     "difficulty": 4,
-    "extraTags": ["skips_legal"],
+    "extraTags": [
+      "skips_legal"
+    ],
     "role": "designer"
   },
   {
@@ -927,24 +1028,28 @@
       "The tudum does not move for anyone. Time the cut to it.",
       "No lingering slow motion. A trailer that drags gets skipped, and skips get reported upward."
     ],
-    "fee": 850000,
+    "fee": 240000,
     "deadlineDays": 2,
     "difficulty": 2,
-    "extraTags": ["slowmo_lover"],
+    "extraTags": [
+      "slowmo_lover"
+    ],
     "role": "editor"
   },
   {
     "id": "b70",
     "clientId": "c_netflix",
     "title": "Premiere Night Content Shoot",
-    "ask": "Shoot the premiere night content. Red carpet, reactions, one perfect loop for socials. Shoot tonight, edit tonight, post tonight.",
+    "ask": "Shoot the premiere night content. Red carpet, reactions, one perfect loop for socials. Shoot tonight, edit tonight, post tonight. (Production shoots it; the edit is a separate hand-off to your editors.)",
     "finePrint": [
       "The premiere does not reschedule. Everything ships before the after-party ends."
     ],
-    "fee": 1200000,
+    "fee": 900000,
     "deadlineDays": 1,
     "difficulty": 5,
-    "extraTags": ["deadline_blind"],
+    "extraTags": [
+      "deadline_blind"
+    ],
     "role": "production"
   }
 ]

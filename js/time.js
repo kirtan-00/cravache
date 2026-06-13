@@ -54,10 +54,12 @@
       var s = G.state;
       s.dayT += dt;
 
-      // 6PM call window
+      // 6PM call window: one client calls EVERY day. Week 1 stays forgiving
+      // (60% chance); week 2 onward the phone always rings at 6.
       if(!s.callFiredToday && this.hour() >= 18 && !s.activeCall){
         s.callFiredToday = true;
-        if(Math.random() < G.curve.callChance(s.week)) G.events.fireSixPMCall();
+        var callChance = s.week <= 1 ? 0.6 : 1;
+        if(Math.random() < callChance) G.events.fireSixPMCall();
       }
 
       // one random office event somewhere mid-day

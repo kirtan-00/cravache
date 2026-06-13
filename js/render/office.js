@@ -8,39 +8,44 @@
   G.render = G.render || {};
 
   // desk slots (centers) grouped in department clusters. Hitboxes derived.
-  // Back row ends before the doors (x>860); production = front-right strip.
+  // Top-down re-camera (spec B4): 17 slots, 4 dept clusters on per-dept rugs.
+  // Carpet floor is y 150..600. Desks drawn at 96x72 (1:1), rows >=150px apart.
   var DESKS = [
-    // DESIGN (5)
-    { x: 80,  y: 335, dept: 'designer' },
-    { x: 200, y: 335, dept: 'designer' },
-    { x: 320, y: 335, dept: 'designer' },
-    { x: 80,  y: 520, dept: 'designer' },
-    { x: 200, y: 520, dept: 'designer' },
-    // EDIT (5)
-    { x: 440, y: 335, dept: 'editor' },
-    { x: 560, y: 335, dept: 'editor' },
-    { x: 680, y: 335, dept: 'editor' },
-    { x: 380, y: 520, dept: 'editor' },
-    { x: 500, y: 520, dept: 'editor' },
-    // CONTENT (3)
-    { x: 800, y: 335, dept: 'content' },
-    { x: 660, y: 520, dept: 'content' },
-    { x: 780, y: 520, dept: 'content' },
-    // PRODUCTION (4) — front-right studio strip
+    // DESIGN (5) — left third, rug ~x60-360
+    { x: 120, y: 300, dept: 'designer' },
+    { x: 240, y: 300, dept: 'designer' },
+    { x: 120, y: 470, dept: 'designer' },
+    { x: 240, y: 470, dept: 'designer' },
+    { x: 360, y: 380, dept: 'designer' },
+    // EDIT BAY (5) — center third, rug ~x400-700
+    { x: 460, y: 300, dept: 'editor' },
+    { x: 580, y: 300, dept: 'editor' },
+    { x: 460, y: 470, dept: 'editor' },
+    { x: 580, y: 470, dept: 'editor' },
+    { x: 680, y: 385, dept: 'editor' },
+    // CONTENT (3) — upper-right (kept LEFT of the production strip so the
+    // week<3 production tape never engulfs a content desk)
+    { x: 790, y: 300, dept: 'content' },
+    { x: 900, y: 300, dept: 'content' },
+    { x: 790, y: 460, dept: 'content' },
+    // PRODUCTION (4) — front-right studio strip (its own clear zone)
     { x: 940,  y: 520, dept: 'production' },
-    { x: 1060, y: 520, dept: 'production' },
-    { x: 1180, y: 520, dept: 'production' },
-    { x: 1120, y: 400, dept: 'production' }
+    { x: 1040, y: 520, dept: 'production' },
+    { x: 990,  y: 410, dept: 'production' },
+    { x: 1090, y: 470, dept: 'production' }
   ];
-  var DESK_W = 104, DESK_H = 64;        // drawn size
-  var CHAR_W = 48, CHAR_H = 72;
+  var DESK_W = 96, DESK_H = 72;         // drawn 1:1 (native 96x72)
+  var CHAR_W = 32, CHAR_H = 48;         // drawn 1:1 (native 32x48)
 
   var CLUSTERS = [
-    { dept: 'designer',   label: 'DESIGN',     x: 200,  y: 222 },
-    { dept: 'editor',     label: 'EDIT BAY',   x: 560,  y: 222 },
-    { dept: 'content',    label: 'CONTENT',    x: 800,  y: 222 },
-    { dept: 'production', label: 'PRODUCTION', x: 1060, y: 418 }
+    { dept: 'designer',   label: 'DESIGN',     x: 180,  y: 250 },
+    { dept: 'editor',     label: 'EDIT BAY',   x: 520,  y: 250 },
+    { dept: 'content',    label: 'CONTENT',    x: 860,  y: 250 },
+    { dept: 'production', label: 'PRODUCTION', x: 1020, y: 372 }
   ];
+
+  // chair colorway per seat (round-robin, like the Startup Panic ref)
+  var CHAIR_KEYS = ['chair_r', 'chair_g', 'chair_b'];
 
   var t = 0; // anim clock
 
@@ -74,7 +79,8 @@
 
   function deskHitbox(i){
     var d = DESKS[i];
-    return { x: d.x - 60, y: d.y - 125, w: 120, h: 175 };
+    // covers seated staffer torso (above), the 96x72 desk, and the chair in front
+    return { x: d.x - 52, y: d.y - 70, w: 104, h: 150 };
   }
 
   // ---------- sprite helper (THE fallback contract) ----------
@@ -142,65 +148,61 @@
     ctx.fillRect(x, y, Math.round(w * Math.max(0, Math.min(1, frac))), h);
   }
 
-  // ---------- background (fallback = procedural pixel office) ----------
+  // ---------- background (fallback = procedural top-down pixel office) ----------
   function drawBackground(ctx){
-    if(G.data.hasArt('office_bg_shoebox')){
-      drawSprite(ctx, 'office_bg_shoebox', 0, 0, 1280, 720);
+    if(G.data.hasArt('office_bg_topdown')){
+      drawSprite(ctx, 'office_bg_topdown', 0, 0, 1280, 720);
       return;
     }
-    // wall
-    ctx.fillStyle = '#23304a'; ctx.fillRect(0, 0, 1280, 250);
-    ctx.fillStyle = '#1d2940'; ctx.fillRect(0, 230, 1280, 20); // skirting shadow
-    // floor: two-tone khaki checker (big chunky tiles)
-    for(var ty = 0; ty < 5; ty++){
-      for(var tx = 0; tx < 14; tx++){
-        ctx.fillStyle = (tx + ty) % 2 ? '#3a3326' : '#473f2f';
-        ctx.fillRect(tx * 96, 250 + ty * 96, 96, 96);
+    // top-down-ish fallback so the no-art build is not a lie (spec D).
+    // back wall band y0..150 (two tones), left return wall, then carpet floor.
+    ctx.fillStyle = '#e8dcc0'; ctx.fillRect(0, 0, 1280, 110);          // upper wall
+    ctx.fillStyle = '#c9b896'; ctx.fillRect(0, 110, 1280, 36);        // skirting
+    ctx.fillStyle = '#a89870'; ctx.fillRect(0, 146, 1280, 4);          // wall/floor seam
+    ctx.fillStyle = '#d8ccae'; ctx.fillRect(0, 0, 70, 150);           // left return wall
+    // carpet floor: blue-grey 2-tone checker (80px tiles)
+    for(var ty = 0; ty < 8; ty++){
+      for(var tx = 0; tx < 16; tx++){
+        ctx.fillStyle = (tx + ty) % 2 ? '#5a6478' : '#545e72';
+        ctx.fillRect(tx * 80, 150 + ty * 72, 80, 72);
       }
     }
-    // sunset window: hard color bands
-    var wx = 980, wy = 60, ww = 230, wh = 150;
-    ctx.fillStyle = '#0d1426'; ctx.fillRect(wx - 8, wy - 8, ww + 16, wh + 16);
-    var bands = ['#ffe066', '#ff9a56', '#e87a62', '#d35d6e'];
-    for(var b = 0; b < 4; b++){
-      ctx.fillStyle = bands[b];
-      ctx.fillRect(wx, wy + b * (wh / 4), ww, wh / 4);
-    }
-    // sun square + frame bars
-    ctx.fillStyle = '#fff0a0'; ctx.fillRect(wx + 140, wy + 18, 36, 36);
-    ctx.fillStyle = '#16203a';
-    ctx.fillRect(wx + ww / 2 - 4, wy, 8, wh);
-    ctx.fillRect(wx, wy + wh / 2 - 4, ww, 8);
-    // skyline silhouette in lower band
-    ctx.fillStyle = '#7a3a4e';
-    ctx.fillRect(wx + 10, wy + wh - 38, 28, 38); ctx.fillRect(wx + 50, wy + wh - 56, 22, 56);
-    ctx.fillRect(wx + 84, wy + wh - 30, 34, 30); ctx.fillRect(wx + 130, wy + wh - 48, 26, 48);
-    ctx.fillRect(wx + 168, wy + wh - 26, 40, 26);
-    // agency board on wall
-    ctx.fillStyle = '#16203a'; ctx.fillRect(40, 50, 250, 56);
-    ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 3; ctx.strokeRect(41.5, 51.5, 247, 53);
-    pxText(ctx, 'CRAVACHE', 64, 88, 20, '#ffe066', 'left', true);
-    pxText(ctx, 'estd. monday', 196, 86, 16, '#9fe8ff');
+    // two soft light pools from the window (skewed parallelograms)
+    ctx.fillStyle = 'rgba(120,135,165,0.14)';
+    ctx.beginPath();
+    ctx.moveTo(200, 150); ctx.lineTo(360, 150); ctx.lineTo(300, 430); ctx.lineTo(120, 430);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(420, 150); ctx.lineTo(560, 150); ctx.lineTo(520, 380); ctx.lineTo(360, 380);
+    ctx.closePath(); ctx.fill();
+    // window frame box (the live sky paints inside via drawWindowSky's fallback)
+    ctx.fillStyle = WIN_FRAME_SH; ctx.fillRect(WIN.x - 8, WIN.y - 8, WIN.w + 16, WIN.h + 16);
+    ctx.fillStyle = '#aed8f0'; ctx.fillRect(WIN.x, WIN.y, WIN.w, WIN.h);
+    // agency board on wall (left)
+    ctx.fillStyle = '#16203a'; ctx.fillRect(600, 30, 200, 48);
+    ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 3; ctx.strokeRect(601.5, 31.5, 197, 45);
+    pxText(ctx, 'CRAVACHE', 620, 60, 18, '#ffe066', 'left', true);
+    pxText(ctx, 'estd. monday', 700, 72, 13, '#9fe8ff');
   }
 
   // ---------- animated window sky ----------
-  // The new bright bg (office_bg_shoebox 640x360, drawn to 1280x720) has one big
-  // multi-pane studio window. Its glass rect, measured off the art in logical
-  // (1280x720) coords: x 512..922, y 84..274. We paint a live sky inside it —
-  // hour-tinted, with slow drifting clouds, the odd kite (it IS Ahmedabad) and a
-  // rare bird pair — then redraw the mullion grid so the panes still read.
-  // Everything is clipped to the glass; night is left to the existing overlay.
-  var WIN = { x: 512, y: 84, w: 410, h: 190 };           // glass rect (logical)
-  var WIN_MUL_X = [612, 716, 820];                        // vertical mullions
-  var WIN_MUL_Y = [150];                                  // horizontal mullion(s)
+  // The new top-down bg (office_bg_topdown, native 1280x720) bakes the room,
+  // walls, wall props and chai counter. We paint a LIVE hour-tinted sky
+  // clipped INSIDE the bg's painted 3-pane studio window glass (measured off the
+  // art): x 176..356, y 30..96. Clouds, the odd kite, a rare bird; then the
+  // mullion grid is redrawn so the panes read. Night = the existing overlay.
+  var WIN = { x: 176, y: 30, w: 180, h: 66 };            // glass rect (logical)
+  var WIN_MUL_X = [236, 296];                            // vertical mullions (3 panes)
+  var WIN_MUL_Y = [63];                                  // horizontal mullion
   var WIN_FRAME = '#b8814a';                              // matches art frame brown
   var WIN_FRAME_SH = '#7a4a21';
 
-  // a few clouds with their own x/speed/size; positions wrap across the glass
+  // a few clouds with their own x/speed/size; positions wrap across the glass.
+  // y values are RELATIVE to the glass top, kept inside the (shorter) h110 pane.
   var CLOUDS = [
-    { y: 18, speed: 5.0,  w: 46, x0: 0.05 },
-    { y: 52, speed: 3.4,  w: 64, x0: 0.55 },
-    { y: 86, speed: 6.6,  w: 38, x0: 0.30 }
+    { y: 6,  speed: 5.0,  w: 40, x0: 0.05 },
+    { y: 22, speed: 3.4,  w: 54, x0: 0.55 },
+    { y: 40, speed: 6.6,  w: 32, x0: 0.30 }
   ];
 
   function lerp(a, b, f){ return a + (b - a) * f; }
@@ -234,8 +236,6 @@
   }
 
   function drawWindowSky(ctx){
-    // only over the real art window; the procedural fallback draws its own sky
-    if(!G.data.hasArt('office_bg_shoebox')) return;
     var w = WIN;
     var hour = G.time.hour();
 
@@ -328,47 +328,93 @@
     ctx.strokeRect(w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1);
   }
 
+
+  // ---------- sunset floor warmth (A3/A4 sin fix) ----------
+  // After 17:00, multiply a warm overlay across the whole floor so the ROOM
+  // reads as sunset, not just the tiny window. Fades up to a cap by ~19:00.
+  function drawFloorWarmth(ctx){
+    var hour = G.time.hour();
+    if(hour < 17 || G.state.night) return;
+    var g = Math.min(1, (hour - 17) / 2);
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.fillStyle = 'rgba(255,150,86,' + (0.10 + 0.18 * g) + ')';
+    ctx.fillRect(0, 150, 1280, 470);                 // floor only (below the wall)
+    ctx.restore();
+  }
+
   // ---------- quotes wall ----------
   var quoteFrames = []; // computed hitboxes for clicks
+  // demoted to a single compact strip under the whiteboard (A1): 5 mini frames,
+  // not the whole top row anymore. Still clickable to read the framed quote.
   function drawQuotesWall(ctx){
     var quotes = G.state.quotesWall;
     quoteFrames = [];
-    var maxFrames = 8;
-    var startX = 340, y = 86, fw = 64, fh = 50, gap = 14;
-    labelChip(ctx, 'WALL OF "JUST ONE SMALL THING"', startX, y - 12, 10, 'left', true);
-    pxText(ctx, 'WALL OF "JUST ONE SMALL THING"', startX, y - 12, 10, '#9fe8ff', 'left', true);
+    var maxFrames = 5;
+    var startX = 600, y = 122, fw = 28, fh = 22, gap = 6;
+    labelChip(ctx, 'JUST ONE SMALL THING', startX, y - 4, 8, 'left', true);
+    pxText(ctx, 'JUST ONE SMALL THING', startX, y - 4, 8, 'rgba(159,232,255,0.8)', 'left', true);
     for(var i = 0; i < maxFrames; i++){
       var x = startX + i * (fw + gap);
       var has = i < quotes.length;
-      ctx.fillStyle = '#16203a'; ctx.fillRect(x - 3, y - 3, fw + 6, fh + 6);
+      ctx.fillStyle = '#16203a'; ctx.fillRect(x - 2, y - 2, fw + 4, fh + 4);
       ctx.fillStyle = has ? '#f4e8cf' : '#2a3654';
       ctx.fillRect(x, y, fw, fh);
       ctx.strokeStyle = has ? '#ffe066' : '#1a2440';
-      ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, fw - 3, fh - 3);
+      ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, fw - 2, fh - 2);
       if(has){
-        pxText(ctx, '“ ”', x + fw / 2, y + 32, 22, '#7a4a21', 'center');
+        pxText(ctx, '“”', x + fw / 2, y + 16, 14, '#7a4a21', 'center');
         quoteFrames.push({ x: x, y: y, w: fw, h: fh, idx: i });
       }
     }
   }
 
   // ---------- department clusters + desks + staff ----------
+  // per-dept rug rect + tint (Two Point Campus discipline: one hue per zone) so
+  // the eye parses regions instantly. Rugs drawn under the desks (drawRugs runs
+  // before drawDesks); labels + tape drawn by drawClusters after.
+  var RUGS = {
+    designer:   { x: 56,  y: 256, w: 360, h: 296, tint: 'rgba(120,150,210,0.13)' },
+    editor:     { x: 400, y: 256, w: 300, h: 296, tint: 'rgba(210,120,150,0.12)' },
+    content:    { x: 744, y: 256, w: 156, h: 270, tint: 'rgba(126,224,138,0.12)' },
+    production: { x: 884, y: 360, w: 264, h: 230, tint: 'rgba(255,154,86,0.13)' }
+  };
+
+  function deptBounds(dept){
+    var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+    DESKS.forEach(function(d){
+      if(d.dept !== dept) return;
+      minX = Math.min(minX, d.x - 50); maxX = Math.max(maxX, d.x + 50);
+      minY = Math.min(minY, d.y - 44); maxY = Math.max(maxY, d.y + 50);
+    });
+    return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
+  }
+
+  function drawRugs(ctx){
+    for(var k in RUGS){
+      if(!RUGS.hasOwnProperty(k)) continue;
+      if(!G.staff.deptUnlocked(k)) continue;     // taped-off zone shows no rug
+      var r = RUGS[k];
+      ctx.fillStyle = r.tint;
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(r.x + 1, r.y + 1, r.w - 2, r.h - 2);
+    }
+  }
+
   function drawClusters(ctx){
     for(var c = 0; c < CLUSTERS.length; c++){
       var cl = CLUSTERS[c];
       var unlocked = G.staff.deptUnlocked(cl.dept);
+      // cluster label sits on the rug's back edge (B4)
       labelChip(ctx, cl.label, cl.x, cl.y, 9, 'center', true);
       pxText(ctx, cl.label, cl.x, cl.y, 9,
              unlocked ? 'rgba(159,232,255,0.92)' : 'rgba(255,92,92,0.85)', 'center', true);
       if(!unlocked){
-        // tape off the production strip
-        var slots = [];
-        DESKS.forEach(function(d, i){ if(d.dept === cl.dept) slots.push(d); });
-        var minX = 1e9, maxX = 0, minY = 1e9, maxY = 0;
-        slots.forEach(function(d){
-          minX = Math.min(minX, d.x - 62); maxX = Math.max(maxX, d.x + 62);
-          minY = Math.min(minY, d.y - 95); maxY = Math.max(maxY, d.y + 40);
-        });
+        // tape off the locked (production) strip, re-derived from new slots
+        var bb = deptBounds(cl.dept);
+        var minX = bb.minX - 4, maxX = bb.maxX + 4, minY = bb.minY - 4, maxY = bb.maxY + 4;
         ctx.strokeStyle = 'rgba(255,224,102,0.5)';
         ctx.lineWidth = 3;
         ctx.setLineDash([14, 8]);
@@ -380,6 +426,9 @@
     }
   }
 
+  // MacBook size per dept: editors get a 15" (wide), everyone else a 13".
+  function macKey(st){ return st.dept === 'editor' ? 'mac_15' : 'mac_13'; }
+
   function drawDesks(ctx){
     var s = G.state;
     for(var i = 0; i < DESKS.length; i++){
@@ -388,6 +437,10 @@
 
       var st = G.staff.atDesk(i);
       var hover = G.dock.dragHoverDesk === i;
+
+      // desk geometry: 96x72 centered on d. top face top ~ d.y-36.
+      var dx = d.x - DESK_W / 2;          // 96 wide
+      var dyTop = d.y - DESK_H / 2;        // 72 tall
 
       // drop highlight (dept-aware: green only if this person can take the brief)
       if(G.dock.dragging){
@@ -408,98 +461,141 @@
       var home = st && !G.time.onClock(st);
       // gossiping at the cooler: their desk sits empty, they draw elsewhere
       var away = st && st.away;
+      var present = st && !home && !away;
+      var working = present && !!st.briefId;
 
-      // staffer behind desk (bob + typing frames while working)
-      if(st && !home && !away){
-        var working = !!st.briefId;
-        var bob = working ? Math.round(Math.sin(t * 7 + i) * 2) : 0;
+      // 1) floor drop-shadow under the whole workstation (glues it to carpet)
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ellipse(ctx, d.x, d.y + 40, 50, 12);
+
+      // 2) production shoot spotlight cone (under the sprite, over the floor)
+      if(working && st.dept === 'production'){
+        ctx.fillStyle = 'rgba(255,224,102,0.10)';
+        ctx.beginPath();
+        ctx.moveTo(d.x - 8, dyTop - CHAR_H - 8);
+        ctx.lineTo(d.x - 46, d.y + 20);
+        ctx.lineTo(d.x + 46, d.y + 20);
+        ctx.closePath(); ctx.fill();
+      }
+
+      // 3) seated staffer BEHIND the desk: the desk + lip (drawn next) overlap
+      //    their lower body; head + shoulders + upper torso read above the desk
+      //    back edge (Startup Panic look). 1:1 scale (32x48). SEAT_Y = sprite
+      //    bottom relative to desk centre; ~ desk back-top edge.
+      var SEAT_Y = -20;  // sprite bottom 16px into the desk top: head+torso clear it
+      if(present){
+        var bob = working ? Math.round(Math.sin(t * 7 + i) * 1) : 0;
         var frame = working ? Math.floor(t * 5 + i) % 2 : 0;
-        drawSprite(ctx, st.portraitKey, d.x - CHAR_W / 2, d.y - DESK_H / 2 - CHAR_H + 16 + bob, CHAR_W, CHAR_H, frame);
+        drawSprite(ctx, st.portraitKey, d.x - CHAR_W / 2, d.y + SEAT_Y - CHAR_H + bob, CHAR_W, CHAR_H, frame);
+      }
+      if(home){
+        // desk drawn empty; sleeping note sits above the desk top
+        drawSprite(ctx, 'desk_topdown', dx, dyTop, DESK_W, DESK_H);
+        labelChip(ctx, 'zzz · home', d.x, dyTop - 6, 12, 'center');
+        pxText(ctx, 'zzz · home', d.x, dyTop - 6, 12, 'rgba(159,232,255,0.5)', 'center');
+        seatChair(ctx, d, i);
+        continue;
+      }
 
-        // production at work = a shoot in progress: spotlight, REC dot, flash
-        if(st.dept === 'production' && working){
-          // spotlight cone from above
-          ctx.fillStyle = 'rgba(255,224,102,0.10)';
-          ctx.beginPath();
-          ctx.moveTo(d.x - 8, d.y - DESK_H / 2 - CHAR_H - 24);
-          ctx.lineTo(d.x - 46, d.y + 8);
-          ctx.lineTo(d.x + 46, d.y + 8);
-          ctx.closePath();
-          ctx.fill();
-          // blinking REC dot
+      // 4) the desk itself (its monitor-back + front lip occlude the lower body)
+      drawSprite(ctx, 'desk_topdown', dx, dyTop, DESK_W, DESK_H);
+
+      // 5) MacBook on the desk top per dept; lid glows teal while working
+      if(present){
+        var mk = macKey(st);
+        var mw = mk === 'mac_15' ? 38 : 30, mh = mk === 'mac_15' ? 28 : 22;
+        var mx = d.x - mw / 2, my = dyTop + 14;     // on the desk surface, in front of the body
+        drawSprite(ctx, mk, mx, my, mw, mh);
+        if(working && Math.floor(t * 6) % 9 !== 8){
+          // teal lid glow (replaces the old monitor_on blink)
+          ctx.fillStyle = 'rgba(159,232,255,0.30)';
+          ctx.fillRect(mx - 2, my - 2, mw + 4, mh + 4);
+          ctx.fillStyle = 'rgba(159,232,255,0.55)';
+          ctx.fillRect(mx + mw / 2 - 2, my + mh / 2 - 2, 4, 4);
+        }
+        // production REC dot + flash sit over the desk while shooting
+        if(working && st.dept === 'production'){
           if(Math.floor(t * 2) % 2 === 0){
             ctx.fillStyle = '#ff5c5c';
-            ctx.fillRect(d.x + DESK_W / 2 - 12, d.y - DESK_H / 2 - 10, 6, 6);
-            pxText(ctx, 'REC', d.x + DESK_W / 2 - 4, d.y - DESK_H / 2 - 3, 8, '#ff5c5c', 'left', true);
+            ctx.fillRect(dx + DESK_W - 16, dyTop + 4, 6, 6);
+            pxText(ctx, 'REC', dx + DESK_W - 8, dyTop + 11, 8, '#ff5c5c', 'left', true);
           }
-          // camera flash pop every ~3s
           if((t + i * 0.7) % 3 < 0.12){
-            ctx.fillStyle = 'rgba(255,255,255,0.55)';
-            ctx.fillRect(d.x - DESK_W / 2 - 8, d.y - DESK_H / 2 - CHAR_H, DESK_W + 16, CHAR_H + DESK_H);
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.fillRect(dx - 6, dyTop - CHAR_H, DESK_W + 12, CHAR_H + DESK_H);
           }
         }
       }
-      if(home){
-        pxText(ctx, 'zzz · home', d.x, d.y + 4, 12, 'rgba(159,232,255,0.4)', 'center');
-      }
 
-      // desk + monitor
-      drawSprite(ctx, 'desk', d.x - DESK_W / 2, d.y - DESK_H / 2, DESK_W, DESK_H);
-      if(st && st.briefId){
-        // steady on, with an occasional one-frame CRT blink
-        if(Math.floor(t * 6) % 9 !== 8) drawSprite(ctx, 'monitor_on', d.x - 16, d.y - DESK_H / 2 - 4, 32, 24);
-      }
+      // 6) chair in front of the desk near edge (covers the sprite's feet)
+      seatChair(ctx, d, i);
 
       if(!st){
-        ctx.strokeStyle = 'rgba(159,232,255,0.15)';
+        // empty desk: faint outline cue so the slot reads as available
+        ctx.strokeStyle = 'rgba(159,232,255,0.12)';
         ctx.lineWidth = 2;
-        ctx.strokeRect(d.x - DESK_W / 2 + 1, d.y - DESK_H / 2 + 1, DESK_W - 2, DESK_H - 2);
+        ctx.strokeRect(dx + 1, dyTop + 1, DESK_W - 2, DESK_H - 2);
         continue;
       }
-      if(home) continue; // no nameplate/bars for sleeping staff
       if(away) continue; // they are at the cooler; drawn in drawWanderers
 
-      // name plate + badge icons
-      var first = st.name.split(' ')[0];
-      labelChip(ctx, first, d.x - 6, d.y + DESK_H / 2 + 14, 8, 'center', true);
-      pxText(ctx, first, d.x - 6, d.y + DESK_H / 2 + 14, 8, '#f4e8cf', 'center', true);
-      if(st.badges.length){
-        ctx.font = '11px serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        ctx.fillText(st.badges.map(function(b){ return b.icon; }).join(''), d.x + (first.length * 4.5), d.y + DESK_H / 2 + 15);
-      }
-      // skill stars
-      pxText(ctx, '★'.repeat(st.skill), d.x, d.y + DESK_H / 2 + 26, 9, '#ffe066', 'center');
+      // ---- per-staff overlays, ALL ABOVE THE HEAD (B3) ----
+      // head top is ~ d.y + SEAT_Y - CHAR_H = d.y - 50. Stack labels above that.
+      var headTop = d.y + SEAT_Y - CHAR_H;   // ~ d.y - 50
 
-      // burnout bar (under stars)
-      bar(ctx, d.x - 30, d.y + DESK_H / 2 + 31, 60, 5,
-          st.burnout / 100,
-          st.burnout > 75 ? '#ff5c5c' : (st.burnout > 45 ? '#ff9a56' : '#7ee08a'));
-      if(st.burnout > 75 && Math.floor(t * 4) % 2 === 0){
-        pxText(ctx, '!!', d.x + 38, d.y + DESK_H / 2 + 38, 14, '#ff5c5c', 'left');
-      }
-
-      // assigned brief: deadline timer + progress floating over desk
+      // assigned brief: deadline + work bars float highest (d.y-76..-58 region)
       if(st.briefId){
         var b = G.briefs.byId(st.briefId);
         if(b){
-          var top = d.y - DESK_H / 2 - CHAR_H - 4;
+          var top = headTop - 38;            // ~ d.y - 76
           var frac = b.deadlineLeft / b.deadlineTotal;
           var col = frac > 0.5 ? '#7ee08a' : (frac > 0.22 ? '#ffe066' : '#ff5c5c');
-          bar(ctx, d.x - 45, top, 90, 7, frac, col);
+          pxText(ctx, b.title.length > 18 ? b.title.slice(0, 17) + '…' : b.title, d.x, top - 5, 12, '#f4e8cf', 'center');
+          bar(ctx, d.x - 45, top, 90, 6, frac, col);
           var daysleft = (b.deadlineLeft / G.BAL.DAY_REAL_SECONDS);
           var dtxt = daysleft >= 1 ? daysleft.toFixed(1) + 'd' : Math.ceil(daysleft * 10) * 10 + '%';
           var blink = frac < 0.22 && Math.floor(t * 4) % 2 === 0;
-          pxText(ctx, dtxt, d.x + 50, top + 7, 13, blink ? '#ff5c5c' : col, 'left');
-          bar(ctx, d.x - 45, top + 11, 90, 5, b.workDone / b.workNeeded, '#9fe8ff');
-          pxText(ctx, b.title.length > 18 ? b.title.slice(0, 17) + '…' : b.title, d.x, top - 5, 12, '#f4e8cf', 'center');
+          pxText(ctx, dtxt, d.x + 50, top + 6, 13, blink ? '#ff5c5c' : col, 'left');
+          bar(ctx, d.x - 45, top + 10, 90, 4, b.workDone / b.workNeeded, '#9fe8ff');
         }
       }
 
-      // speech bubble: above the timer bars, off to the right
+      // nameplate + badge icons + stars + burnout, ALL above the head:
+      // the face stays visible, the paperwork floats over it
+      var first = st.name.split(' ')[0];
+      labelChip(ctx, first, d.x - 6, headTop - 15, 8, 'center', true);
+      pxText(ctx, first, d.x - 6, headTop - 15, 8, '#f4e8cf', 'center', true);
+      if(st.badges.length){
+        ctx.font = '10px serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(st.badges.map(function(bd){ return bd.icon; }).join(''), d.x + (first.length * 4), headTop - 14);
+      }
+      pxText(ctx, '★'.repeat(st.skill), d.x, headTop - 5, 9, '#ffe066', 'center');
+      bar(ctx, d.x - 30, headTop - 4, 60, 4,
+          st.burnout / 100,
+          st.burnout > 75 ? '#ff5c5c' : (st.burnout > 45 ? '#ff9a56' : '#7ee08a'));
+      if(st.burnout > 75 && Math.floor(t * 4) % 2 === 0){
+        pxText(ctx, '!!', d.x + 38, headTop + 1, 14, '#ff5c5c', 'left');
+      }
+
+      // speech bubble: off to the right, above the head stack
       if(st.bubble){
-        drawBubble(ctx, d.x + 30, d.y - DESK_H / 2 - CHAR_H - 24, st.bubble);
+        drawBubble(ctx, d.x + 26, headTop - 44, st.bubble);
       }
     }
+  }
+
+  // soft filled ellipse helper (floor shadows)
+  function ellipse(ctx, cx, cy, rx, ry){
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // chair in front of the desk near-edge, colorway round-robin per seat index
+  function seatChair(ctx, d, i){
+    var key = CHAIR_KEYS[i % CHAIR_KEYS.length];
+    // chair 40x40, centered on d.x, its back rising in front of the desk lip
+    drawSprite(ctx, key, d.x - 20, d.y + 16, 40, 40);
   }
 
   // staff currently out at the water cooler. Drawn after the desks so they sit
@@ -513,7 +609,10 @@
       var walking = a.mode === 'going' || a.mode === 'returning';
       // walk pace frame flip; standing still while chatting
       var frame = walking ? Math.floor(t * 6 + i) % 2 : (Math.floor(t * 1.5 + i) % 2);
-      drawSprite(ctx, st.portraitKey, a.x - CHAR_W / 2, a.y - CHAR_H + 8, CHAR_W, CHAR_H, frame);
+      // floor shadow under the standing figure
+      ctx.fillStyle = 'rgba(0,0,0,0.20)';
+      ellipse(ctx, a.x, a.y + 4, 16, 5);
+      drawSprite(ctx, st.portraitKey, a.x - CHAR_W / 2, a.y - CHAR_H + 4, CHAR_W, CHAR_H, frame);
       if(a.mode === 'chatting' && a.bubble){
         drawBubble(ctx, a.x + 14, a.y - CHAR_H - 2, a.bubble);
       }
@@ -537,12 +636,13 @@
   }
 
   // ---------- clickable hotspots (chai / printer / window / board) ----------
+  // hotspots aligned to the baked bg (office_bg_topdown) feature positions.
   var HOTSPOTS = {
-    chai:    { x: 100, y: 158, w: 72, h: 78 },
-    printer: { x: 960, y: 170, w: 60, h: 58 }, // cream wall right of the window
-    window:  { x: 950, y: 245, w: 100, h: 135 }, // upper door panel: peek outside
-    board:   { x: 40,  y: 50,  w: 210, h: 58 },
-    tv:      { x: 285, y: 150, w: 120, h: 80 }   // wall-mounted, only when owned
+    chai:    { x: 36,  y: 96,  w: 96,  h: 70 },  // baked left-wall chai counter
+    printer: { x: 1010, y: 150, w: 58, h: 56 },  // drawn on a low cabinet (A4)
+    window:  { x: 176, y: 30,  w: 180, h: 66 },  // the baked studio window glass
+    board:   { x: 80,  y: 26,  w: 72,  h: 68 },  // baked HUSTLE poster (click only)
+    tv:      { x: 872, y: 24,  w: 206, h: 68 }   // baked flatscreen on back wall
   };
 
   // absurd ad-industry headlines for the TV news ticker (no real brands)
@@ -570,55 +670,46 @@
     ctx.fillStyle = '#f4e8cf'; ctx.fillRect(h.x, h.y, h.w, h.h);
     ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 3;
     ctx.strokeRect(h.x + 1.5, h.y + 1.5, h.w - 3, h.h - 3);
-    // plain ink, no pxText shadow: tiny type on light paper smears otherwise
+    // plain ink, no pxText shadow: tiny type on light paper smears otherwise.
+    // small poster now (A4) — keep the gag, scale the type down to fit 70x60.
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.font = "16px 'Silkscreen', monospace";
+    ctx.font = "11px 'Silkscreen', monospace";
     ctx.fillStyle = '#1a1410';
-    ctx.fillText('HUSTLE', h.x + h.w / 2, h.y + 27);
-    ctx.font = "16px 'VT323', monospace";
+    ctx.fillText('HUSTLE', h.x + h.w / 2, h.y + 28);
+    ctx.font = "11px 'VT323', monospace";
     ctx.fillStyle = '#4a3a28';
-    ctx.fillText('mandatory inspiration', h.x + h.w / 2, h.y + 46);
+    ctx.fillText('mandatory', h.x + h.w / 2, h.y + 42);
+    ctx.fillText('inspiration', h.x + h.w / 2, h.y + 52);
   }
 
+  // overlay-only: the bg bakes the chai counter + kettle. We add the live steam
+  // (while still on offer), a dim wash + a click label for used/available state.
   function drawChaiStation(ctx){
     var s = G.state;
     var h = HOTSPOTS.chai;
     var used = s.chaiDay === s.week * 10 + s.day;
-
-    if(G.data.hasArt('chai_station')){
-      // hi-bit sprite replaces the procedural counter/kettle/cups; used state
-      // dims the whole station, steam + label still ride on top
-      if(used) ctx.globalAlpha = 0.55;
-      drawSprite(ctx, 'chai_station', h.x, h.y, h.w, h.h);
-      ctx.globalAlpha = 1;
+    if(used){
+      ctx.fillStyle = 'rgba(13,20,38,0.40)';
+      ctx.fillRect(h.x, h.y, h.w, h.h);   // dim the baked counter when spent
     } else {
-      // counter
-      ctx.fillStyle = '#16203a'; ctx.fillRect(h.x, h.y + 46, h.w, 30);
-      ctx.fillStyle = '#2a3654'; ctx.fillRect(h.x + 3, h.y + 49, h.w - 6, 24);
-      // kettle
-      ctx.fillStyle = used ? '#5a5a52' : '#c0c0b4';
-      ctx.fillRect(h.x + 10, h.y + 22, 26, 24);
-      ctx.fillRect(h.x + 36, h.y + 28, 8, 6); // spout
-      ctx.fillStyle = '#16203a'; ctx.fillRect(h.x + 16, h.y + 16, 14, 6); // lid
-      // kulhad glasses
-      ctx.fillStyle = '#b06a3a';
-      ctx.fillRect(h.x + 48, h.y + 36, 9, 10);
-      ctx.fillRect(h.x + 59, h.y + 36, 9, 10);
-    }
-    // steam (only while chai is still on offer) — rises from the kettle spout
-    if(!used){
+      // steam rising off the baked kettle spout
       var sy = Math.floor(t * 3) % 3;
-      ctx.fillStyle = 'rgba(244,232,207,0.5)';
-      ctx.fillRect(h.x + 18, h.y + 6 - sy * 2, 4, 4);
-      ctx.fillRect(h.x + 26, h.y + 10 - sy * 2, 4, 4);
+      ctx.fillStyle = 'rgba(244,232,207,0.55)';
+      ctx.fillRect(h.x + 36, h.y - 4 - sy * 2, 4, 4);
+      ctx.fillRect(h.x + 44, h.y - 8 - sy * 2, 4, 4);
     }
-    pxText(ctx, used ? 'CHAI (kal)' : 'CHAI ☕', h.x + h.w / 2, h.y + h.h + 12, 9,
-           used ? 'rgba(159,232,255,0.35)' : '#ffe066', 'center', true);
+    labelChip(ctx, used ? 'CHAI (kal)' : 'CHAI ☕', h.x + h.w / 2, h.y + h.h + 10, 9, 'center', true);
+    pxText(ctx, used ? 'CHAI (kal)' : 'CHAI ☕', h.x + h.w / 2, h.y + h.h + 10, 9,
+           used ? 'rgba(159,232,255,0.45)' : '#ffe066', 'center', true);
   }
 
   function drawPrinter(ctx){
     var s = G.state;
     var h = HOTSPOTS.printer;
+    // a low cabinet under the printer so it never floats (A4)
+    ctx.fillStyle = 'rgba(0,0,0,0.18)'; ellipse(ctx, h.x + h.w / 2, h.y + h.h + 14, h.w * 0.7, 8);
+    ctx.fillStyle = '#3a4250'; ctx.fillRect(h.x - 6, h.y + h.h - 4, h.w + 12, 18);
+    ctx.fillStyle = '#2a3140'; ctx.fillRect(h.x - 6, h.y + h.h - 4, h.w + 12, 4);
     if(G.data.hasArt('printer')){
       // hi-bit sprite; top-right left visually quiet for the status lights below
       drawSprite(ctx, 'printer', h.x, h.y, h.w, h.h);
@@ -642,18 +733,20 @@
   function drawTrophies(ctx){
     var tr = G.state.trophies;
     if(!tr || !tr.length) return;
-    var x0 = 46, y0 = 120;
-    pxText(ctx, 'AWARD SHELF', x0, y0 - 4, 8, 'rgba(255,224,102,0.6)', 'left', true);
+    // compact live shelf just under the baked framed-pictures row (clear of TV).
+    var x0 = 724, y0 = 100, n = Math.min(tr.length, 8);
+    labelChip(ctx, 'AWARDS', x0, y0 - 3, 8, 'left', true);
+    pxText(ctx, 'AWARDS', x0, y0 - 3, 8, 'rgba(255,224,102,0.7)', 'left', true);
     // shelf plank
-    ctx.fillStyle = '#16203a'; ctx.fillRect(x0 - 4, y0 + 24, Math.min(tr.length, 8) * 26 + 8, 5);
-    for(var i = 0; i < Math.min(tr.length, 8); i++){
-      var x = x0 + i * 26;
+    ctx.fillStyle = '#3a2a14'; ctx.fillRect(x0 - 3, y0 + 18, n * 17 + 6, 4);
+    for(var i = 0; i < n; i++){
+      var x = x0 + i * 17;
       ctx.fillStyle = '#ffe066';
-      ctx.fillRect(x + 4, y0 + 2, 12, 10);  // cup
-      ctx.fillRect(x + 7, y0 + 12, 6, 5);   // stem
-      ctx.fillRect(x + 3, y0 + 17, 14, 4);  // base
+      ctx.fillRect(x + 3, y0 + 2, 9, 8);    // cup
+      ctx.fillRect(x + 5, y0 + 10, 5, 4);   // stem
+      ctx.fillRect(x + 2, y0 + 14, 11, 3);  // base
       ctx.fillStyle = '#b8860b';
-      ctx.fillRect(x + 4, y0 + 9, 12, 3);   // shading band
+      ctx.fillRect(x + 3, y0 + 7, 9, 2);    // shading band
     }
   }
 
@@ -664,30 +757,14 @@
   // inner-screen rect of the tv_set sprite, in sprite-logical coords (the sprite
   // is drawn at HOTSPOTS.tv.w x .h = 120x80). Measured off the art: the live
   // channel content + scanlines + clip all use SCR, never the full bezel box.
-  var TV_SCREEN = { dx: 30, dy: 9, w: 81, h: 52 };
+  // inset from the baked flatscreen bezel to the live glass (HOTSPOTS.tv).
+  var TV_INSET = 8;
 
   function drawTV(ctx){
     var h = HOTSPOTS.tv;
-    var hasArt = G.data.hasArt('tv_set');
-
-    // SCR = the live-glass rect in game coords. With art it's the sprite's inner
-    // screen; without art it's the whole procedural box (legacy fallback).
-    var SCR = hasArt
-      ? { x: h.x + TV_SCREEN.dx, y: h.y + TV_SCREEN.dy, w: TV_SCREEN.w, h: TV_SCREEN.h }
-      : { x: h.x, y: h.y, w: h.w, h: h.h };
-
-    if(hasArt){
-      // hi-bit casing sprite (bezel + mount + blank dark screen)
-      drawSprite(ctx, 'tv_set', h.x, h.y, h.w, h.h);
-    } else {
-      // mounting bracket + bezel (procedural fallback)
-      ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x - 6, h.y - 6, h.w + 12, h.h + 12);
-      ctx.fillStyle = '#161b28'; ctx.fillRect(h.x - 4, h.y - 4, h.w + 8, h.h + 8);
-      ctx.strokeStyle = '#2a3142'; ctx.lineWidth = 2;
-      ctx.strokeRect(h.x - 3.5, h.y - 3.5, h.w + 7, h.h + 7);
-      // stubby wall mount under it
-      ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x + h.w / 2 - 8, h.y + h.h + 6, 16, 6);
-    }
+    // the bg bakes the bezel + (off) dark screen. We paint the live channel
+    // INSIDE that glass, inset from the baked bezel.
+    var SCR = { x: h.x + TV_INSET, y: h.y + TV_INSET, w: h.w - TV_INSET * 2, h: h.h - TV_INSET * 2 };
 
     // clip the screen so scene draws never bleed past the glass
     ctx.save();
@@ -828,19 +905,20 @@
   // ---------- neon sign (proper glowing tube) ----------
   function drawNeon(ctx){
     var txt = '~ ' + (G.state.neonText || 'CRAVACHE') + ' ~';
-    var cx = 640, cy = 40;
+    var cx = 355, cy = 18;   // above the studio window (A4)
     // one-frame buzz/flicker: mostly on, occasionally a dim frame
     var flick = Math.floor(t * 9) % 53;
     var on = flick !== 0 && flick !== 1;          // brief 2-frame buzz-out
     var dim = Math.floor(t * 3) % 11 === 0;       // gentle low-power flutter
-    var w = 280;
-    // backing board (always there, so a dark sign still reads as a sign)
+    var w = 220;
+    // backing board (always there, so a dark sign still reads as a sign).
+    // slim header sign tucked in the wall strip above the window (A4).
     ctx.fillStyle = '#0c1322';
-    ctx.fillRect(cx - w / 2, cy - 24, w, 42);
+    ctx.fillRect(cx - w / 2, cy - 12, w, 26);
     ctx.strokeStyle = '#1a2440'; ctx.lineWidth = 2;
-    ctx.strokeRect(cx - w / 2 + 1, cy - 23, w - 2, 40);
+    ctx.strokeRect(cx - w / 2 + 1, cy - 11, w - 2, 24);
 
-    ctx.font = "18px 'Silkscreen', monospace";
+    ctx.font = "14px 'Silkscreen', monospace";
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
 
     if(on){
@@ -849,22 +927,22 @@
       ctx.shadowColor = '#ff9a56';
       ctx.shadowBlur = dim ? 6 : 16;
       ctx.fillStyle = dim ? '#b85c2e' : '#ff9a56';
-      ctx.fillText(txt, cx, cy + 6);
+      ctx.fillText(txt, cx, cy + 5);
       ctx.restore();
       // dark tube outline for that layered glass look
       ctx.lineWidth = 3; ctx.strokeStyle = '#5a2a14';
-      ctx.strokeText(txt, cx, cy + 6);
+      ctx.strokeText(txt, cx, cy + 5);
       // bright core
       ctx.fillStyle = dim ? '#ffb27a' : '#ffd9b0';
-      ctx.fillText(txt, cx, cy + 6);
+      ctx.fillText(txt, cx, cy + 5);
       // tube frame
       ctx.strokeStyle = on ? 'rgba(255,154,86,0.55)' : 'rgba(255,154,86,0.15)';
       ctx.lineWidth = 2;
-      ctx.strokeRect(cx - w / 2 + 6, cy - 19, w - 12, 32);
+      ctx.strokeRect(cx - w / 2 + 5, cy - 9, w - 10, 20);
     } else {
       // buzzed-out frame: cold dead tube
       ctx.fillStyle = '#3a2418';
-      ctx.fillText(txt, cx, cy + 6);
+      ctx.fillText(txt, cx, cy + 5);
     }
   }
 
@@ -905,27 +983,54 @@
     ctx.fillStyle = '#3a6a8a'; ctx.fillRect(cx + 14, cy + 28, 12, 4);
   }
 
-  // floor spot for the cooler: clear lane between content cluster and the door,
-  // above the production tape (which is y>=425). Verified against DESKS.
-  var COOLER = { x: 884, y: 300 };
-  G.render.coolerPoint = function(){ return { x: COOLER.x + 20, y: COOLER.y + 66 }; };
+  // floor spot for the cooler (A4): right of the content cluster,
+  // above the production strip, clear of every desk. unit ~50x80 from top-left.
+  var COOLER = { x: 1046, y: 322 };
+  G.render.coolerPoint = function(){ return { x: COOLER.x + 24, y: COOLER.y + 66 }; };
+
+  // (cardboard boxes + bin are baked into office_bg_topdown, A4.)
+
+  // optional server-ish rack behind the production cluster (tech vibe, A4).
+  function drawServerRack(ctx){
+    var rx = 1080, ry = 470;
+    ctx.fillStyle = 'rgba(0,0,0,0.20)'; ellipse(ctx, rx + 30, ry + 92, 34, 9);
+    ctx.fillStyle = '#1a2030'; ctx.fillRect(rx, ry, 60, 90);
+    ctx.fillStyle = '#11161f'; ctx.fillRect(rx + 4, ry + 4, 52, 82);
+    for(var u = 0; u < 6; u++){
+      ctx.fillStyle = '#2a3346'; ctx.fillRect(rx + 8, ry + 10 + u * 13, 44, 9);
+      // blinking activity LEDs
+      var on = (Math.floor(t * 3) + u) % 3 === 0;
+      ctx.fillStyle = on ? '#7ee08a' : '#1f6a32';
+      ctx.fillRect(rx + 46, ry + 12 + u * 13, 3, 3);
+      ctx.fillStyle = (u % 2) ? '#ffe066' : '#9fe8ff';
+      ctx.fillRect(rx + 40, ry + 12 + u * 13, 3, 3);
+    }
+  }
 
   // ---------- props ----------
+  // The bg (office_bg_topdown) BAKES the static wall decor: HUSTLE poster,
+  // whiteboard, binders, framed pictures, chai counter, cardboard boxes, the
+  // (balcony removed). So those procedural draws are gone — we only paint things that are
+  // INTERACTIVE (chai click-state, printer cabinet) or LIVE/UPGRADE (TV, cooler,
+  // plant, coffee, neon, trophies that accumulate, the production server rack).
   function drawProps(ctx){
     var s = G.state;
+    drawServerRack(ctx);
     drawChaiStation(ctx);
     drawPrinter(ctx);
-    drawBoard(ctx);
     drawTrophies(ctx);
-    if(s.upgrades.coffee) drawSprite(ctx, 'coffee_machine', 16, 150, 60, 80);
-    if(s.upgrades.plant) drawSprite(ctx, 'plant', 836, 168, 48, 68);
+    if(s.upgrades.coffee) drawSprite(ctx, 'coffee_machine', 132, 96, 46, 64);   // left-wall counter, beside chai
+    if(s.upgrades.plant){
+      ctx.fillStyle = 'rgba(0,0,0,0.18)'; ellipse(ctx, 168, 558, 26, 7);
+      drawSprite(ctx, 'plant', 144, 492, 48, 68);                                // floor corner (A4)
+    }
     if(s.upgrades.tv) drawTV(ctx);
     if(s.upgrades.cooler) drawCooler(ctx);
     if(s.upgrades.neon) drawNeon(ctx);
-    // phone rings when a call is live
+    // phone rings when a call is live (sits on the printer cabinet)
     if(s.activeCall && Math.floor(t * 8) % 2 === 0){
-      drawSprite(ctx, 'phone_prop', 905, 170, 40, 40);
-      pxText(ctx, 'RING', 925, 162, 10, '#ff5c5c', 'center', true);
+      drawSprite(ctx, 'phone_prop', 1076, 150, 36, 36);
+      pxText(ctx, 'RING', 1094, 142, 10, '#ff5c5c', 'center', true);
     }
   }
 
@@ -964,12 +1069,14 @@
       t += dt;
       ctx.clearRect(0, 0, 1280, 720);
       drawBackground(ctx);
-      drawWindowSky(ctx);   // live hour-tinted sky in the studio window
-      // night: the office goes dark blue, monitors become the light source
+      drawWindowSky(ctx);    // live hour-tinted sky in the studio window
+      drawRugs(ctx);         // per-dept floor tints, under the desks
+      drawFloorWarmth(ctx);  // sunset warms the FLOOR after 17:00 (A3 fix)
+      // night: the office goes dark blue, laptops become the light source
       if(G.state.night){
         ctx.fillStyle = 'rgba(8,12,28,0.52)';
         ctx.fillRect(0, 0, 1280, 720);
-        pxText(ctx, '🌙 NIGHT SHIFT', 640, 60, 12, 'rgba(159,232,255,0.7)', 'center', true);
+        pxText(ctx, '🌙 NIGHT SHIFT', 640, 130, 12, 'rgba(159,232,255,0.7)', 'center', true);
       }
       drawQuotesWall(ctx);
       drawProps(ctx);

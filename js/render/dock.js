@@ -8,6 +8,37 @@
   var trayEl, toastsEl, countEl, hintEl, ghostEl, stageEl;
   var briefToasts = [];   // {el, fill, t, total, done, cb}
   var infoToasts = [];    // {el, t}
+  var moreChip = null;    // the "+N more" collapse chip
+  var TOAST_CAP = 3;      // max visible toasts; rest collapse
+
+  // cap the visible toast column at TOAST_CAP, newest on top. Older toasts past
+  // the cap are hidden and summarised by a single "+N more" chip at the bottom.
+  function reflowToasts(){
+    if(!toastsEl) return;
+    // all toast elements in DOM order (oldest first), excluding the more-chip
+    var nodes = [];
+    for(var i = 0; i < toastsEl.children.length; i++){
+      var c = toastsEl.children[i];
+      if(c !== moreChip) nodes.push(c);
+    }
+    // keep the newest TOAST_CAP visible (last in DOM = newest)
+    var hidden = 0;
+    for(var j = 0; j < nodes.length; j++){
+      var keep = j >= nodes.length - TOAST_CAP;
+      nodes[j].classList.toggle('hidden', !keep);
+      if(!keep) hidden++;
+    }
+    if(hidden > 0){
+      if(!moreChip){
+        moreChip = document.createElement('div');
+        moreChip.className = 'toast-more';
+      }
+      moreChip.textContent = '+' + hidden + ' more';
+      toastsEl.appendChild(moreChip); // stays at the bottom
+    } else if(moreChip && moreChip.parentNode){
+      moreChip.remove();
+    }
+  }
 
   function esc(str){
     return String(str).replace(/[&<>"']/g, function(ch){
@@ -165,14 +196,17 @@
         if(tt.t <= 0) resolveToast(tt, false);
       }
       // info toasts expire on real time
+      var removed = false;
       for(var j = infoToasts.length - 1; j >= 0; j--){
         var it = infoToasts[j];
         it.t -= rdt;
         if(it.t <= 0){
           it.el.remove();
           infoToasts.splice(j, 1);
+          removed = true;
         }
       }
+      if(removed) reflowToasts();
       // live deadline labels on tray cards
       var cards = trayEl.children;
       for(var k = 0; k < cards.length; k++){
@@ -231,6 +265,7 @@
         '<div class="toast-timer"><div></div></div>' +
         '<div class="toast-read-hint">hovering pauses the clock. read.</div>';
       toastsEl.appendChild(el);
+      reflowToasts();
       el.addEventListener('pointerenter', function(){ tt.hover = true; });
       el.addEventListener('pointerleave', function(){ tt.hover = false; });
       G.audio.click();
@@ -263,10 +298,11 @@
         '<div class="toast-title">' + esc(body) + '</div>';
       toastsEl.appendChild(el);
       infoToasts.push({ el: el, t: 7 });
-      while(infoToasts.length > 4){ // never wall the screen
+      while(infoToasts.length > 4){ // hard ceiling on retained info toasts
         var old = infoToasts.shift();
         old.el.remove();
       }
+      reflowToasts();
     }
   };
 
@@ -276,6 +312,7 @@
     tt.el.remove();
     var idx = briefToasts.indexOf(tt);
     if(idx >= 0) briefToasts.splice(idx, 1);
+    reflowToasts();
     tt.cb(accepted);
   }
 

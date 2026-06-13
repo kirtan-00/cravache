@@ -13,18 +13,23 @@
 <div id="stage">
   <canvas id="game" width="1280" height="720"></canvas>
 
-  <!-- HUD: top chips (DOM) -->
+  <!-- HUD: top chips (DOM). Dave-the-Diver chrome: one merged stat bar on the
+       left, one clock chip + two equal square icon-buttons on the right. -->
   <div id="hud">
-    <div class="chip" id="chip-money"><span class="chip-label">CASH</span><span class="chip-val" id="hud-money">₹0</span></div>
-    <div class="chip" id="chip-rep"><span class="chip-label">REP</span><span class="chip-val" id="hud-rep">0</span></div>
-    <div class="chip chip-chaos" id="chip-chaos">
-      <span class="chip-label">CHAOS</span>
-      <div class="chaos-track"><div class="chaos-fill" id="hud-chaos-fill"></div></div>
-      <span class="chip-val" id="hud-chaos">0%</span>
+    <div class="chip statbar" id="chip-stats">
+      <span class="stat" id="chip-money"><span class="chip-label">CASH</span><span class="chip-val" id="hud-money">₹0</span></span>
+      <span class="stat-sep"></span>
+      <span class="stat" id="chip-rep"><span class="chip-label">REP</span><span class="chip-val" id="hud-rep">0</span></span>
+      <span class="stat-sep"></span>
+      <span class="stat" id="chip-chaos">
+        <span class="chip-label">CHAOS</span>
+        <span class="chaos-track"><span class="chaos-fill" id="hud-chaos-fill"></span></span>
+        <span class="chip-val" id="hud-chaos">0%</span>
+      </span>
     </div>
     <div class="chip" id="chip-clock"><span class="chip-val" id="hud-clock">MON 9:00</span><span class="chip-label" id="hud-week">WK 1 · Q1</span></div>
-    <button class="chip chip-btn" id="btn-pause" title="pause (esc)">⏸</button>
-    <button class="chip chip-btn" id="btn-mute" title="mute">SND ON</button>
+    <button class="chip chip-iconbtn" id="btn-pause" title="pause (esc)">⏸</button>
+    <button class="chip chip-iconbtn" id="btn-mute" title="mute">🔊</button>
   </div>
 
   <!-- toasts -->
@@ -32,15 +37,17 @@
 
   <!-- bottom dock -->
   <div id="dock">
-    <div class="dock-label">BRIEF TRAY <span id="tray-count"></span></div>
-    <div id="tray"></div>
+    <div class="tray-wrap">
+      <div class="tray-tab">TRAY <span id="tray-count"></span></div>
+      <div id="tray"></div>
+      <div class="dock-hint" id="dock-hint">drag a brief onto a desk</div>
+    </div>
     <div class="dock-side">
-      <button class="px-btn dock-btn" id="btn-collect">COLLECT <span id="collect-badge"></span></button>
-      <button class="px-btn px-btn-dim dock-btn" id="btn-hire">HIRE</button>
-      <button class="px-btn px-btn-dim dock-btn" id="btn-growth">GROWTH</button>
+      <button class="px-btn dock-btn" id="btn-collect"><span class="db-ico">💰</span><span class="db-cap">COLLECT</span><span id="collect-badge"></span></button>
+      <button class="px-btn px-btn-dim dock-btn" id="btn-hire"><span class="db-ico">🧑‍💼</span><span class="db-cap">HIRE</span></button>
+      <button class="px-btn px-btn-dim dock-btn" id="btn-growth"><span class="db-ico">📈</span><span class="db-cap">GROWTH</span></button>
     </div>
     <button class="px-btn dock-btn hidden" id="btn-skipnight">🌙 SKIP NIGHT</button>
-    <div class="dock-hint" id="dock-hint">drag a brief onto a desk</div>
   </div>
 
   <!-- drag ghost -->

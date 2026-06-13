@@ -292,8 +292,10 @@
     boring_allergy:  { icon: '🧠', label: 'Picky Genius',  desc: 'Shines on hard briefs, sulks on easy ones.' },
     trend_chaser:    { icon: '🐣', label: 'Chronically Online', desc: 'Saw it on reels first.' }
   };
-  // salary by skill star, light jitter; matches the named-cast price ladder
-  var SALARY = [12000, 30000, 45000, 65000];
+  // salary by skill star, light jitter; matches the named-cast price ladder.
+  // skill 3-4 raised (2026-06-13) so senior walk-ins cost senior money, like
+  // the named cast. A 4-star walk-in lands near Arya/Natasha territory.
+  var SALARY = [15000, 36000, 55000, 82000];
 
   function walkIn(dept){
     var s = G.state;

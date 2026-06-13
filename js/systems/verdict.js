@@ -70,6 +70,17 @@
       }, function(){ G.verdict.applyOutcome(brief, staffer, outcome, payout, comp.conflict); });
     },
 
+    // small money lands instantly on UPI: clients do not make you chase petty
+    // sums. Returns true if it paid on the spot (caller skips the receivable).
+    instantPay: function(brief, payout){
+      if(payout <= 0) return true; // nothing to collect either way
+      if(payout >= G.BAL.INSTANT_PAY_UNDER) return false;
+      G.economy.earn(payout);
+      G.dock.infoToast('PAID · UPI', G.fmtMoney(payout) + ' for "' + brief.title +
+        '" hit your account before you closed the modal. Small money does not wait.', 'good');
+      return true;
+    },
+
     // instagram followers: the other scoreboard
     gainFollowers: function(range){
       var s = G.state;
@@ -88,8 +99,11 @@
 
       switch(outcome){
         case 'approve':
-          // approved ≠ paid. It becomes an invoice; go CALL for your money.
-          s.receivables.push({ clientId: brief.clientId, title: brief.title, amount: payout, age: 0 });
+          // small money pays on the spot over UPI; only big invoices get chased.
+          if(!this.instantPay(brief, payout)){
+            // approved ≠ paid. It becomes an invoice; go CALL for your money.
+            s.receivables.push({ clientId: brief.clientId, title: brief.title, amount: payout, age: 0 });
+          }
           s.rep += G.BAL.REP_APPROVE + repBonus;
           s.stats.weekShipped++; s.stats.totalShipped++;
           if(staffer) staffer.shippedWeek = (staffer.shippedWeek || 0) + 1;
@@ -99,8 +113,10 @@
           break;
 
         case 'viral':
-          // viral money also needs collecting. Fame is not cashflow.
-          s.receivables.push({ clientId: brief.clientId, title: brief.title, amount: payout, age: 0 });
+          // viral money also needs collecting, unless it's small — then UPI.
+          if(!this.instantPay(brief, payout)){
+            s.receivables.push({ clientId: brief.clientId, title: brief.title, amount: payout, age: 0 });
+          }
           s.rep += G.BAL.REP_VIRAL + repBonus;
           s.stats.weekShipped++; s.stats.totalShipped++; s.stats.totalViral++; s.stats.weekViral++;
           if(staffer) staffer.shippedWeek = (staffer.shippedWeek || 0) + 1;

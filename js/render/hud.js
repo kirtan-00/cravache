@@ -34,7 +34,8 @@
         var s = G.state;
         s.muted = !s.muted;
         G.audio.setMuted(s.muted);
-        el.mute.textContent = s.muted ? 'SND OFF' : 'SND ON';
+        el.mute.textContent = s.muted ? '🔇' : '🔊';
+        el.mute.title = s.muted ? 'unmute' : 'mute';
         if(!s.muted) G.audio.click();
       });
     },

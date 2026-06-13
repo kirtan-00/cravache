@@ -7,9 +7,15 @@
   G.BAL = {
     START_MONEY: 80000,          // ~2.5 starting weeks of costs. Tight is the point.
 
-    // economy rebalance (2026-06-13 design pass): fees were paying 6 weeks of
-    // payroll per brief. One global multiplier instead of 70 json edits.
-    FEE_GLOBAL_MULT: 0.15,
+    // economy rebalance (2026-06-13 design pass): briefs.json is now re-priced
+    // to real Indian agency rates (role x tier ladder), so the JSON is ground
+    // truth. Knob kept at 1 for future global tuning.
+    FEE_GLOBAL_MULT: 1,
+
+    // small money is paid on the spot over UPI; clients only make you chase
+    // the big invoices. Approve/viral payouts strictly below this skip the
+    // receivable and credit cash immediately (verdict.js applyOutcome).
+    INSTANT_PAY_UNDER: 10000,
     START_REP: 50,
     DAY_REAL_SECONDS: 45,        // one game day (9AM-7PM)
     DAY_START_HOUR: 9,           // 9:00
@@ -48,7 +54,8 @@
 
     // work: units needed vs staffer speed (units/sec while working)
     WORK_BASE: 20, WORK_PER_DIFF: 12,
-    SPEED_BASE: 1.5, SPEED_PER_SKILL: 0.6,
+    // seniors are expensive but FAST: skill 5 ≈ 2.4x an intern (skill 1).
+    SPEED_BASE: 1.5, SPEED_PER_SKILL: 0.85,
 
     // burnout %/sec
     BURNOUT_WORK_RATE: 1.15,

@@ -1,6 +1,13 @@
 {
   "office_bg_shoebox": { "file": "office_bg_shoebox.png", "w": 640, "h": 360, "frames": 1 },
+  "office_bg_topdown": { "file": "office_bg_topdown.png", "w": 1280, "h": 720, "frames": 1 },
   "desk":              { "file": "desk.png",              "w": 64,  "h": 40,  "frames": 1 },
+  "desk_topdown":      { "file": "desk_topdown.png",      "w": 96,  "h": 72,  "frames": 1 },
+  "chair_r":           { "file": "chair_r.png",           "w": 40,  "h": 40,  "frames": 1 },
+  "chair_g":           { "file": "chair_g.png",           "w": 40,  "h": 40,  "frames": 1 },
+  "chair_b":           { "file": "chair_b.png",           "w": 40,  "h": 40,  "frames": 1 },
+  "mac_15":            { "file": "mac_15.png",            "w": 36,  "h": 26,  "frames": 1 },
+  "mac_13":            { "file": "mac_13.png",            "w": 30,  "h": 22,  "frames": 1 },
   "monitor_on":        { "file": "monitor_on.png",        "w": 32,  "h": 24,  "frames": 1 },
   "char_1":            { "file": "char_1.png",            "w": 32,  "h": 48,  "frames": 2 },
   "char_2":            { "file": "char_2.png",            "w": 32,  "h": 48,  "frames": 2 },

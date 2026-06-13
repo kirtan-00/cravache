@@ -9,6 +9,20 @@
     return arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
   }
 
+  // voicemail the client leaves when you let the 6PM call ring out. Censored
+  // rage (G.rage()) + one of these consequences. Pure flavour, the chaos and
+  // relationship hit already landed in callIgnored.
+  var VOICEMAIL_THREATS = [
+    'I am calling your competitor tomorrow morning',
+    'this is going in the WhatsApp group, all of it',
+    'my retainer cheque has feelings now and they are bad',
+    'pick up the f****** phone or lose the account',
+    'I know where your office is and so does my lawyer',
+    'consider the next invoice officially under review',
+    'I told the whole industry about you. fondly. lie.',
+    'forget the Friday payment, we are talking Monday now'
+  ];
+
   G.events = {
     update: function(dt){
       var s = G.state;
@@ -103,6 +117,10 @@
         this.bumpRelationship(call.client.id, -1);
         G.chaos.add(G.BAL.CHAOS_IGNORED_CALL);
       }
+      // they leave a voicemail. It is not warm.
+      var threat = pick(VOICEMAIL_THREATS);
+      G.dock.infoToast('VOICEMAIL · ' + call.client.name,
+        '"' + G.rage() + '. ' + threat + '" *beep*', 'bad');
       G.hud.poke('chaos');
     },
 
