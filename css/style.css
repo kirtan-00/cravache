@@ -496,3 +496,6 @@ canvas#game{
 .modal [data-hires]{ max-height:430px; padding-right:6px; }
 .modal [data-hires]::-webkit-scrollbar{ width:10px; }
 .modal [data-hires]::-webkit-scrollbar-thumb{ background:var(--navy-dd); border:2px solid #000; }
+
+/* pause menu volume row */
+.vol-row{ display:flex; gap:8px; margin-top:6px; }

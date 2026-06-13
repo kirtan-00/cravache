@@ -9,7 +9,7 @@
 
     // economy rebalance (2026-06-13 design pass): fees were paying 6 weeks of
     // payroll per brief. One global multiplier instead of 70 json edits.
-    FEE_GLOBAL_MULT: 0.20,
+    FEE_GLOBAL_MULT: 0.15,
     START_REP: 50,
     DAY_REAL_SECONDS: 45,        // one game day (9AM-7PM)
     DAY_START_HOUR: 9,           // 9:00
@@ -32,6 +32,7 @@
     // Scales with headcount so growth costs something ongoing.
     OVERHEAD_BASE: 9000,
     OVERHEAD_PER_STAFF: 1500,
+    OVERHEAD_WEEK_RAMP: 2500,    // rent hikes weekly. The landlord saw your reel.
 
     // client tiers: week each tier starts appearing
     TIER_UNLOCK: { local: 1, gujarat: 2, india: 3, dubai: 3, global: 8 },

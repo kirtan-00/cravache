@@ -5,16 +5,25 @@
 
   var ctx = null;
   var muted = false;
+  var master = null;
+  var volume = 1;
+  try { volume = parseFloat(localStorage.getItem('cravache_vol')); } catch(e){}
+  if(isNaN(volume) || volume === null) volume = 1;
 
   function ac(){
     if(!ctx){
       var AC = window.AudioContext || window.webkitAudioContext;
       if(!AC) return null;
       ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = volume;
+      master.connect(ctx.destination);
     }
     if(ctx.state === 'suspended') ctx.resume();
     return ctx;
   }
+
+  function out(){ return master; } // everything routes through the master gain
 
   // one beep: type, freq start->end, duration, gain
   function beep(type, f0, f1, dur, gain, when){
@@ -28,7 +37,7 @@
     if(f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
     g.gain.setValueAtTime(gain, t);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(c.destination);
+    o.connect(g); g.connect(out());
     o.start(t); o.stop(t + dur + 0.02);
   }
 
@@ -43,7 +52,7 @@
     var src = c.createBufferSource(); src.buffer = buf;
     var g = c.createGain(); g.gain.setValueAtTime(gain, t);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    src.connect(g); g.connect(c.destination);
+    src.connect(g); g.connect(out());
     src.start(t);
   }
 
@@ -51,6 +60,14 @@
     unlock: function(){ ac(); },
     setMuted: function(m){ muted = m; },
     isMuted: function(){ return muted; },
+
+    // master volume 0..1, persisted (pause menu: FULL / LOW / OFF)
+    setVolume: function(v){
+      volume = Math.max(0, Math.min(1, v));
+      if(master) master.gain.value = volume;
+      try { localStorage.setItem('cravache_vol', String(volume)); } catch(e){}
+    },
+    getVolume: function(){ return volume; },
 
     click: function(){ beep('square', 660, 660, 0.05, 0.10); },
     accept: function(){ beep('square', 440, 660, 0.08, 0.12); beep('square', 660, 880, 0.08, 0.12, 0.07); },

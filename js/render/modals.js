@@ -868,6 +868,64 @@
       }
     },
 
+    // ---------- pause / settings (ESC or the ⏸ chip) ----------
+    showPauseMenu: function(){
+      var s = G.state;
+      var el = modalShell({
+        kicker: 'PAUSED · THE BRIEFS ARE FROZEN. THE BRIEFS WILL REMEMBER.',
+        title: '⏸ BREATHER',
+        bodyHTML:
+          '<div class="modal-fine">Volume</div><div data-vol class="vol-row"></div>' +
+          '<div class="modal-fine" style="margin-top:14px">Danger zone</div><div data-danger></div>'
+      });
+      var entry = push(el, { pausing: true });
+
+      // volume: three fixed steps, persisted
+      var volEl = el.querySelector('[data-vol]');
+      var STEPS = [{ label: 'FULL', v: 1 }, { label: 'LOW', v: 0.35 }, { label: 'OFF', v: 0 }];
+      var volBtns = [];
+      function paintVol(){
+        volBtns.forEach(function(b, i){
+          b.className = 'px-btn' + (Math.abs(G.audio.getVolume() - STEPS[i].v) < 0.01 ? '' : ' px-btn-dim');
+        });
+      }
+      STEPS.forEach(function(st){
+        var b = document.createElement('button');
+        b.textContent = st.label;
+        b.addEventListener('click', function(){
+          G.audio.setVolume(st.v);
+          if(st.v > 0) G.audio.click();
+          paintVol();
+        });
+        volBtns.push(b);
+        volEl.appendChild(b);
+      });
+      paintVol();
+
+      // restart: two clicks, because rage is temporary but saves are not
+      var dangerEl = el.querySelector('[data-danger]');
+      var rb = document.createElement('button');
+      rb.className = 'px-btn px-btn-red';
+      rb.textContent = 'RESTART RUN';
+      var armed = false;
+      rb.addEventListener('click', function(){
+        if(!armed){
+          armed = true;
+          rb.textContent = 'SURE? EVERYTHING GOES. CLICK AGAIN';
+          return;
+        }
+        G.audio.decline();
+        entry.onClose = null;
+        close(entry);
+        G.save.clear();
+        G.main.start();
+        G.dock.infoToast('FRESH MONDAY', 'New agency. Same city. The briefs never knew you.', 'good');
+      });
+      dangerEl.appendChild(rb);
+
+      addButtons(el, [{ label: 'RESUME', onClick: function(){ G.audio.click(); close(entry); } }]);
+    },
+
     // ---------- quotes wall ----------
     showQuote: function(q){
       var el = modalShell({

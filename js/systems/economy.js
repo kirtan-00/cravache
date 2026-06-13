@@ -81,9 +81,12 @@
       }, 0);
     },
 
-    // rent + AC + software: the office costs money even when nobody works
+    // rent + AC + software: the office costs money even when nobody works,
+    // and the rent only ever goes up
     overheadTotal: function(){
-      return G.BAL.OVERHEAD_BASE + G.state.staff.length * G.BAL.OVERHEAD_PER_STAFF;
+      return G.BAL.OVERHEAD_BASE +
+             G.state.staff.length * G.BAL.OVERHEAD_PER_STAFF +
+             (G.state.week - 1) * G.BAL.OVERHEAD_WEEK_RAMP;
     },
 
     runPayroll: function(){

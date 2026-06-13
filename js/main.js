@@ -75,6 +75,18 @@
       document.getElementById('btn-letsgo').addEventListener('click', function(){
         G.main.letsGo();
       });
+
+      // pause menu: the chip or ESC (only when actually playing, no modal up)
+      function openPause(){
+        if(!G.state || !G.state.running || G.state.gameOver) return;
+        if(G.modals.anyOpen()) return;
+        G.audio.click();
+        G.modals.showPauseMenu();
+      }
+      document.getElementById('btn-pause').addEventListener('click', openPause);
+      window.addEventListener('keydown', function(e){
+        if(e.key === 'Escape') openPause();
+      });
     },
 
     start: function(){
@@ -98,7 +110,7 @@
     investorBailout: function(){
       var s = G.state;
       s.bailouts++;
-      var cash = s.bailouts === 1 ? 150000 : 250000;
+      var cash = s.bailouts === 1 ? 100000 : 175000; // scaled to the tighter economy
       s.money = Math.max(s.money, 0) + cash; // moneyShown counts up to it on screen
       s.chaos = Math.min(s.chaos, 45);
       s.strikes = 0;
