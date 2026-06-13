@@ -415,19 +415,28 @@
     var s = G.state;
     var h = HOTSPOTS.chai;
     var used = s.chaiDay === s.week * 10 + s.day;
-    // counter
-    ctx.fillStyle = '#16203a'; ctx.fillRect(h.x, h.y + 46, h.w, 30);
-    ctx.fillStyle = '#2a3654'; ctx.fillRect(h.x + 3, h.y + 49, h.w - 6, 24);
-    // kettle
-    ctx.fillStyle = used ? '#5a5a52' : '#c0c0b4';
-    ctx.fillRect(h.x + 10, h.y + 22, 26, 24);
-    ctx.fillRect(h.x + 36, h.y + 28, 8, 6); // spout
-    ctx.fillStyle = '#16203a'; ctx.fillRect(h.x + 16, h.y + 16, 14, 6); // lid
-    // kulhad glasses
-    ctx.fillStyle = '#b06a3a';
-    ctx.fillRect(h.x + 48, h.y + 36, 9, 10);
-    ctx.fillRect(h.x + 59, h.y + 36, 9, 10);
-    // steam (only while chai is still on offer)
+
+    if(G.data.hasArt('chai_station')){
+      // hi-bit sprite replaces the procedural counter/kettle/cups; used state
+      // dims the whole station, steam + label still ride on top
+      if(used) ctx.globalAlpha = 0.55;
+      drawSprite(ctx, 'chai_station', h.x, h.y, h.w, h.h);
+      ctx.globalAlpha = 1;
+    } else {
+      // counter
+      ctx.fillStyle = '#16203a'; ctx.fillRect(h.x, h.y + 46, h.w, 30);
+      ctx.fillStyle = '#2a3654'; ctx.fillRect(h.x + 3, h.y + 49, h.w - 6, 24);
+      // kettle
+      ctx.fillStyle = used ? '#5a5a52' : '#c0c0b4';
+      ctx.fillRect(h.x + 10, h.y + 22, 26, 24);
+      ctx.fillRect(h.x + 36, h.y + 28, 8, 6); // spout
+      ctx.fillStyle = '#16203a'; ctx.fillRect(h.x + 16, h.y + 16, 14, 6); // lid
+      // kulhad glasses
+      ctx.fillStyle = '#b06a3a';
+      ctx.fillRect(h.x + 48, h.y + 36, 9, 10);
+      ctx.fillRect(h.x + 59, h.y + 36, 9, 10);
+    }
+    // steam (only while chai is still on offer) — rises from the kettle spout
     if(!used){
       var sy = Math.floor(t * 3) % 3;
       ctx.fillStyle = 'rgba(244,232,207,0.5)';
@@ -441,10 +450,15 @@
   function drawPrinter(ctx){
     var s = G.state;
     var h = HOTSPOTS.printer;
-    ctx.fillStyle = '#16203a'; ctx.fillRect(h.x - 3, h.y - 3, h.w + 6, h.h + 6);
-    ctx.fillStyle = '#8a8a80'; ctx.fillRect(h.x, h.y, h.w, h.h - 14);
-    ctx.fillStyle = '#6a6a62'; ctx.fillRect(h.x, h.y + h.h - 14, h.w, 14); // tray
-    ctx.fillStyle = '#f4e8cf'; ctx.fillRect(h.x + 10, h.y + h.h - 18, h.w - 20, 6); // paper
+    if(G.data.hasArt('printer')){
+      // hi-bit sprite; top-right left visually quiet for the status lights below
+      drawSprite(ctx, 'printer', h.x, h.y, h.w, h.h);
+    } else {
+      ctx.fillStyle = '#16203a'; ctx.fillRect(h.x - 3, h.y - 3, h.w + 6, h.h + 6);
+      ctx.fillStyle = '#8a8a80'; ctx.fillRect(h.x, h.y, h.w, h.h - 14);
+      ctx.fillStyle = '#6a6a62'; ctx.fillRect(h.x, h.y + h.h - 14, h.w, 14); // tray
+      ctx.fillStyle = '#f4e8cf'; ctx.fillRect(h.x + 10, h.y + h.h - 18, h.w - 20, 6); // paper
+    }
     // status light + jam drama
     if(s.printerJammed){
       if(Math.floor(t * 4) % 2 === 0){
@@ -478,20 +492,38 @@
   // 4 channels cycle every ~5s unless the player clicks to change it. The
   // screen is procedural pixel scenes, kept small + low-key so it reads as
   // ambient background, not a second game.
+  // inner-screen rect of the tv_set sprite, in sprite-logical coords (the sprite
+  // is drawn at HOTSPOTS.tv.w x .h = 120x80). Measured off the art: the live
+  // channel content + scanlines + clip all use SCR, never the full bezel box.
+  var TV_SCREEN = { dx: 30, dy: 9, w: 81, h: 52 };
+
   function drawTV(ctx){
     var h = HOTSPOTS.tv;
-    // mounting bracket + bezel
-    ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x - 6, h.y - 6, h.w + 12, h.h + 12);
-    ctx.fillStyle = '#161b28'; ctx.fillRect(h.x - 4, h.y - 4, h.w + 8, h.h + 8);
-    ctx.strokeStyle = '#2a3142'; ctx.lineWidth = 2;
-    ctx.strokeRect(h.x - 3.5, h.y - 3.5, h.w + 7, h.h + 7);
-    // stubby wall mount under it
-    ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x + h.w / 2 - 8, h.y + h.h + 6, 16, 6);
+    var hasArt = G.data.hasArt('tv_set');
+
+    // SCR = the live-glass rect in game coords. With art it's the sprite's inner
+    // screen; without art it's the whole procedural box (legacy fallback).
+    var SCR = hasArt
+      ? { x: h.x + TV_SCREEN.dx, y: h.y + TV_SCREEN.dy, w: TV_SCREEN.w, h: TV_SCREEN.h }
+      : { x: h.x, y: h.y, w: h.w, h: h.h };
+
+    if(hasArt){
+      // hi-bit casing sprite (bezel + mount + blank dark screen)
+      drawSprite(ctx, 'tv_set', h.x, h.y, h.w, h.h);
+    } else {
+      // mounting bracket + bezel (procedural fallback)
+      ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x - 6, h.y - 6, h.w + 12, h.h + 12);
+      ctx.fillStyle = '#161b28'; ctx.fillRect(h.x - 4, h.y - 4, h.w + 8, h.h + 8);
+      ctx.strokeStyle = '#2a3142'; ctx.lineWidth = 2;
+      ctx.strokeRect(h.x - 3.5, h.y - 3.5, h.w + 7, h.h + 7);
+      // stubby wall mount under it
+      ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x + h.w / 2 - 8, h.y + h.h + 6, 16, 6);
+    }
 
     // clip the screen so scene draws never bleed past the glass
     ctx.save();
     ctx.beginPath();
-    ctx.rect(h.x, h.y, h.w, h.h);
+    ctx.rect(SCR.x, SCR.y, SCR.w, SCR.h);
     ctx.clip();
 
     // auto-advance the channel ~ every 5s, offset by the manual channel pick
@@ -501,25 +533,25 @@
     var staticNow = sinceFlip < 0.10 || (Math.floor(t * 13) % 97 === 0);
 
     if(staticNow){
-      drawTVStatic(ctx, h);
+      drawTVStatic(ctx, SCR);
     } else if(chan === 0){
-      drawTVCricket(ctx, h);
+      drawTVCricket(ctx, SCR);
     } else if(chan === 1){
-      drawTVNews(ctx, h);
+      drawTVNews(ctx, SCR);
     } else if(chan === 2){
-      drawTVAd(ctx, h);
+      drawTVAd(ctx, SCR);
     } else {
-      drawTVWeather(ctx, h);
+      drawTVWeather(ctx, SCR);
     }
 
     // CRT scanlines + glass glare, very faint
     ctx.globalAlpha = 0.12;
     ctx.fillStyle = '#000';
-    for(var sl = 0; sl < h.h; sl += 3) ctx.fillRect(h.x, h.y + sl, h.w, 1);
+    for(var sl = 0; sl < SCR.h; sl += 3) ctx.fillRect(SCR.x, SCR.y + sl, SCR.w, 1);
     ctx.globalAlpha = 1;
     ctx.restore();
 
-    // channel number tab (bottom-right of bezel)
+    // channel number tab (bottom-right under the casing)
     pxText(ctx, 'CH' + (chan + 1), h.x + h.w - 4, h.y + h.h + 2, 7, 'rgba(159,232,255,0.5)', 'right', true);
   }
 
@@ -671,8 +703,14 @@
   // bottle + base; gossiping staff (st.away) draw themselves over in drawDesks.
   function drawCooler(ctx){
     var cx = COOLER.x, cy = COOLER.y; // top-left of the unit
-    // shadow on the floor
+    // shadow on the floor (kept under both art + procedural)
     ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(cx - 4, cy + 64, 48, 6);
+    if(G.data.hasArt('water_cooler')){
+      // hi-bit sprite: bottle (top ~34px) + dispenser align with the old unit.
+      // Old unit spanned cy-2 .. cy+68 (h~70) and cx-2 .. cx+42 (w~44).
+      drawSprite(ctx, 'water_cooler', cx - 3, cy - 4, 46, 74);
+      return;
+    }
     // base cabinet (white)
     ctx.fillStyle = '#0a0d16'; ctx.fillRect(cx - 2, cy + 30, 44, 38);
     ctx.fillStyle = '#dfe6ee'; ctx.fillRect(cx, cy + 32, 40, 34);

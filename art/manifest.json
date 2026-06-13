@@ -31,5 +31,9 @@
   "award_trophy":      { "file": "award_trophy.png",      "w": 32,  "h": 48,  "frames": 1 },
   "ui_frame_9slice":   { "file": "ui_frame_9slice.png",   "w": 48,  "h": 48,  "frames": 1 },
   "logo_cravache":     { "file": "logo_cravache.png",     "w": 128, "h": 64,  "frames": 1 },
-  "fire_overlay":      { "file": "fire_overlay.png",      "w": 320, "h": 180, "frames": 1 }
+  "fire_overlay":      { "file": "fire_overlay.png",      "w": 320, "h": 180, "frames": 1 },
+  "chai_station":      { "file": "chai_station.png",      "w": 72,  "h": 78 },
+  "printer":           { "file": "printer.png",           "w": 60,  "h": 58 },
+  "tv_set":            { "file": "tv_set.png",            "w": 120, "h": 80 },
+  "water_cooler":      { "file": "water_cooler.png",      "w": 40,  "h": 70 }
 }
