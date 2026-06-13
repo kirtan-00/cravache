@@ -96,14 +96,33 @@
     CALL_HOLD_REAL_SECONDS: 5,   // "10 in-game minutes" of your attention
     OFFICE_EVENT_CHANCE_PER_DAY: 0.4,  // wifi/hotspot drama ~ once per 2-3 days
 
-    // shop (Friday upgrade moment, one purchase)
+    // shop (Friday upgrade moment, TWO purchases per week)
     SHOP: {
-      plant:  { name:"Office plant",   price:12000, desc:"morale. allegedly." },
-      coffee: { name:"Coffee machine", price:60000, desc:"burnout builds 30% slower" },
-      neon:   { name:"Neon sign",      price:80000, desc:"rep gains hit harder" },
-      tv:     { name:"Office TV",      price:45000, desc:"news + cricket + ads. chaos decays 15% faster" },
-      cooler: { name:"Water cooler",   price:35000, desc:"gossip station. idle staff recover faster, together" }
+      plant:         { name:"Office plant",     price:12000, desc:"morale. allegedly." },
+      posters:       { name:"Wall posters",     price:15000, desc:"\"GREAT WORK\" energy. burnout builds 8% slower" },
+      plant_big:     { name:"Big monstera",     price:18000, desc:"a whole jungle corner. burnout builds 10% slower" },
+      string_lights: { name:"String lights",    price:20000, desc:"cosy late-night glow. burnout builds 8% slower" },
+      cooler:        { name:"Water cooler",     price:35000, desc:"gossip station. idle staff recover faster, together" },
+      aquarium:      { name:"Office aquarium",  price:40000, desc:"calming fish. idle burnout recovers 15% faster" },
+      tv:            { name:"Office TV",         price:45000, desc:"news + cricket + ads. chaos decays 15% faster" },
+      arcade:        { name:"Arcade cabinet",    price:55000, desc:"break-room legend. idle recovers 20% faster, tiny chaos tick" },
+      coffee:        { name:"Coffee machine",    price:60000, desc:"burnout builds 30% slower" },
+      neon:          { name:"Neon sign",         price:80000, desc:"rep gains hit harder" }
     },
+
+    // decor perk knobs (kept MINOR; see js/systems/staff.js + chaos.js):
+    //   aquarium      idle burnout recovery +15% (calming fish)
+    //   arcade        idle burnout recovery +20% but a tiny chaos tick (people slack)
+    //   plant_big     working burnout build -10% (greenery = calmer desks)
+    //   posters       working burnout build -8% (the wall says "GREAT WORK")
+    //   string_lights working burnout build -8% (cosy late-night glow)
+    AQUARIUM_RECOVER_MULT:    1.15,
+    ARCADE_RECOVER_MULT:      1.20,
+    ARCADE_CHAOS_PER_SEC:     0.04,  // tiny: the office distraction tax
+    PLANT_BIG_BURNOUT_MULT:   0.90,
+    POSTERS_BURNOUT_MULT:     0.92,
+    STRINGLIGHTS_BURNOUT_MULT:0.92,
+    SHOP_PICKS_PER_WEEK:      2,
 
     FIRST_TOAST_SECONDS: 45,     // the very first brief of a run: all the time in the world
     INTRO_CLIENTS_FULL: 3,       // first N new clients get the full signing dossier modal
@@ -204,7 +223,8 @@
       dayT: 0,                  // real seconds into current day
       night: false, nightT: 0,  // night shift phase
 
-      upgrades: { plant:false, coffee:false, neon:false, tv:false, cooler:false },
+      upgrades: { plant:false, coffee:false, neon:false, tv:false, cooler:false,
+                  aquarium:false, arcade:false, plant_big:false, posters:false, string_lights:false },
       neonText: 'CRAVACHE',     // what the neon sign reads (set on purchase)
       tvChannel: 0,             // current TV scene (player can cycle by clicking)
 

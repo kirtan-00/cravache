@@ -16,6 +16,9 @@
 
     update: function(dt){
       var s = G.state;
+      // arcade cabinet: people sneak away to play. A tiny, constant distraction tax.
+      // (MINOR — the +20% idle recovery it grants is the trade-off.)
+      if(s.upgrades.arcade) s.chaos = Math.min(100, s.chaos + G.BAL.ARCADE_CHAOS_PER_SEC * dt);
       if(s.chaos <= 0) return;
       // decay only when all briefs on-track and nobody about to snap
       var onTrack = s.briefs.every(function(b){

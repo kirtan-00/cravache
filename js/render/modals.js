@@ -283,7 +283,8 @@
 
       var s = G.state;
       var st = s.stats;
-      var bought = false;
+      var picksMax = G.BAL.SHOP_PICKS_PER_WEEK || 2;
+      var boughtCount = 0;
 
       var rows =
         row('Earned this week', '+' + G.fmtMoney(st.weekEarned), 'pos') +
@@ -320,7 +321,8 @@
         kicker: 'FRIDAY 6PM · WEEK ' + s.week + ' OF ' + G.BAL.WEEKS,
         title: 'WEEKLY REPORT CARD',
         bodyHTML: stamp + '<div class="report-grid">' + rows + '</div>' + quote + warn +
-          '<div class="modal-kicker" style="margin-top:8px">ONE PURCHASE BEFORE MONDAY (choose wisely)</div>' +
+          '<div class="modal-kicker" style="margin-top:8px" data-shop-kicker>' +
+            picksMax + ' PICKS THIS WEEK · ' + picksMax + ' LEFT (choose wisely)</div>' +
           '<div data-shop></div>'
       });
       var entry = push(el, {
@@ -379,6 +381,7 @@
         });
       });
 
+      var kickerEl = el.querySelector('[data-shop-kicker]');
       var btns = [];
       items.forEach(function(it){
         var rowEl = document.createElement('div');
@@ -390,11 +393,19 @@
         b.textContent = it.locked ? 'LOCKED' : G.fmtMoney(it.price);
         b.disabled = it.locked || s.money < it.price;
         b.addEventListener('click', function(){
-          if(bought) return;
+          if(boughtCount >= picksMax || b.disabled) return;
           if(it.buy()){
-            bought = true;
-            btns.forEach(function(x){ x.disabled = true; });
+            boughtCount += 1;
+            b.disabled = true;
             b.textContent = 'DONE ✔';
+            var left = picksMax - boughtCount;
+            if(kickerEl) kickerEl.textContent = left > 0
+              ? picksMax + ' PICKS THIS WEEK · ' + left + ' LEFT (choose wisely)'
+              : picksMax + ' PICKS THIS WEEK · DONE FOR THE WEEK';
+            // out of picks? lock everything still buyable. else just refresh affordability.
+            btns.forEach(function(x){
+              if(boughtCount >= picksMax){ if(x.textContent !== 'DONE ✔') x.disabled = true; }
+            });
           } else {
             G.audio.decline();
           }

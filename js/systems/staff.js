@@ -71,9 +71,17 @@
 
         if(working){
           var rate = G.BAL.BURNOUT_WORK_RATE * (s.upgrades.coffee ? G.BAL.COFFEE_BURNOUT_MULT : 1);
+          // decor morale: greenery / posters / fairy lights slow the build a touch (MINOR, stacks)
+          if(s.upgrades.plant_big)     rate *= G.BAL.PLANT_BIG_BURNOUT_MULT;
+          if(s.upgrades.posters)       rate *= G.BAL.POSTERS_BURNOUT_MULT;
+          if(s.upgrades.string_lights) rate *= G.BAL.STRINGLIGHTS_BURNOUT_MULT;
           st.burnout = Math.min(100, st.burnout + rate * dt);
         } else {
-          st.burnout = Math.max(0, st.burnout - G.BAL.BURNOUT_IDLE_RECOVER * dt);
+          var recover = G.BAL.BURNOUT_IDLE_RECOVER;
+          // decor relief while idle: aquarium calms, arcade is a break room (MINOR, stacks)
+          if(s.upgrades.aquarium) recover *= G.BAL.AQUARIUM_RECOVER_MULT;
+          if(s.upgrades.arcade)   recover *= G.BAL.ARCADE_RECOVER_MULT;
+          st.burnout = Math.max(0, st.burnout - recover * dt);
         }
 
         // burnout warning event (once per staffer crossing 75)

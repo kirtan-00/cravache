@@ -64,6 +64,12 @@
         s.upgrades = s.upgrades || {};
         if(s.upgrades.tv === undefined) s.upgrades.tv = false;
         if(s.upgrades.cooler === undefined) s.upgrades.cooler = false;
+        // new decor catalog (added after VERSION 5 shop expansion)
+        if(s.upgrades.aquarium === undefined) s.upgrades.aquarium = false;
+        if(s.upgrades.arcade === undefined) s.upgrades.arcade = false;
+        if(s.upgrades.plant_big === undefined) s.upgrades.plant_big = false;
+        if(s.upgrades.posters === undefined) s.upgrades.posters = false;
+        if(s.upgrades.string_lights === undefined) s.upgrades.string_lights = false;
         if(s.neonText === undefined) s.neonText = 'CRAVACHE';
         if(s.tvChannel === undefined) s.tvChannel = 0;
         s.staff.forEach(function(st){ if(st.away) st.away = null; }); // drop stale trips
