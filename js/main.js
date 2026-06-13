@@ -167,6 +167,7 @@
     G.growth.update(dt);
     G.chaos.update(dt);
     G.events.update(dt);
+    if(G.wander) G.wander.update(dt);
   }
 
   function frame(ts){

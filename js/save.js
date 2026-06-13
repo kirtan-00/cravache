@@ -5,7 +5,7 @@
   window.G = window.G || {};
 
   var KEY = 'cravache_save_v1';
-  var VERSION = 4; // bump when the state shape changes; old saves are discarded
+  var VERSION = 5; // bump when the state shape changes; old saves are discarded
 
   function defById(id){
     var i;
@@ -30,6 +30,7 @@
       try {
         var copy = JSON.parse(JSON.stringify(s, function(k, v){
           if(k === 'def' && v && v.id) return { __defId: v.id };
+          if(k === 'away') return undefined; // cooler trips are transient theatre
           return v;
         }));
         // transient things do not survive a reload
@@ -59,6 +60,13 @@
         s.craanesDone = s.craanesDone || {};
         if(s.chaiDay === undefined) s.chaiDay = -1;
         s.printerJammed = !!s.printerJammed;
+        // upgrades + their fields added after VERSION 4
+        s.upgrades = s.upgrades || {};
+        if(s.upgrades.tv === undefined) s.upgrades.tv = false;
+        if(s.upgrades.cooler === undefined) s.upgrades.cooler = false;
+        if(s.neonText === undefined) s.neonText = 'CRAVACHE';
+        if(s.tvChannel === undefined) s.tvChannel = 0;
+        s.staff.forEach(function(st){ if(st.away) st.away = null; }); // drop stale trips
         s.stats.weekViral = s.stats.weekViral || 0;
         s.stats.weekFollowers = s.stats.weekFollowers || 0;
         s.staff.forEach(function(st){ st.shippedWeek = st.shippedWeek || 0; });

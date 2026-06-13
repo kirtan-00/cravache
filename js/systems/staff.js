@@ -182,18 +182,42 @@
       return true;
     },
 
+    // ---------- CV pacing: applicants arrive in waves, not all at once ----------
+    // 2 per dept up front (production: at its unlock week), then one new CV
+    // per dept per week. Stamps availableWeek lazily so walk-ins slot in too.
+    ensureAvailability: function(){
+      var s = G.state;
+      var perDept = {};
+      s.hirePool.forEach(function(c){
+        var n = perDept[c.dept] = (perDept[c.dept] || 0) + 1;
+        if(c.availableWeek === undefined){
+          var base = c.dept === 'production' ? G.BAL.PRODUCTION_UNLOCK_WEEK : 1;
+          c.availableWeek = base + Math.max(0, n - 2);
+        }
+      });
+    },
+
+    candidateVisible: function(c){
+      return (c.availableWeek || 1) <= G.state.week;
+    },
+
     // ---------- walk-in candidates: the pool never runs dry ----------
     // Named characters are finite; once they're hired (or people rage-quit),
-    // Ahmedabad keeps sending CVs. Each dept with open cap keeps >=2 candidates.
+    // Ahmedabad keeps sending CVs. Each dept with open cap keeps >=2 VISIBLE.
     refillPool: function(){
-      var s = G.state;
+      var s = G.state, self = this;
+      this.ensureAvailability();
       var depts = ['designer', 'editor', 'content', 'production'];
       for(var d = 0; d < depts.length; d++){
         var dept = depts[d];
         if(this.deptCount(dept) >= G.BAL.DEPT_CAPS[dept]) continue;
-        var inPool = s.hirePool.filter(function(c){ return c.dept === dept; }).length;
+        var inPool = s.hirePool.filter(function(c){
+          return c.dept === dept && self.candidateVisible(c);
+        }).length;
         while(inPool < 2){
-          s.hirePool.push(G.makeStaffer(walkIn(dept)));
+          var w = G.makeStaffer(walkIn(dept));
+          w.availableWeek = s.week; // walked in just now
+          s.hirePool.push(w);
           inPool++;
         }
       }

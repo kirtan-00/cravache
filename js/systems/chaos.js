@@ -24,7 +24,9 @@
       });
       var calmStaff = s.staff.every(function(st){ return st.burnout < 85; });
       if(onTrack && calmStaff){
-        s.chaos = Math.max(0, s.chaos - G.BAL.CHAOS_DECAY_PER_SEC * dt);
+        // the office TV: background noise calms the room 15% faster
+        var rate = G.BAL.CHAOS_DECAY_PER_SEC * (s.upgrades.tv ? 1.15 : 1);
+        s.chaos = Math.max(0, s.chaos - rate * dt);
       }
     }
   };

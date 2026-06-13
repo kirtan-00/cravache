@@ -152,12 +152,16 @@
         var canSkip = s.night && !s.staff.some(function(st){ return G.BAL.NIGHT_OWLS[st.id] && st.briefId; });
         skipBtn.classList.toggle('hidden', !canSkip);
       }
-      // brief toasts tick down on sim time; hovering pauses (reading is free)
+      // brief toasts tick down on sim time; hovering ANY toast pauses ALL of
+      // them (reading one offer is free; the others wait their turn too)
+      var anyHover = briefToasts.some(function(x){ return x.hover; });
       for(var i = briefToasts.length - 1; i >= 0; i--){
         var tt = briefToasts[i];
-        if(!tt.hover) tt.t -= simDt;
+        if(!anyHover) tt.t -= simDt;
         tt.fill.style.width = Math.max(0, (tt.t / tt.total) * 100) + '%';
+        // the hovered toast reads loud; the rest get a quieter held cue
         tt.el.classList.toggle('reading', !!tt.hover);
+        tt.el.classList.toggle('held', anyHover && !tt.hover);
         if(tt.t <= 0) resolveToast(tt, false);
       }
       // info toasts expire on real time

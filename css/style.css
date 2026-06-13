@@ -327,6 +327,9 @@ canvas#game{
 }
 .toast.reading .toast-read-hint{ display:block; color:var(--teal); }
 .toast.reading{ border-color:var(--teal); }
+/* other offers freeze too while you read one: subtle held cue */
+.toast.held{ border-color:rgba(159,232,255,.45); }
+.toast.held .toast-timer > div{ background:rgba(159,232,255,.5); }
 
 .dock-side{ display:flex; flex-direction:column; gap:6px; flex:0 0 auto; }
 .dock-btn{ font-size:9px; padding:6px 9px 5px; white-space:nowrap; }
@@ -419,3 +422,77 @@ canvas#game{
 
 /* fine print inside dark toasts: the brief-card brown is unreadable on navy */
 .toast .bc-fine{ color:#d8c9a8; border-top-color:#5a6a8a; }
+
+/* ---------- MONDAY dread (week transition overlay) ---------- */
+#monday-dread{
+  position:absolute; inset:0; z-index:90;
+  background:rgba(0,0,0,0.82);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  overflow:hidden; user-select:none;
+  animation:mdjitter 0.12s steps(2) infinite;
+}
+/* scanline flicker band over everything */
+#monday-dread .md-scan{
+  position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(0deg,
+    rgba(255,92,92,.07) 0 2px, transparent 2px 5px);
+  animation:mdscan 0.2s steps(2) infinite;
+}
+#monday-dread .md-word{
+  font-family:'VT323', monospace;
+  font-size:210px; line-height:0.85; letter-spacing:14px;
+  display:flex;
+}
+#monday-dread .md-ch{
+  color:var(--red);
+  text-shadow:6px 6px 0 #000, 12px 12px 0 rgba(122,20,20,.6), 0 0 22px rgba(255,92,92,.45);
+  opacity:0; transform:translateY(-40px) scale(1.4);
+  animation:mdslam 0.18s steps(2) forwards;
+}
+#monday-dread .md-sub{
+  font-family:'VT323', monospace; font-size:46px; color:var(--sun);
+  margin-top:6px; opacity:0;
+  animation:mdfade 0.5s steps(4) forwards; animation-delay:1.25s;
+}
+#monday-dread .md-tag{
+  font-family:'Silkscreen', monospace; font-size:11px; color:#6a7a9a;
+  letter-spacing:1px; margin-top:18px; opacity:0;
+  animation:mdfade 0.6s steps(4) forwards; animation-delay:1.7s;
+}
+@keyframes mdslam{
+  0%{ opacity:0; transform:translateY(-40px) scale(1.4); }
+  60%{ opacity:1; transform:translateY(6px) scale(0.92); }
+  100%{ opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes mdfade{ to{ opacity:1; } }
+@keyframes mdjitter{ 50%{ transform:translate(1px,-1px); } }
+@keyframes mdscan{ 50%{ opacity:.5; } }
+
+/* ---------- pixel text input (neon naming) ---------- */
+.px-input{
+  display:block; width:100%; margin:10px 0 4px;
+  font-family:'Silkscreen', monospace; font-size:18px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--brass);
+  background:var(--navy-dd); border:3px solid var(--brass);
+  padding:10px 12px 8px; outline:none;
+  box-shadow:inset 0 3px 0 rgba(0,0,0,.5);
+}
+.px-input:focus{ border-color:var(--sun); color:var(--sun); }
+.px-input::selection{ background:var(--sun); color:var(--navy-dd); }
+.neon-preview{
+  text-align:center; margin:12px 0 4px; padding:12px 0;
+  background:#0c1322; border:2px solid #1a2440;
+}
+.neon-preview span{
+  font-family:'Silkscreen', monospace; font-size:20px; color:var(--sun);
+  text-shadow:0 0 10px rgba(255,154,86,.8), 2px 2px 0 #5a2a14;
+}
+
+/* tall modal lists (hiring etc.) scroll instead of spilling off-stage */
+.modal{ max-height:640px; overflow:hidden; display:flex; flex-direction:column; }
+.modal [data-hires], .modal [data-gshop], .modal [data-shop], .modal [data-cats], .modal [data-inv]{
+  overflow-y:auto; min-height:0;
+}
+.modal [data-hires]{ max-height:430px; padding-right:6px; }
+.modal [data-hires]::-webkit-scrollbar{ width:10px; }
+.modal [data-hires]::-webkit-scrollbar-thumb{ background:var(--navy-dd); border:2px solid #000; }

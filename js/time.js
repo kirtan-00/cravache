@@ -130,6 +130,8 @@
       s.week += 1;
       s.day = 1;
       this.resetDayFlags();
+      // the dread arrives before the briefs do
+      if(G.monday) G.monday.show();
       G.hud.flashDayBanner();
     },
 

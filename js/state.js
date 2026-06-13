@@ -81,7 +81,9 @@
     SHOP: {
       plant:  { name:"Office plant",   price:12000, desc:"morale. allegedly." },
       coffee: { name:"Coffee machine", price:60000, desc:"burnout builds 30% slower" },
-      neon:   { name:"Neon sign",      price:80000, desc:"rep gains hit harder" }
+      neon:   { name:"Neon sign",      price:80000, desc:"rep gains hit harder" },
+      tv:     { name:"Office TV",      price:45000, desc:"news + cricket + ads. chaos decays 15% faster" },
+      cooler: { name:"Water cooler",   price:35000, desc:"gossip station. idle staff recover faster, together" }
     },
 
     FIRST_TOAST_SECONDS: 45,     // the very first brief of a run: all the time in the world
@@ -183,7 +185,9 @@
       dayT: 0,                  // real seconds into current day
       night: false, nightT: 0,  // night shift phase
 
-      upgrades: { plant:false, coffee:false, neon:false },
+      upgrades: { plant:false, coffee:false, neon:false, tv:false, cooler:false },
+      neonText: 'CRAVACHE',     // what the neon sign reads (set on purchase)
+      tvChannel: 0,             // current TV scene (player can cycle by clicking)
 
       staff: hired,             // active staffers
       hirePool: staffPool.slice(2).map(makeStaffer),

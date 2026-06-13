@@ -215,6 +215,8 @@
       brief.status = 'assigned';
       brief.staffId = staffer.id;
       staffer.briefId = brief.id;
+      // pulled off the water-cooler gossip: snap straight back to the desk
+      if(staffer.away) staffer.away = null;
       G.staff.say(staffer, randomGrumble());
       G.audio.drop();
       G.dock.refreshTray();

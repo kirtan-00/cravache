@@ -244,9 +244,11 @@
 
       // at night, off-clock staff are home in bed; their desk sits empty
       var home = st && !G.time.onClock(st);
+      // gossiping at the cooler: their desk sits empty, they draw elsewhere
+      var away = st && st.away;
 
       // staffer behind desk (bob + typing frames while working)
-      if(st && !home){
+      if(st && !home && !away){
         var working = !!st.briefId;
         var bob = working ? Math.round(Math.sin(t * 7 + i) * 2) : 0;
         var frame = working ? Math.floor(t * 5 + i) % 2 : 0;
@@ -293,6 +295,7 @@
         continue;
       }
       if(home) continue; // no nameplate/bars for sleeping staff
+      if(away) continue; // they are at the cooler; drawn in drawWanderers
 
       // name plate + badge icons
       var first = st.name.split(' ')[0];
@@ -336,10 +339,29 @@
     }
   }
 
+  // staff currently out at the water cooler. Drawn after the desks so they sit
+  // on top of the floor/cooler. Just the sprite + (optional) gossip bubble.
+  function drawWanderers(ctx){
+    var s = G.state;
+    for(var i = 0; i < s.staff.length; i++){
+      var st = s.staff[i];
+      var a = st.away;
+      if(!a) continue;
+      var walking = a.mode === 'going' || a.mode === 'returning';
+      // walk pace frame flip; standing still while chatting
+      var frame = walking ? Math.floor(t * 6 + i) % 2 : (Math.floor(t * 1.5 + i) % 2);
+      drawSprite(ctx, st.portraitKey, a.x - CHAR_W / 2, a.y - CHAR_H + 8, CHAR_W, CHAR_H, frame);
+      if(a.mode === 'chatting' && a.bubble){
+        drawBubble(ctx, a.x + 14, a.y - CHAR_H - 2, a.bubble);
+      }
+    }
+  }
+
   function drawBubble(ctx, x, y, text){
     ctx.font = "16px 'VT323', monospace";
     var w = Math.max(60, ctx.measureText(text).width + 16);
     var h = 26;
+    x = Math.max(8, Math.min(x, 1280 - w - 8)); // never clip off-stage
     ctx.fillStyle = '#000'; ctx.fillRect(x - 2, y - h - 2, w + 4, h + 4);
     ctx.fillStyle = '#f4e8cf'; ctx.fillRect(x, y - h, w, h);
     // tail
@@ -356,8 +378,27 @@
     chai:    { x: 100, y: 158, w: 72, h: 78 },
     printer: { x: 700, y: 178, w: 60, h: 58 },
     window:  { x: 950, y: 245, w: 100, h: 135 }, // upper door panel: peek outside
-    board:   { x: 40,  y: 50,  w: 210, h: 58 }
+    board:   { x: 40,  y: 50,  w: 210, h: 58 },
+    tv:      { x: 285, y: 150, w: 120, h: 80 }   // wall-mounted, only when owned
   };
+
+  // absurd ad-industry headlines for the TV news ticker (no real brands)
+  var TV_HEADLINES = [
+    'BRAND MANAGER ASKS FOR "SAME BUT DIFFERENT", AGENCY COMPLIES IN TEARS',
+    'LOCAL STARTUP REBRANDS FOURTH TIME THIS QUARTER, LOGO NOW A CIRCLE',
+    'CLIENT WANTS IT "TO GO VIRAL", BUDGET IS ONE THOUSAND RUPEES',
+    'STUDY FINDS 9 IN 10 BRIEFS CHANGE AFTER FINAL APPROVAL',
+    'CEO SEEN ON LINKEDIN AT 6AM, PRODUCTIVITY UNAFFECTED',
+    'NEW REEL TREND DIES BEFORE AGENCY FINISHES MOODBOARD',
+    'INTERN PITCHES IDEA, SENIOR PRESENTS IT, BOTH SATISFIED',
+    'MAKE IT POP, SAYS NATION, AGAIN'
+  ];
+  var TV_CHANNEL_LINES = [
+    'Cricket. Somebody dropped a catch. Productivity dipped 4%.',
+    'The news anchor is angry about something. As usual.',
+    'An ad break. The volume is louder. It always is.',
+    'Weather: hot. Tomorrow: hot. The client wants snow.'
+  ];
 
   // motivational poster (the board hotspot needs something to click)
   function drawBoard(ctx){
@@ -433,6 +474,235 @@
     }
   }
 
+  // ---------- office TV (wall-mounted, alive) ----------
+  // 4 channels cycle every ~5s unless the player clicks to change it. The
+  // screen is procedural pixel scenes, kept small + low-key so it reads as
+  // ambient background, not a second game.
+  function drawTV(ctx){
+    var h = HOTSPOTS.tv;
+    // mounting bracket + bezel
+    ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x - 6, h.y - 6, h.w + 12, h.h + 12);
+    ctx.fillStyle = '#161b28'; ctx.fillRect(h.x - 4, h.y - 4, h.w + 8, h.h + 8);
+    ctx.strokeStyle = '#2a3142'; ctx.lineWidth = 2;
+    ctx.strokeRect(h.x - 3.5, h.y - 3.5, h.w + 7, h.h + 7);
+    // stubby wall mount under it
+    ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x + h.w / 2 - 8, h.y + h.h + 6, 16, 6);
+
+    // clip the screen so scene draws never bleed past the glass
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(h.x, h.y, h.w, h.h);
+    ctx.clip();
+
+    // auto-advance the channel ~ every 5s, offset by the manual channel pick
+    var chan = (G.state.tvChannel + Math.floor(t / 5)) % 4;
+    // a brief static burst at the top of each scene + rare random pops
+    var sinceFlip = (t / 5) % 1;
+    var staticNow = sinceFlip < 0.10 || (Math.floor(t * 13) % 97 === 0);
+
+    if(staticNow){
+      drawTVStatic(ctx, h);
+    } else if(chan === 0){
+      drawTVCricket(ctx, h);
+    } else if(chan === 1){
+      drawTVNews(ctx, h);
+    } else if(chan === 2){
+      drawTVAd(ctx, h);
+    } else {
+      drawTVWeather(ctx, h);
+    }
+
+    // CRT scanlines + glass glare, very faint
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = '#000';
+    for(var sl = 0; sl < h.h; sl += 3) ctx.fillRect(h.x, h.y + sl, h.w, 1);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // channel number tab (bottom-right of bezel)
+    pxText(ctx, 'CH' + (chan + 1), h.x + h.w - 4, h.y + h.h + 2, 7, 'rgba(159,232,255,0.5)', 'right', true);
+  }
+
+  function drawTVStatic(ctx, h){
+    for(var i = 0; i < 120; i++){
+      var g = 40 + Math.floor(Math.random() * 180);
+      ctx.fillStyle = 'rgb(' + g + ',' + g + ',' + g + ')';
+      var sx = h.x + Math.floor(Math.random() * h.w);
+      var sy = h.y + Math.floor(Math.random() * h.h);
+      ctx.fillRect(sx, sy, 3, 2);
+    }
+  }
+
+  function drawTVCricket(ctx, h){
+    // pitch: green field, tan strip
+    ctx.fillStyle = '#2f5d34'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.fillStyle = '#c9a24e';
+    ctx.fillRect(h.x + h.w / 2 - 6, h.y + 14, 12, h.h - 30); // pitch strip
+    // stumps both ends
+    ctx.fillStyle = '#f4e8cf';
+    ctx.fillRect(h.x + h.w / 2 - 4, h.y + 16, 2, 6);
+    ctx.fillRect(h.x + h.w / 2, h.y + 16, 2, 6);
+    ctx.fillRect(h.x + h.w / 2 + 4, h.y + 16, 2, 6);
+    ctx.fillRect(h.x + h.w / 2 - 4, h.y + h.h - 24, 2, 6);
+    ctx.fillRect(h.x + h.w / 2, h.y + h.h - 24, 2, 6);
+    ctx.fillRect(h.x + h.w / 2 + 4, h.y + h.h - 24, 2, 6);
+    // the ball: bounces down the pitch
+    var bp = (t * 0.8) % 1;
+    var bx = h.x + h.w / 2;
+    var by = h.y + 20 + bp * (h.h - 48);
+    ctx.fillStyle = '#ff5c5c'; ctx.fillRect(bx - 1, by, 3, 3);
+    // score ticker bar at the bottom
+    ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x, h.y + h.h - 12, h.w, 12);
+    var runs = 140 + Math.floor(t) % 60;
+    pxText(ctx, 'IND ' + runs + '/4  ov 18.' + (Math.floor(t) % 6), h.x + 4, h.y + h.h - 3, 8, '#ffe066', 'left', true);
+    // LIVE dot
+    if(Math.floor(t * 2) % 2 === 0){
+      ctx.fillStyle = '#ff5c5c'; ctx.fillRect(h.x + h.w - 28, h.y + 4, 4, 4);
+    }
+    pxText(ctx, 'LIVE', h.x + h.w - 22, h.y + 9, 7, '#ff5c5c', 'left', true);
+  }
+
+  function drawTVNews(ctx, h){
+    // studio backdrop
+    ctx.fillStyle = '#1a2238'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.fillStyle = '#24304e'; ctx.fillRect(h.x + 6, h.y + 6, h.w - 12, h.h - 24);
+    // anchor: head + body, mouth flaps
+    var cx = h.x + h.w / 2;
+    ctx.fillStyle = '#7a4a21'; ctx.fillRect(cx - 9, h.y + 14, 18, 16); // head
+    ctx.fillStyle = '#2a2018'; ctx.fillRect(cx - 9, h.y + 12, 18, 4);  // hair
+    // eyes
+    ctx.fillStyle = '#0a0d16'; ctx.fillRect(cx - 5, h.y + 20, 2, 2); ctx.fillRect(cx + 3, h.y + 20, 2, 2);
+    // mouth: open/closed on a fast clock = talking
+    var open = Math.floor(t * 6) % 2 === 0;
+    ctx.fillStyle = '#3a1a1a'; ctx.fillRect(cx - 3, h.y + 25, 6, open ? 3 : 1);
+    // shoulders / suit
+    ctx.fillStyle = '#14304a'; ctx.fillRect(cx - 14, h.y + 30, 28, 14);
+    ctx.fillStyle = '#f4e8cf'; ctx.fillRect(cx - 2, h.y + 30, 4, 10); // shirt
+    // BREAKING banner
+    ctx.fillStyle = '#ff5c5c'; ctx.fillRect(h.x, h.y + h.h - 24, 40, 12);
+    pxText(ctx, 'NEWS', h.x + 3, h.y + h.h - 15, 7, '#fff', 'left', true);
+    // scrolling headline ticker
+    ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x, h.y + h.h - 12, h.w, 12);
+    var line = TV_HEADLINES[Math.floor(t / 9) % TV_HEADLINES.length] + '   •   ';
+    ctx.font = "11px 'VT323', monospace";
+    var lw = ctx.measureText(line).width;
+    var scroll = (t * 34) % lw;
+    ctx.fillStyle = '#ffe066';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(line + line, h.x - scroll, h.y + h.h - 3);
+    ctx.fillText(line + line, h.x - scroll + lw, h.y + h.h - 3);
+  }
+
+  function drawTVAd(ctx, h){
+    // loud ad break: blinking SALE on a hot background
+    var hot = Math.floor(t * 3) % 2 === 0;
+    ctx.fillStyle = hot ? '#d35d6e' : '#ff9a56'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    // sunburst-ish bars
+    ctx.fillStyle = 'rgba(255,224,102,0.35)';
+    for(var i = 0; i < 6; i++) ctx.fillRect(h.x + i * 22 - (Math.floor(t * 8) % 22), h.y, 8, h.h);
+    if(Math.floor(t * 4) % 2 === 0){
+      pxText(ctx, 'SALE SALE', h.x + h.w / 2, h.y + 30, 16, '#fff', 'center', true);
+      pxText(ctx, 'SALE!', h.x + h.w / 2, h.y + 50, 16, '#23304a', 'center', true);
+    }
+    pxText(ctx, 'upto 90% off*', h.x + h.w / 2, h.y + h.h - 8, 12, '#fff', 'center');
+    pxText(ctx, '*nothing', h.x + h.w - 4, h.y + h.h - 2, 7, 'rgba(255,255,255,0.7)', 'right');
+  }
+
+  function drawTVWeather(ctx, h){
+    ctx.fillStyle = '#14233f'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    pxText(ctx, 'AHMEDABAD', h.x + 6, h.y + 16, 9, '#9fe8ff', 'left', true);
+    // a relentless sun
+    var pulse = 6 + Math.abs(Math.sin(t * 2)) * 3;
+    ctx.fillStyle = '#ffe066';
+    ctx.fillRect(h.x + h.w - 34, h.y + 18, 18, 18);
+    ctx.fillStyle = 'rgba(255,224,102,0.4)';
+    ctx.fillRect(h.x + h.w - 34 - pulse, h.y + 18 - pulse / 2, 18 + pulse * 2, 18 + pulse);
+    var temp = 40 + Math.floor(t) % 4;
+    pxText(ctx, temp + '°C', h.x + 6, h.y + 44, 22, '#ff9a56', 'left', true);
+    pxText(ctx, 'feels like a brief', h.x + 6, h.y + 62, 12, '#9aa7c4', 'left');
+    ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x, h.y + h.h - 12, h.w, 12);
+    pxText(ctx, 'monsoon: "soon"', h.x + 4, h.y + h.h - 3, 8, '#9fe8ff', 'left', true);
+  }
+
+  // ---------- neon sign (proper glowing tube) ----------
+  function drawNeon(ctx){
+    var txt = '~ ' + (G.state.neonText || 'CRAVACHE') + ' ~';
+    var cx = 640, cy = 40;
+    // one-frame buzz/flicker: mostly on, occasionally a dim frame
+    var flick = Math.floor(t * 9) % 53;
+    var on = flick !== 0 && flick !== 1;          // brief 2-frame buzz-out
+    var dim = Math.floor(t * 3) % 11 === 0;       // gentle low-power flutter
+    var w = 280;
+    // backing board (always there, so a dark sign still reads as a sign)
+    ctx.fillStyle = '#0c1322';
+    ctx.fillRect(cx - w / 2, cy - 24, w, 42);
+    ctx.strokeStyle = '#1a2440'; ctx.lineWidth = 2;
+    ctx.strokeRect(cx - w / 2 + 1, cy - 23, w - 2, 40);
+
+    ctx.font = "18px 'Silkscreen', monospace";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+
+    if(on){
+      // soft glow halo (shadowBlur used sparingly, single pass)
+      ctx.save();
+      ctx.shadowColor = '#ff9a56';
+      ctx.shadowBlur = dim ? 6 : 16;
+      ctx.fillStyle = dim ? '#b85c2e' : '#ff9a56';
+      ctx.fillText(txt, cx, cy + 6);
+      ctx.restore();
+      // dark tube outline for that layered glass look
+      ctx.lineWidth = 3; ctx.strokeStyle = '#5a2a14';
+      ctx.strokeText(txt, cx, cy + 6);
+      // bright core
+      ctx.fillStyle = dim ? '#ffb27a' : '#ffd9b0';
+      ctx.fillText(txt, cx, cy + 6);
+      // tube frame
+      ctx.strokeStyle = on ? 'rgba(255,154,86,0.55)' : 'rgba(255,154,86,0.15)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cx - w / 2 + 6, cy - 19, w - 12, 32);
+    } else {
+      // buzzed-out frame: cold dead tube
+      ctx.fillStyle = '#3a2418';
+      ctx.fillText(txt, cx, cy + 6);
+    }
+  }
+
+  // ---------- water cooler + chatting staff ----------
+  // bottle + base; gossiping staff (st.away) draw themselves over in drawDesks.
+  function drawCooler(ctx){
+    var cx = COOLER.x, cy = COOLER.y; // top-left of the unit
+    // shadow on the floor
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(cx - 4, cy + 64, 48, 6);
+    // base cabinet (white)
+    ctx.fillStyle = '#0a0d16'; ctx.fillRect(cx - 2, cy + 30, 44, 38);
+    ctx.fillStyle = '#dfe6ee'; ctx.fillRect(cx, cy + 32, 40, 34);
+    ctx.fillStyle = '#aeb8c4'; ctx.fillRect(cx, cy + 32, 40, 4); // top lip
+    // recessed dispenser panel + two spigots side by side (hot/cold)
+    ctx.fillStyle = '#b8c2cc'; ctx.fillRect(cx + 6, cy + 40, 28, 14);
+    ctx.fillStyle = '#ff5c5c'; ctx.fillRect(cx + 12, cy + 43, 4, 3); // hot
+    ctx.fillStyle = '#3a8ad0'; ctx.fillRect(cx + 24, cy + 43, 4, 3); // cold
+    ctx.fillStyle = '#2a3142'; ctx.fillRect(cx + 12, cy + 46, 4, 4);
+    ctx.fillStyle = '#2a3142'; ctx.fillRect(cx + 24, cy + 46, 4, 4);
+    // drip grille
+    ctx.fillStyle = '#8a94a0'; ctx.fillRect(cx + 8, cy + 58, 24, 3);
+    // the blue bottle (inverted)
+    ctx.fillStyle = '#0a0d16'; ctx.fillRect(cx + 6, cy - 2, 28, 34);
+    ctx.fillStyle = 'rgba(120,180,220,0.85)'; ctx.fillRect(cx + 8, cy, 24, 30);
+    // water level + a couple of rising bubbles
+    ctx.fillStyle = 'rgba(180,220,245,0.9)'; ctx.fillRect(cx + 8, cy + 4, 24, 24);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    var by = (t * 14) % 24;
+    ctx.fillRect(cx + 14, cy + 26 - by, 2, 2);
+    ctx.fillRect(cx + 22, cy + 28 - ((by + 12) % 24), 2, 2);
+    // cap/neck
+    ctx.fillStyle = '#3a6a8a'; ctx.fillRect(cx + 14, cy + 28, 12, 4);
+  }
+
+  // floor spot for the cooler: clear lane between content cluster and the door,
+  // above the production tape (which is y>=425). Verified against DESKS.
+  var COOLER = { x: 884, y: 300 };
+  G.render.coolerPoint = function(){ return { x: COOLER.x + 20, y: COOLER.y + 66 }; };
+
   // ---------- props ----------
   function drawProps(ctx){
     var s = G.state;
@@ -442,15 +712,9 @@
     drawTrophies(ctx);
     if(s.upgrades.coffee) drawSprite(ctx, 'coffee_machine', 16, 150, 60, 80);
     if(s.upgrades.plant) drawSprite(ctx, 'plant', 836, 168, 48, 68);
-    if(s.upgrades.neon){
-      var on = Math.floor(t * 2) % 7 !== 6; // occasional flicker, it's that kind of sign
-      if(on){
-        pxText(ctx, '~ CRAVACHE ~', 640, 40, 16, '#ff9a56', 'center', true);
-        ctx.strokeStyle = 'rgba(255,154,86,0.5)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(520, 14, 240, 38);
-      }
-    }
+    if(s.upgrades.tv) drawTV(ctx);
+    if(s.upgrades.cooler) drawCooler(ctx);
+    if(s.upgrades.neon) drawNeon(ctx);
     // phone rings when a call is live
     if(s.activeCall && Math.floor(t * 8) % 2 === 0){
       drawSprite(ctx, 'phone_prop', 905, 170, 40, 40);
@@ -503,6 +767,7 @@
       drawProps(ctx);
       drawClusters(ctx);
       drawDesks(ctx);
+      drawWanderers(ctx);
       drawFire(ctx);
     },
 
@@ -575,6 +840,15 @@
       if(inBox(HOTSPOTS.board)){
         G.audio.click();
         G.dock.infoToast('THE BOARD SAYS', BOARD_LINES[boardIdx++ % BOARD_LINES.length], '');
+        return;
+      }
+
+      // office TV: flip the channel manually
+      if(s.upgrades.tv && inBox(HOTSPOTS.tv)){
+        s.tvChannel = (s.tvChannel + 1) % 4;
+        G.audio.click();
+        var ch = (s.tvChannel + Math.floor(t / 5)) % 4;
+        G.dock.infoToast('TV', TV_CHANNEL_LINES[ch], '');
         return;
       }
 

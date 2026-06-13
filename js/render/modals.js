@@ -90,6 +90,11 @@
 
     anyOpen: function(){ return stack.length > 0; },
 
+    // a bare pause lock for non-modal overlays (MONDAY dread, etc). Bumps the
+    // same refcount the modals use, so nothing unpauses the sim early.
+    acquirePause: function(){ pauseCount++; setPaused(); },
+    releasePause: function(){ pauseCount = Math.max(0, pauseCount - 1); setPaused(); },
+
     // driven from main loop with REAL dt (call hold + count-ups run even when sim paused)
     update: function(rdt){
       // count-ups
@@ -340,7 +345,12 @@
         var it = G.BAL.SHOP[key];
         if(s.upgrades[key]) return;
         items.push({ name: it.name, desc: it.desc, price: it.price,
-          buy: function(){ return G.economy.buyUpgrade(key); } });
+          buy: function(){
+            var ok = G.economy.buyUpgrade(key);
+            // the neon comes blank: ask the player what it should say
+            if(ok && key === 'neon') G.modals.showNeonSetup();
+            return ok;
+          } });
       });
       ['designer', 'editor', 'content', 'production'].forEach(function(dept){
         var cand = null;
@@ -435,7 +445,11 @@
           (!G.staff.deptUnlocked(dept) ? ' · LOCKED UNTIL WK ' + G.BAL.PRODUCTION_UNLOCK_WEEK : '');
         listEl.appendChild(head);
 
-        s.hirePool.filter(function(c){ return c.dept === dept; }).forEach(function(cand){
+        // CVs arrive in weekly waves; tease the queue instead of dumping it
+        var deptPool = s.hirePool.filter(function(c){ return c.dept === dept; });
+        var incoming = deptPool.filter(function(c){ return !G.staff.candidateVisible(c); }).length;
+
+        deptPool.filter(G.staff.candidateVisible).forEach(function(cand){
           any = true;
           var advance = Math.round(cand.salaryMonthly / 4);
           var badges = (cand.badges || []).map(function(b){ return b.icon + ' ' + b.label; }).join(' · ');
@@ -467,6 +481,13 @@
           rowEl.appendChild(b);
           listEl.appendChild(rowEl);
         });
+
+        if(incoming > 0 && G.staff.deptUnlocked(dept)){
+          var tease = document.createElement('div');
+          tease.className = 'modal-fine';
+          tease.textContent = '+ ' + incoming + ' more CV' + (incoming > 1 ? 's' : '') + ' in the pipeline. Good people take time.';
+          listEl.appendChild(tease);
+        }
       });
       if(!any) listEl.innerHTML += '<div class="modal-fine">Pool empty. Everyone employable in Ahmedabad already works here.</div>';
 
@@ -856,6 +877,44 @@
       });
       var entry = push(el, { pausing: true });
       addButtons(el, [{ label: 'BACK TO WORK', onClick: function(){ G.audio.click(); close(entry); } }]);
+    },
+
+    // ---------- neon sign naming (fires when the sign is bought) ----------
+    showNeonSetup: function(){
+      var s = G.state;
+      var el = modalShell({
+        cls: 'modal-green',
+        kicker: 'NEON SIGN · NOW MAKE IT YOURS',
+        title: 'WHAT SHOULD IT SAY?',
+        bodyHTML:
+          '<div class="modal-fine">16 characters. It buzzes on the wall forever. Choose something the landlord will not question.</div>' +
+          '<input id="neon-input" class="px-input" maxlength="16" value="' + esc(s.neonText || 'CRAVACHE') + '" autocomplete="off" spellcheck="false">' +
+          '<div class="neon-preview"><span data-neon-prev>~ ' + esc(s.neonText || 'CRAVACHE') + ' ~</span></div>'
+      });
+      var entry = push(el, { pausing: true });
+      var input = el.querySelector('#neon-input');
+      var prev = el.querySelector('[data-neon-prev]');
+
+      function clean(v){
+        return (v || '').toUpperCase().replace(/\s+/g, ' ').slice(0, 16).trim();
+      }
+      function sync(){
+        var v = clean(input.value) || 'CRAVACHE';
+        prev.textContent = '~ ' + v + ' ~';
+      }
+      input.addEventListener('input', sync);
+      // focus after the modal animates in
+      setTimeout(function(){ try { input.focus(); input.select(); } catch(e){} }, 60);
+
+      addButtons(el, [{
+        label: 'LIGHT IT UP',
+        onClick: function(){
+          s.neonText = clean(input.value) || 'CRAVACHE';
+          G.audio.accept();
+          close(entry);
+          G.dock.infoToast('NEON LIT', '"' + s.neonText + '" now glows over the floor. Tasteful. Loud. Both.', 'good');
+        }
+      }]);
     },
 
     // ---------- end screens ----------
