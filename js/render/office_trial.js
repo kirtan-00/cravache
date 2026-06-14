@@ -42,8 +42,13 @@
     { x: 980,  y: 600, dept: 'production' },
     { x: 1130, y: 600, dept: 'production' }
   ];
-  var DESK_W = 150, DESK_H = 64;        // drawn desk size (front-on)
-  var CHAR_W = 50, CHAR_H = 76;         // staff drawn size (native 32x48 upscaled)
+  // DESK_SCALE: shrink each desk's DRAWN size by 20% (0.8) while keeping the grid
+  // POSITIONS (d.x/d.y) where they are. Everything that sits on a desk — the
+  // seated char, laptop, blue glow, drop hitbox, "empty"/dept labels — is derived
+  // from these scaled constants (and SEAT_OVERLAP below), so it all stays aligned.
+  var DESK_SCALE = 0.8;
+  var DESK_W = Math.round(150 * DESK_SCALE), DESK_H = Math.round(64 * DESK_SCALE); // drawn desk size (front-on)
+  var CHAR_W = Math.round(50 * DESK_SCALE), CHAR_H = Math.round(76 * DESK_SCALE);  // staff drawn size (scaled to match)
 
   // dept cluster labels at the centroid of each block
   var CLUSTERS = [
@@ -217,7 +222,7 @@
   // Framed window on the back wall. Sun/moon arc across the glass over the day,
   // clouds drift and wrap, stars twinkle at night. Clipped to the glass; the
   // mullion grid is redrawn on top so the panes read.
-  var WIN = { x: 440, y: 46, w: 340, h: 172 };
+  var WIN = { x: 440, y: 46, w: 459, h: 172 };   // widened +35% to the right (right edge now x=899)
   // vertical mullions split the glass into 3 even panes (recomputed from WIN)
   var WIN_MUL_X = [Math.round(WIN.x + WIN.w / 3), Math.round(WIN.x + 2 * WIN.w / 3)];
   var WIN_MUL_Y = [Math.round(WIN.y + WIN.h / 2)]; // horizontal mullion (mid)
@@ -239,6 +244,43 @@
   function lerp(a, b, f){ return a + (b - a) * f; }
   function rgb(c){ return 'rgb(' + Math.round(c[0]) + ',' + Math.round(c[1]) + ',' + Math.round(c[2]) + ')'; }
   function mixC(a, b, f){ return [lerp(a[0],b[0],f), lerp(a[1],b[1],f), lerp(a[2],b[2],f)]; }
+
+  // ---- celestial flash + colour-shift cycle (sun & moon) ----
+  // Every CELESTIAL_PERIOD (~15s) the sun and moon do a gentle brightness FLASH and
+  // smoothly TRANSITION to a new tint. ALL changes are lerps (no hard cuts).
+  //   - colour: each cycle picks the next tint in CELESTIAL_TINTS; we interpolate
+  //     from the previous tint to the new one over the first ~1s of the cycle.
+  //   - flash: a short brightness bump at the start of each cycle, eased out (~1s).
+  // White tints (mult [1,1,1]) leave the base colour untouched; warm/cool tints
+  // gently re-tint the sun/moon. Cheap: a couple of sin/eased scalars per frame.
+  var CELESTIAL_PERIOD = 15;          // seconds between flashes
+  var CELESTIAL_TINTS = [             // multiplicative tints (per RGB channel)
+    [1.00, 1.00, 1.00],              // neutral
+    [1.08, 0.98, 0.86],              // warm gold
+    [0.90, 0.98, 1.12],              // cool blue
+    [1.10, 0.92, 0.96],              // rosy
+    [0.96, 1.08, 0.98]               // faint green-white
+  ];
+  // returns { flash: 0..~0.6 brightness bump, tint:[r,g,b] multiplier } — smooth.
+  function celestialFX(){
+    var cyc = t / CELESTIAL_PERIOD;
+    var idx = Math.floor(cyc);
+    var f = cyc - idx;                                  // 0..1 within this cycle
+    var prevTint = CELESTIAL_TINTS[((idx - 1) % CELESTIAL_TINTS.length + CELESTIAL_TINTS.length) % CELESTIAL_TINTS.length];
+    var curTint  = CELESTIAL_TINTS[idx % CELESTIAL_TINTS.length];
+    // smooth colour transition over the first 1s of the cycle (smoothstep)
+    var ct = Math.min(1, f * CELESTIAL_PERIOD);         // 0..1 over first second
+    ct = ct * ct * (3 - 2 * ct);                        // smoothstep ease
+    var tint = mixC(prevTint, curTint, ct);
+    // brightness flash: peak at cycle start, eased out over ~1s (no hard cut)
+    var fl = f * CELESTIAL_PERIOD;                       // seconds into cycle
+    var flash = fl < 1 ? 0.55 * (1 - fl) * (1 - fl) : 0; // quadratic ease-out
+    return { flash: flash, tint: tint };
+  }
+  // apply a per-channel tint multiplier to an [r,g,b] colour, clamped to 255.
+  function applyTint(c, tint){
+    return [Math.min(255, c[0] * tint[0]), Math.min(255, c[1] * tint[1]), Math.min(255, c[2] * tint[2])];
+  }
 
   // returns { phase, f, top, mid, bot } where phase is morning/afternoon/evening/night
   // and top/mid/bot are the 3 sky band colors. Day = 9..19, night = 19..24.
@@ -310,26 +352,102 @@
     ctx.fillStyle = hg;
     ctx.fillRect(w.x, w.y + w.h * 0.6, w.w, w.h * 0.4);
 
-    // 2) sun OR moon arcing across the glass
-    var p = dayProgress(hour);
-    var arcX = w.x + 24 + p * (w.w - 48);
-    // arc: low at edges, high in the middle (parabola)
-    var arcY = w.y + w.h * (isNight ? 0.30 : (0.62 - Math.sin(p * Math.PI) * 0.42));
-    if(isNight){
-      // moon (pale disc + a soft glow + a notch crater)
-      ctx.fillStyle = 'rgba(220,228,255,0.20)';
-      ctx.fillRect(arcX - 18, arcY - 18, 36, 36);
-      ctx.fillStyle = '#e6ecff';
-      ctx.fillRect(arcX - 12, arcY - 12, 24, 24);
-      ctx.fillStyle = rgb(sk.top);
-      ctx.fillRect(arcX + 2, arcY - 8, 8, 8);          // crater bite
-    } else {
-      var sunCol = isEvening ? '#ff8a4a' : (sk.phase === 'morning' ? '#ffd98a' : '#fff2b0');
-      var glow = isEvening ? 'rgba(255,138,74,0.35)' : 'rgba(255,240,150,0.30)';
-      ctx.fillStyle = glow;
-      ctx.fillRect(arcX - 20, arcY - 20, 40, 40);
-      ctx.fillStyle = sunCol;
-      ctx.fillRect(arcX - 13, arcY - 13, 26, 26);       // chunky square sun
+    // 2) SUN + MOON as TWO separate bodies, each on its own arc, offset half a
+    //    cycle. dayFactor (1=full day .. 0=full night) cross-fades their
+    //    brightness so day = bright sun + faint/absent moon, night = bright
+    //    crescent moon + sun gone. Both arcs are cheap parabolas (no per-pixel).
+    //
+    // dayFactor derived from the existing sky phase/blend so the two bodies
+    // fade in lock-step with the smooth sky gradient above.
+    var dayFactor;
+    if(sk.phase === 'morning' || sk.phase === 'afternoon') dayFactor = 1;
+    else if(sk.phase === 'evening') dayFactor = 1 - sk.f * 0.65;          // dusk: sun dimming
+    else /* night */                dayFactor = Math.max(0, 0.35 - sk.f * 0.35); // -> 0
+    var nightFactor = 1 - dayFactor;
+
+    // Sun rides the daytime arc (9..19) left->right; the moon rides the SAME
+    // shape but offset half a cycle so it is high when the sun is low.
+    function arcPos(prog){
+      var ax = w.x + 24 + prog * (w.w - 48);
+      // parabola: low at edges, high in the middle
+      var ay = w.y + w.h * (0.66 - Math.sin(Math.max(0, Math.min(1, prog)) * Math.PI) * 0.46);
+      return { x: ax, y: ay };
+    }
+    // continuous 0..1 sun progress across the whole visible span (9..24),
+    // wrapping so the moon (sun + 0.5) traces the opposite half.
+    var sunProg = Math.max(0, Math.min(1, (hour - 9) / 10));   // 9..19 sun across glass
+    var moonProg = Math.max(0, Math.min(1, (hour - 17) / 7));  // 17..24 moon across glass
+    var sunP = arcPos(sunProg);
+    var moonP = arcPos(moonProg);
+
+    // shared flash + tint for sun & moon this frame (smooth, ~15s cycle)
+    var fx = celestialFX();
+
+    // ---- SUN (only worth drawing while there's daylight) ----
+    if(dayFactor > 0.02){
+      var sunBase = isEvening ? [255,138,74] : (sk.phase === 'morning' ? [255,217,138] : [255,242,176]);
+      var sunC = applyTint(sunBase, fx.tint);                       // smooth colour shift
+      var haloBase = isEvening ? [255,138,74] : [255,240,150];
+      var haloC = applyTint(haloBase, fx.tint);
+      ctx.save(); ctx.globalAlpha = dayFactor;
+      // halo (brightens with the flash)
+      ctx.fillStyle = 'rgba(' + Math.round(haloC[0]) + ',' + Math.round(haloC[1]) + ',' + Math.round(haloC[2]) + ',' + (0.30 + fx.flash * 0.5).toFixed(3) + ')';
+      ctx.fillRect(sunP.x - 20, sunP.y - 20, 40, 40);
+      // disc, lifted toward white by the flash so it gently brightens (no hard cut)
+      ctx.fillStyle = rgb(mixC(sunC, [255,255,255], fx.flash));
+      ctx.fillRect(sunP.x - 13, sunP.y - 13, 26, 26);   // chunky square sun
+      ctx.restore();
+    }
+
+    // ---- MOON: a CLEAN CRESCENT, lit edge facing the sun ----
+    // Draw the lit disc, then CLIP to the moon circle and draw the sky-coloured
+    // shadow disc offset away from the sun INSIDE that clip. Because the shadow is
+    // clipped to the moon, its outer edge can never appear over the sky — only a
+    // clean crescent remains (no "two circles" read). Craters are drawn on the lit
+    // part. Brightness rises with nightFactor; flash/tint shift it smoothly.
+    if(nightFactor > 0.04){
+      var mr = 13;                       // moon radius
+      // unit direction from moon -> sun (where the light comes from)
+      var dx = sunP.x - moonP.x, dy = sunP.y - moonP.y;
+      var dlen = Math.sqrt(dx * dx + dy * dy) || 1;
+      var ux = dx / dlen, uy = dy / dlen;
+      // shadow disc pushed AWAY from the sun so the lit limb faces it.
+      var shOff = mr * 0.62;             // <r => a fat crescent, not a sliver
+      var shx = moonP.x - ux * shOff, shy = moonP.y - uy * shOff;
+      // sky colour at the moon's height, for the shadow fill (so the bitten part
+      // vanishes seamlessly into the night sky).
+      var skyShade = mixC(sk.mid, sk.top, 0.4);
+      // lit-moon colour: smooth tint shift + flash lift toward white
+      var moonBase = applyTint([230, 236, 255], fx.tint);
+      var moonLit = rgb(mixC(moonBase, [255, 255, 255], fx.flash));
+
+      ctx.save(); ctx.globalAlpha = nightFactor;
+      // soft halo (brightens with the flash)
+      ctx.fillStyle = 'rgba(220,228,255,' + (0.16 + fx.flash * 0.30).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(moonP.x, moonP.y, mr + 6, 0, Math.PI * 2); ctx.fill();
+      // lit moon disc
+      ctx.fillStyle = moonLit;
+      ctx.beginPath(); ctx.arc(moonP.x, moonP.y, mr, 0, Math.PI * 2); ctx.fill();
+      // CLIP to the moon circle, then carve the crescent with the shadow disc.
+      ctx.save();
+      ctx.beginPath(); ctx.arc(moonP.x, moonP.y, mr, 0, Math.PI * 2); ctx.clip();
+      ctx.fillStyle = rgb(skyShade);
+      ctx.beginPath(); ctx.arc(shx, shy, mr, 0, Math.PI * 2); ctx.fill();
+      // craters on the LIT part (toward the sun side), still inside the clip so
+      // they never spill past the moon edge. Subtle, slightly-darker dots.
+      ctx.fillStyle = 'rgba(150,160,190,0.45)';
+      var cux = ux, cuy = uy;                       // toward the lit limb
+      // place a few craters offset toward the lit edge
+      var cr = [[cux*5 - cuy*3, cuy*5 + cux*3, 2.2],
+                [cux*3 + cuy*4, cuy*3 - cux*4, 1.6],
+                [cux*7,        cuy*7,          1.4]];
+      for(var ci = 0; ci < cr.length; ci++){
+        ctx.beginPath();
+        ctx.arc(moonP.x + cr[ci][0], moonP.y + cr[ci][1], cr[ci][2], 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();   // end moon clip
+      ctx.restore();   // end alpha
     }
 
     // 3) night stars (twinkle) + one blinking tower light
@@ -508,12 +626,17 @@
   // the laptop glow pool (drawn after) is what lights its surface.
   function draw25Desk(ctx, dx, dyTop){
     var w = DESK_W, h = DESK_H;
-    ctx.fillStyle = '#241c14'; ctx.fillRect(dx, dyTop, w, 13);          // top surface (back)
-    ctx.fillStyle = '#1a140d'; ctx.fillRect(dx, dyTop + 13, w, h - 13); // front face
+    var topBand = Math.round(13 * DESK_SCALE);     // top-surface depth (scaled)
+    var legW = Math.round(9 * DESK_SCALE);
+    var legH = Math.round(7 * DESK_SCALE);
+    var legInset = Math.round(8 * DESK_SCALE);
+    ctx.fillStyle = '#241c14'; ctx.fillRect(dx, dyTop, w, topBand);          // top surface (back)
+    ctx.fillStyle = '#1a140d'; ctx.fillRect(dx, dyTop + topBand, w, h - topBand); // front face
     ctx.fillStyle = 'rgba(150,180,230,0.10)'; ctx.fillRect(dx, dyTop, w, 2); // cool top edge catch
-    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(dx, dyTop + 11, w, 3);   // lip shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(dx, dyTop + topBand - 2, w, 3);   // lip shadow
     ctx.fillStyle = '#120d08';
-    ctx.fillRect(dx + 8, dyTop + h, 9, 7); ctx.fillRect(dx + w - 17, dyTop + h, 9, 7); // legs
+    ctx.fillRect(dx + legInset, dyTop + h, legW, legH);
+    ctx.fillRect(dx + w - legInset - legW, dyTop + h, legW, legH); // legs
   }
 
   // big soft cool glow pool from a laptop. Additive — only lifts brightness, so
@@ -554,7 +677,7 @@
     // NO body bob — the laptop glow provides the liveliness, the body stays still.
     var frame = working ? Math.floor(t * 2.4 + i) % 2 : 0;
     var bob = 0;
-    var SEAT_OVERLAP = 32;   // desk occludes the lower body (committed offset)
+    var SEAT_OVERLAP = Math.round(32 * DESK_SCALE);   // desk occludes the lower body (scaled with desk)
     drawSprite(ctx, key, cx - CHAR_W/2, dyTop + SEAT_OVERLAP - CHAR_H + bob, CHAR_W, CHAR_H, frame);
   }
 
@@ -564,8 +687,8 @@
     // Front-on view: we see the BACK OF THE LID standing upright on the desk.
     // 15" (editor) vs 13" (everyone else). All coords integer + symmetric about cx.
     var editor = (st.dept === 'editor');
-    var lw = editor ? 44 : 36;          // lid width
-    var lh = editor ? 19 : 16;          // lid height (short: must NOT cover the seated face)
+    var lw = Math.round((editor ? 44 : 36) * DESK_SCALE);  // lid width (scaled w/ desk)
+    var lh = Math.round((editor ? 19 : 16) * DESK_SCALE);  // lid height (short: must NOT cover the seated face)
     var lx = Math.round(cx - lw / 2);   // left edge, snapped & symmetric
     var deckH = 3;                      // keyboard-deck sliver depth
     var hingeH = 2;                     // hinge bar
@@ -740,7 +863,8 @@
         drawLaptop(ctx, st, d.x, dyTop, i, working);
         if(working){
           drawDeskGlow(ctx, d.x, dyTop + 2, i, gmult);   // additive: lifts char+desk (blue laptop glow)
-          drawFaceRim(ctx, d.x, dyTop - 44, i);          // re-light the lower face (blue)
+          // face rim tracks the scaled head (head top ≈ dyTop + SEAT_OVERLAP - CHAR_H)
+          drawFaceRim(ctx, d.x, dyTop - Math.round(44 * DESK_SCALE), i);  // re-light the lower face (blue)
         }
         // idle (not-working) staff get NO illumination — they sit in the dark.
         if(working && st.dept === 'production' && Math.floor(t * 2) % 2 === 0){
@@ -753,7 +877,8 @@
       // ---- per-staff overlays, ALL ABOVE THE HEAD ----
       // DECLUTTER: calm default = stars + one merged bar (+ burnout only if high).
       // Hover reveals name, brief title, deadline number, badges.
-      var headTop = dyTop - 46;   // just above the sprite head (head top ~ dyTop - 44)
+      // just above the scaled sprite head (head top ≈ dyTop + SEAT_OVERLAP - CHAR_H)
+      var headTop = dyTop + Math.round(32 * DESK_SCALE) - CHAR_H - 2;
       var hovered = G.render.office.hoverDesk === i;
 
       // assigned brief: ONE merged bar = work progress, colored by deadline urgency.
@@ -841,12 +966,12 @@
   // ---------- clickable hotspots (relocated to dark walls / open floor) ----------
   // All rects verified against where the art/procedural draws appear.
   var HOTSPOTS = {
-    chai:    { x: 698,  y: 194, w: 30,  h: 30  },  // tiny kettle on the RIGHT of the windowsill (sill top y=218)
-    alexa:   { x: 732,  y: 194, w: 22,  h: 24  },  // Echo-Dot speaker just right of the kettle (music toggle)
-    printer: { x: 1178, y: 372, w: 56,  h: 60  },  // right wall, clear of desks + plant
-    window:  { x: 440,  y: 46,  w: 340, h: 172 },  // the live studio window glass
+    chai:    { x: 800,  y: 194, w: 30,  h: 30  },  // tiny kettle on the RIGHT of the WIDENED windowsill, clear of the right mullion (x≈746)
+    alexa:   { x: 836,  y: 194, w: 22,  h: 24  },  // Echo-Dot speaker just right of the kettle (music toggle)
+    printer: { x: 1148, y: 272, w: 34,  h: 36  },  // ~40% smaller, sitting ON the back content desk (x:1130,y:300)
+    window:  { x: 440,  y: 46,  w: 459, h: 172 },  // the live studio window glass (widened +35%, right edge x=899)
     board:   { x: 14,   y: 55,  w: 337, h: 145 },  // HUSTLE board: x+w match the HUD stat panel (14..351), top 5px below it, bottom on the window line (y200)
-    tv:      { x: 860,  y: 60,  w: 200, h: 120 }   // flatscreen on back wall (right)
+    tv:      { x: 920,  y: 60,  w: 200, h: 120 }   // flatscreen on back wall (right) — moved right to clear the widened window (right frame ends x=909)
   };
 
   // absurd ad-industry headlines for the TV news ticker (no real brands)
@@ -1011,26 +1136,32 @@
     }
   }
 
+  // Small desktop printer, resting ON a back office desk (see HOTSPOTS.printer).
+  // ~40% smaller than the old floor unit; drawn so it reads as "a little printer
+  // on someone's desk" — a flat contact shadow on the desktop, no floor cabinet.
   function drawPrinter(ctx){
     var s = G.state;
     var h = HOTSPOTS.printer;
-    ctx.fillStyle = 'rgba(0,0,0,0.20)'; ellipse(ctx, h.x + h.w / 2, h.y + h.h + 14, h.w * 0.7, 8);
-    ctx.fillStyle = '#2a3140'; ctx.fillRect(h.x - 6, h.y + h.h - 4, h.w + 12, 18);
+    var trayH = Math.max(8, Math.round(h.h * 0.30));   // bottom paper-tray band
+    // flat contact shadow on the desk surface (not a floor ellipse)
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.fillRect(h.x - 2, h.y + h.h - 2, h.w + 4, 4);
     if(G.data.hasArt('printer')){
       drawSprite(ctx, 'printer', h.x, h.y, h.w, h.h);
     } else {
-      ctx.fillStyle = '#05070f'; ctx.fillRect(h.x - 3, h.y - 3, h.w + 6, h.h + 6);
-      ctx.fillStyle = '#8a8a80'; ctx.fillRect(h.x, h.y, h.w, h.h - 14);
-      ctx.fillStyle = '#6a6a62'; ctx.fillRect(h.x, h.y + h.h - 14, h.w, 14);
-      ctx.fillStyle = '#f4e8cf'; ctx.fillRect(h.x + 10, h.y + h.h - 18, h.w - 20, 6);
+      ctx.fillStyle = '#05070f'; ctx.fillRect(h.x - 2, h.y - 2, h.w + 4, h.h + 4); // outline
+      ctx.fillStyle = '#8a8a80'; ctx.fillRect(h.x, h.y, h.w, h.h - trayH);          // body
+      ctx.fillStyle = '#6a6a62'; ctx.fillRect(h.x, h.y + h.h - trayH, h.w, trayH);  // tray
+      ctx.fillStyle = '#f4e8cf'; ctx.fillRect(h.x + 6, h.y + h.h - trayH - 4, h.w - 12, 4); // paper lip
     }
+    var ledX = h.x + h.w - 8, ledY = h.y + 4, ledS = 4;   // status LED (scaled)
     if(s.printerJammed){
       if(Math.floor(t * 4) % 2 === 0){
-        ctx.fillStyle = '#ff5c5c'; ctx.fillRect(h.x + h.w - 12, h.y + 6, 6, 6);
-        pxText(ctx, 'JAM!', h.x + h.w / 2, h.y - 8, 10, '#ff5c5c', 'center', true);
+        ctx.fillStyle = '#ff5c5c'; ctx.fillRect(ledX, ledY, ledS, ledS);
+        pxText(ctx, 'JAM!', h.x + h.w / 2, h.y - 6, 10, '#ff5c5c', 'center', true);
       }
     } else {
-      ctx.fillStyle = '#7ee08a'; ctx.fillRect(h.x + h.w - 12, h.y + 6, 6, 6);
+      ctx.fillStyle = '#7ee08a'; ctx.fillRect(ledX, ledY, ledS, ledS);
     }
   }
 
@@ -1420,10 +1551,39 @@
     }
   }
 
-  // small office plant (existing 'plant' sprite) on the floor corner
+  // small office plant — RESTS on the LEFT end of the widened windowsill (sill top
+  // = WIN.y + WIN.h). Clear of the kettle/alexa, which sit on the right of the sill.
+  // Drawn procedurally (pixel-art pot + leaves) so its base sits flat on the sill —
+  // no longer floating. Left mullion is at WIN.x + WIN.w/3 (≈593); we sit left of it.
   function drawPlant(ctx){
-    ctx.fillStyle = 'rgba(0,0,0,0.20)'; ellipse(ctx, 1224, 560, 22, 6);
-    drawSprite(ctx, 'plant', 1200, 494, 48, 68);
+    var SILL_TOP = WIN.y + WIN.h;      // sill top surface (218)
+    var pw = 20, ph = 13;              // small pot
+    var px = WIN.x + 16;               // left end of the sill (clear of the left mullion)
+    var py = SILL_TOP - ph;            // pot base rests ON the sill
+    // contact shadow on the sill
+    ctx.fillStyle = 'rgba(0,0,0,0.30)';
+    ctx.fillRect(px + 1, py + ph - 1, pw - 2, 2);
+    // pot (terracotta) with a lip rim
+    ctx.fillStyle = '#7a4a28'; ctx.fillRect(px + 2, py, pw - 4, ph);
+    ctx.fillStyle = '#9a6038'; ctx.fillRect(px, py, pw, 4);            // rim lip
+    ctx.fillStyle = '#5e3820'; ctx.fillRect(px + 2, py + ph - 2, pw - 4, 2); // base shade
+    // stalks
+    var cx = px + pw / 2;
+    ctx.fillStyle = '#1f5a2e';
+    ctx.fillRect(cx - 1, py - 11, 2, 11);
+    ctx.fillRect(cx - 5, py - 7, 2, 7);
+    ctx.fillRect(cx + 3, py - 7, 2, 7);
+    // leaves with a 1px gentle sway
+    var sway = Math.round(Math.sin(t * 0.9));
+    var leaf = ['#2f8f4a', '#36a055', '#267a3e'];
+    var L = [[-8, -9], [-2, -15], [5, -11]];
+    for(var i = 0; i < L.length; i++){
+      ctx.fillStyle = leaf[i % 3];
+      var lx = cx + L[i][0] + (i % 2 ? sway : -sway);
+      var ly = py + L[i][1];
+      ctx.fillRect(lx, ly, 6, 5);
+      ctx.fillRect(lx + 1, ly - 3, 4, 3);
+    }
   }
 
   // ---------- props orchestrator ----------
@@ -1494,8 +1654,6 @@
       if(G.state.night){
         ctx.fillStyle = 'rgba(4,7,18,0.55)';
         ctx.fillRect(0, 0, 1280, 720);
-        labelChip(ctx, '🌙 NIGHT SHIFT', 640, 130, 12, 'center', true);
-        pxText(ctx, '🌙 NIGHT SHIFT', 640, 130, 12, 'rgba(159,232,255,0.7)', 'center', true);
       }
       drawFire(ctx);
     },
