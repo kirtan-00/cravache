@@ -217,9 +217,10 @@
   // Framed window on the back wall. Sun/moon arc across the glass over the day,
   // clouds drift and wrap, stars twinkle at night. Clipped to the glass; the
   // mullion grid is redrawn on top so the panes read.
-  var WIN = { x: 520, y: 50, w: 250, h: 150 };
-  var WIN_MUL_X = [603, 686];                  // vertical mullions (3 panes)
-  var WIN_MUL_Y = [125];                        // horizontal mullion
+  var WIN = { x: 440, y: 46, w: 340, h: 172 };
+  // vertical mullions split the glass into 3 even panes (recomputed from WIN)
+  var WIN_MUL_X = [Math.round(WIN.x + WIN.w / 3), Math.round(WIN.x + 2 * WIN.w / 3)];
+  var WIN_MUL_Y = [Math.round(WIN.y + WIN.h / 2)]; // horizontal mullion (mid)
   var WIN_FRAME = '#3a4a6a';                     // cool dark frame (reads on dark wall)
   var WIN_FRAME_SH = '#1a2238';
 
@@ -532,21 +533,8 @@
 
   // a seated, hunched worker drawn BEHIND the desk. midY = desk back edge (dyTop).
   // body is anchored; only hands tap + head dips + eyes blink, all desynced.
-  // idle ambient: a soft WARM desk-lamp pool so present-but-not-working staff
-  // stay visible in the dark room (working staff get the cool laptop glow instead).
-  function drawIdleAmbient(ctx, cx, dyTop, i){
-    var fl = 0.93 + 0.07 * Math.sin(t * 1.4 + phase(i));
-    var r = 92;
-    // brighter, centred on the head so the seated sprite reads clearly
-    var g = ctx.createRadialGradient(cx, dyTop - 30, 0, cx, dyTop - 30, r);
-    g.addColorStop(0,    'rgba(255,222,170,' + (0.52 * fl).toFixed(3) + ')');
-    g.addColorStop(0.5,  'rgba(220,188,150,' + (0.24 * fl).toFixed(3) + ')');
-    g.addColorStop(1,    'rgba(180,160,140,0)');
-    ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = g; ctx.fillRect(cx - r, dyTop - 16 - r, r * 2, r * 2);
-    ctx.restore();
-  }
-
+  // (Idle/not-working staff get NO illumination now — they sit in the dark; only
+  // WORKING staff are lit, by the cool blue laptop glow.)
   function drawSeatedChar(ctx, st, cx, dyTop, i, working){
     // Draw the real pixel-art staff SPRITE, seated behind the desk (committed
     // renderer style). Auto-swap to a dedicated seated sprite when one exists.
@@ -740,11 +728,10 @@
         var gmult = (G.dock.dragHoverDesk === i) ? 1.18 : 1.0;
         drawLaptop(ctx, st, d.x, dyTop, i, working);
         if(working){
-          drawDeskGlow(ctx, d.x, dyTop + 2, i, gmult);   // additive: lifts char+desk
-          drawFaceRim(ctx, d.x, dyTop - 44, i);          // re-light the lower face
-        } else {
-          drawIdleAmbient(ctx, d.x, dyTop, i);           // warm lamp so idle staff stay visible
+          drawDeskGlow(ctx, d.x, dyTop + 2, i, gmult);   // additive: lifts char+desk (blue laptop glow)
+          drawFaceRim(ctx, d.x, dyTop - 44, i);          // re-light the lower face (blue)
         }
+        // idle (not-working) staff get NO illumination — they sit in the dark.
         if(working && st.dept === 'production' && Math.floor(t * 2) % 2 === 0){
           ctx.fillStyle = '#ff5c5c';
           ctx.fillRect(dx + DESK_W - 20, dyTop + 6, 7, 7);
@@ -843,10 +830,10 @@
   // ---------- clickable hotspots (relocated to dark walls / open floor) ----------
   // All rects verified against where the art/procedural draws appear.
   var HOTSPOTS = {
-    chai:    { x: 712,  y: 176, w: 30,  h: 30  },  // tiny kettle on the RIGHT of the windowsill
-    alexa:   { x: 744,  y: 176, w: 22,  h: 24  },  // Echo-Dot speaker just right of the kettle (music toggle)
+    chai:    { x: 698,  y: 194, w: 30,  h: 30  },  // tiny kettle on the RIGHT of the windowsill (sill top y=218)
+    alexa:   { x: 732,  y: 194, w: 22,  h: 24  },  // Echo-Dot speaker just right of the kettle (music toggle)
     printer: { x: 1178, y: 372, w: 56,  h: 60  },  // right wall, clear of desks + plant
-    window:  { x: 520,  y: 50,  w: 250, h: 150 },  // the live studio window glass
+    window:  { x: 440,  y: 46,  w: 340, h: 172 },  // the live studio window glass
     board:   { x: 14,   y: 55,  w: 337, h: 145 },  // HUSTLE board: x+w match the HUD stat panel (14..351), top 5px below it, bottom on the window line (y200)
     tv:      { x: 860,  y: 60,  w: 200, h: 120 }   // flatscreen on back wall (right)
   };
@@ -910,10 +897,11 @@
     var s = G.state;
     var h = HOTSPOTS.chai;
     var used = s.chaiDay === s.week * 10 + s.day;
-    // kettle body sits ON the sill: base aligns with the sill top (~y200).
+    // kettle body sits ON the sill: base aligns with the sill top (WIN.y+WIN.h=218).
+    var SILL_TOP = WIN.y + WIN.h;
     var kw = 24, kh = 16;
     var kx = h.x + Math.round((h.w - kw) / 2);     // centre the 24px kettle in the 30px hotspot
-    var ky = 200 - kh;                              // rest the base on the sill (WIN.y+WIN.h)
+    var ky = SILL_TOP - kh;                         // rest the base on the sill (WIN.y+WIN.h)
     // tiny contact shadow on the sill
     ctx.fillStyle = 'rgba(0,0,0,0.30)';
     ctx.fillRect(kx + 1, ky + kh - 1, kw - 2, 2);
@@ -937,7 +925,7 @@
       ctx.fillRect(kx + kw + 2, ky - 4 - sy, 2, 2);
     }
     // small label below the kettle, on the wall under the sill
-    var lx = h.x + h.w / 2, lyl = 218;
+    var lx = h.x + h.w / 2, lyl = SILL_TOP + 18;
     labelChip(ctx, used ? 'CHAI (kal)' : 'CHAI ☕', lx, lyl, 8, 'center', true);
     pxText(ctx, used ? 'CHAI (kal)' : 'CHAI ☕', lx, lyl, 8,
            used ? 'rgba(159,232,255,0.45)' : '#ffe066', 'center', true);
@@ -953,7 +941,7 @@
     var h = HOTSPOTS.alexa;
     var bw = 18, bh = 12;                          // squat cylinder body
     var bx = h.x + Math.round((h.w - bw) / 2);     // centre body in the hotspot
-    var by = 200 - bh;                             // base rests on the sill top
+    var by = (WIN.y + WIN.h) - bh;                 // base rests on the sill top (218)
     var ringY = by + 2;                            // ring sits around the top rim
     var playing = !!(window.G && G.music && !G.music.isMuted());
 

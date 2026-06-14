@@ -111,18 +111,78 @@
     <button id="btn-letsgo" class="px-btn px-btn-big">LET'S GO!</button>
   </div>
 
-  <!-- start screen -->
+  <!-- start screen — Minecraft-style main menu (full-stage timelapse sky bg,
+       big logo top-center, centered wide button stack, smaller bottom row).
+       Button IDs (#btn-start / #btn-continue) + handlers are preserved. -->
   <div id="start-screen">
-    <div class="start-box">
-      <div class="start-logo">CRAV<span>ACHE</span></div>
-      <div class="start-tag">an indian ad agency survival sim</div>
-      <div class="start-body">You are Client Servicing. The briefs are absurd, the deadlines are yesterday,
-        and the CEO hates blue. Survive Q1.</div>
-      <button id="btn-continue" class="px-btn px-btn-big hidden">CONTINUE SHIFT</button>
-      <button id="btn-start" class="px-btn px-btn-big">PUNCH IN (NEW GAME)</button>
+    <canvas id="home-sky" width="1280" height="720"></canvas>
+    <div class="mc-menu">
+      <div class="mc-top">
+        <img id="mc-logo" src="art/logo_cravache.png" alt="CRAVACHE" draggable="false">
+        <div class="start-tag">an indian ad agency survival sim</div>
+      </div>
+      <div class="mc-stack">
+        <button id="btn-continue" class="px-btn mc-btn hidden">CONTINUE SHIFT</button>
+        <button id="btn-start" class="px-btn mc-btn">PUNCH IN (NEW GAME)</button>
+        <div class="mc-row">
+          <button id="btn-options" class="px-btn px-btn-dim mc-btn-sm" type="button">OPTIONS...</button>
+          <button id="btn-sound" class="px-btn px-btn-dim mc-btn-sm" type="button">SOUND: ON</button>
+        </div>
+      </div>
       <div class="start-foot">laptop only · sound on recommended · autosaves</div>
     </div>
   </div>
+  <style id="home-menu-css">
+    /* scoped Minecraft-style menu — lives only inside #start-screen */
+    #start-screen{ overflow:hidden; }
+    #start-screen #home-sky{
+      position:absolute; inset:0; width:1280px; height:720px;
+      image-rendering:pixelated; z-index:0;
+    }
+    #start-screen .mc-menu{
+      position:absolute; inset:0; z-index:1;
+      display:flex; flex-direction:column; align-items:center;
+      padding:48px 0 36px; text-align:center;
+    }
+    /* logo near top-center — ~46% of the 1280 stage (~590px), 15% bigger than MC's ~40% */
+    #start-screen .mc-top{ margin-top:34px; display:flex; flex-direction:column; align-items:center; }
+    #start-screen #mc-logo{
+      width:590px; height:auto; display:block;
+      image-rendering:pixelated;
+      filter:drop-shadow(5px 6px 0 #000) drop-shadow(0 0 0 #000);
+      animation:mc-bob 3.4s ease-in-out infinite;
+      transition:filter .15s ease;
+    }
+    #start-screen #mc-logo:hover{
+      filter:drop-shadow(5px 6px 0 #000) drop-shadow(0 0 22px rgba(159,232,255,.75));
+    }
+    @keyframes mc-bob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
+    #start-screen .start-tag{
+      margin:14px 0 0; font-family:'Silkscreen',monospace; font-size:13px;
+      color:var(--brass); letter-spacing:2px;
+      text-shadow:2px 2px 0 #000;
+    }
+    /* centered vertical stack of WIDE buttons (MC layout) */
+    #start-screen .mc-stack{
+      margin-top:auto; margin-bottom:14px;
+      display:flex; flex-direction:column; align-items:center; gap:14px;
+    }
+    #start-screen .mc-btn{
+      width:440px; font-size:18px; padding:15px 20px 13px;
+      letter-spacing:1px;
+    }
+    #start-screen .mc-row{
+      display:flex; gap:14px; width:440px; margin-top:2px;
+    }
+    #start-screen .mc-btn-sm{
+      flex:1 1 0; font-size:13px; padding:11px 10px 9px;
+    }
+    #start-screen .start-foot{
+      font-family:'VT323',monospace; font-size:17px;
+      color:var(--paper); opacity:.78; margin-top:6px;
+      text-shadow:1px 1px 0 #000;
+    }
+  </style>
 </div>
 
 <script src="js/audio.js"></script>
@@ -150,6 +210,7 @@
 <script src="js/trial_juice.js"></script>
 <script src="js/trial_progression.js"></script>
 <script src="js/trial_music.js"></script>
+<script src="js/trial_homescreen.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

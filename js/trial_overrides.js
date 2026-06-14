@@ -19,9 +19,13 @@
   var threads = {};
   var notes = [];          // active notification entries {el, timer, clientKey}
 
+  // sentinel id for the non-client "Office / Team" thread (office events land here)
+  var OFFICE_ID = '__office__';
+
   function clientKey(id){ return id == null ? '__unknown__' : String(id); }
 
   function clientMeta(id){
+    if(id === OFFICE_ID) return { id: OFFICE_ID, name: 'Office / Team' };
     var c = G.data.clientById(id);
     if(c) return { id: id, name: c.name || '???' };
     return { id: id, name: '???' };
@@ -41,6 +45,29 @@
     t.msgs.push({ from: from, text: text, t: Date.now() });
     if(from === 'them' && !isThreadOpen(t.key)) t.unread++;
     return t;
+  }
+
+  // a "them" message that carries N tappable quick-reply buttons. Tapping a
+  // button runs that option's onPick (the real gameplay effect), locks the
+  // buttons, and appends a "You: <label>" sent message. Until tapped the choice
+  // just sits in the thread — ignoring it = no effect (dodging the decision).
+  function pushChoice(id, text, options){
+    var t = thread(id);
+    var msg = {
+      from: 'them', text: text, t: Date.now(),
+      kind: 'choice', options: options || [], answered: false, pickedLabel: null
+    };
+    t.msgs.push(msg);
+    if(!isThreadOpen(t.key)) t.unread++;
+    return { thread: t, msg: msg };
+  }
+
+  function pulseLauncher(){
+    if(!launcherEl) return;
+    launcherEl.classList.remove('wa-attn');
+    // force reflow so the animation restarts even on back-to-back decisions
+    void launcherEl.offsetWidth;
+    launcherEl.classList.add('wa-attn');
   }
 
   function totalUnread(){
@@ -151,7 +178,22 @@
       '.wa-remind{background:#25d366;color:#06291d;border:none;border-radius:7px;padding:6px 10px;',
         'font:700 12px system-ui,sans-serif;cursor:pointer;flex:0 0 auto;}',
       '.wa-remind:hover{filter:brightness(1.07);}',
-      '.wa-remind:disabled{background:#3a4a52;color:#8696a0;cursor:default;}'
+      '.wa-remind:disabled{background:#3a4a52;color:#8696a0;cursor:default;}',
+      // choice message: a "them" bubble carrying tappable quick-reply buttons
+      '.wa-choice{align-self:flex-start;max-width:88%;display:flex;flex-direction:column;gap:6px;}',
+      '.wa-choice .wa-b{align-self:stretch;max-width:100%;}',
+      '.wa-choice .wa-choice-btns{display:flex;flex-direction:column;gap:5px;}',
+      '.wa-choice .wa-reply{background:#1f2c33;color:#7ee0c0;border:1px solid rgba(37,211,102,.4);',
+        'border-radius:9px;padding:8px 11px;font:700 13px system-ui,sans-serif;cursor:pointer;',
+        'text-align:center;transition:background .12s;}',
+      '.wa-choice .wa-reply:hover{background:#26343c;}',
+      '.wa-choice .wa-reply:disabled{opacity:.45;cursor:default;border-color:rgba(255,255,255,.08);color:#8696a0;}',
+      '.wa-choice .wa-choice-hint{font-size:10px;color:#8696a0;text-align:center;}',
+      // launcher attention pulse when a decision is waiting
+      '@keyframes wa-pulse{0%{box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 0 0 rgba(37,211,102,.6);}',
+        '70%{box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 0 14px rgba(37,211,102,0);}',
+        '100%{box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 0 0 rgba(37,211,102,0);}}',
+      '#wa-launcher.wa-attn{animation:wa-pulse 1.1s ease-out 4;}'
     ].join('');
     document.head.appendChild(st);
   }
@@ -267,11 +309,55 @@
   }
 
   // --------------------------------------------------------- thread view
+  // a choice message: the event text bubble + a stack of quick-reply buttons.
+  function renderChoice(key, t, m){
+    var wrap = document.createElement('div');
+    wrap.className = 'wa-choice';
+
+    var bubble = document.createElement('div');
+    bubble.className = 'wa-b them';
+    bubble.textContent = m.text;
+    wrap.appendChild(bubble);
+
+    var btns = document.createElement('div');
+    btns.className = 'wa-choice-btns';
+    (m.options || []).forEach(function(opt){
+      var b = document.createElement('button');
+      b.className = 'wa-reply';
+      b.textContent = opt.label;
+      b.disabled = m.answered;
+      b.addEventListener('click', function(){
+        if(m.answered) return;
+        m.answered = true;
+        m.pickedLabel = opt.label;
+        // run the REAL outcome first, then lock + echo the reply
+        try{ if(opt.onPick) opt.onPick(); }catch(e){ try{ console.error('[trial] choice onPick failed', e); }catch(_){} }
+        blip('click');
+        // append the player's sent reply as a normal "me" message
+        t.msgs.push({ from: 'me', text: opt.label, t: Date.now() });
+        renderThread(key);
+        try{ if(G.dock && G.dock.refreshCollect) G.dock.refreshCollect(); }catch(e){}
+        refreshBadge();
+      });
+      btns.appendChild(b);
+    });
+    wrap.appendChild(btns);
+
+    if(!m.answered){
+      var hint = document.createElement('div');
+      hint.className = 'wa-choice-hint';
+      hint.textContent = 'tap to reply · ignore to dodge';
+      wrap.appendChild(hint);
+    }
+    threadEl.appendChild(wrap);
+  }
+
   function renderThread(key){
     var t = threads[key];
     if(!t || !threadEl) return;
     threadEl.innerHTML = '';
     t.msgs.forEach(function(m){
+      if(m.kind === 'choice'){ renderChoice(key, t, m); return; }
       var b = document.createElement('div');
       b.className = 'wa-b ' + (m.from === 'me' ? 'me' : 'them');
       b.textContent = m.text;
@@ -444,6 +530,66 @@
   // 3) COLLECT button opens the WhatsApp panel instead of pausing modal
   // ===================================================================
   G.modals.showCollect = function(){ openPanel(); };
+
+  // ===================================================================
+  // 3b) NON-BLOCKING EVENTS — scope creep + office decisions arrive as
+  // WhatsApp choice messages, not a freezing center modal. The game never
+  // pauses; the decision waits in the thread until the player taps a reply.
+  // ===================================================================
+  var origShowEvent = G.modals.showEvent ? G.modals.showEvent.bind(G.modals) : null;
+
+  // Resolve which WhatsApp thread an event belongs to from its kicker.
+  //   scope creep kicker = "<ClientName> · re: <brief>"  -> that client's thread
+  //   office event kicker = "OFFICE" / "MEANWHILE..."     -> the Office/Team thread
+  //   burnout kicker      = "<name> · burnout NN%"        -> Office/Team thread
+  function threadIdForEvent(spec){
+    var kicker = String(spec && spec.kicker || '');
+    // office + burnout + anything non-client routes to the team thread
+    if(/^OFFICE\b/i.test(kicker) || /burnout/i.test(kicker) || !kicker){
+      return OFFICE_ID;
+    }
+    // scope creep: name sits before the " · " separator. Match it to a client.
+    var name = kicker.split(' · ')[0].trim();
+    if(name && G.data && G.data.clients){
+      for(var i = 0; i < G.data.clients.length; i++){
+        if(G.data.clients[i].name === name) return G.data.clients[i].id;
+      }
+    }
+    // unknown source: drop it in the Office/Team thread rather than guessing.
+    return OFFICE_ID;
+  }
+
+  G.modals.showEvent = function(spec){
+    try{
+      ensureDOM();
+      if(!spec || !spec.options || !spec.options.length){
+        // nothing tappable — fall back to the original modal so we never lose it
+        if(origShowEvent) return origShowEvent(spec);
+        return;
+      }
+      var id = threadIdForEvent(spec);
+      var meta = clientMeta(id);
+      // compose the chat text: title acts as a lead-in, then the ask
+      var lead = spec.title ? (spec.title + ': ') : '';
+      var body = lead + (spec.text || '');
+
+      // preserve original onPick callbacks EXACTLY so all gameplay effects fire
+      var opts = spec.options.map(function(o){
+        return { label: o.label, onPick: o.onPick };
+      });
+
+      pushChoice(id, body, opts);
+      pulseLauncher();
+      refreshBadge();
+
+      // if the relevant view is already open, paint it live
+      if(isThreadOpen(clientKey(id))) renderThread(clientKey(id));
+      else if(panelEl && panelEl.classList.contains('open') && openClientKey == null) renderList();
+    }catch(e){
+      try{ console.error('[trial] showEvent route failed, using original modal', e); }catch(_){}
+      if(origShowEvent){ try{ return origShowEvent(spec); }catch(_2){} }
+    }
+  };
 
   // ===================================================================
   // 4) MODAL DISMISS — Esc + backdrop click (trial-only)
