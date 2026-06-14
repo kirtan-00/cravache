@@ -1475,8 +1475,11 @@
   // SMALL windowsill plant — a little potted plant sitting ON the window sill
   // (WIN sill bottom ~y=200). Tasteful, pixel-art, minimal 1px leaf sway.
   function drawPlantBig(ctx){
-    var px = 540, py = 186;           // pot top-left; pot rests on the sill
     var pw = 22, ph = 14;             // small pot (~22px wide, ~14 tall)
+    var px = 540, py = (WIN.y + WIN.h) - ph;   // pot base rests ON the (now lower, wider) sill
+    // contact shadow so it reads as sitting on the sill, not floating
+    ctx.fillStyle = 'rgba(0,0,0,0.30)';
+    ctx.fillRect(px + 1, py + ph - 1, pw - 2, 2);
     // pot (terracotta) with a lip rim
     ctx.fillStyle = '#7a4a28'; ctx.fillRect(px + 2, py, pw - 4, ph);
     ctx.fillStyle = '#9a6038'; ctx.fillRect(px, py, pw, 4);     // rim lip
