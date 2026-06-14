@@ -186,10 +186,18 @@
 <script src="js/trial_tutorial.js"></script>
 <script src="js/main.js"></script>
 <script>
-  // register the service worker so the home-screen app works offline
+  // register the service worker so the home-screen app works offline.
+  // network-first SW + this auto-reload means a new build reaches the phone the
+  // next time it opens online, instead of staying frozen on an old cache.
   if ('serviceWorker' in navigator) {
+    var __reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (__reloading) return; __reloading = true; window.location.reload();
+    });
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
+      navigator.serviceWorker.register('sw.js')
+        .then(function (reg) { reg.update(); })
+        .catch(function () {});
     });
   }
 </script>
