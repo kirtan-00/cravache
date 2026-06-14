@@ -1,19 +1,21 @@
 /* CravAche — read a brief offer without it getting bumped.
    --------------------------------------------------------------------------
-   reflowToasts() (dock.js) keeps only the newest TOAST_CAP offer cards visible;
-   older ones collapse into a "+N more" chip. So a new OFFER arriving while you
-   read one shoved the card you were on past the cap and hid it ("skip"), even
-   though hovering had paused its countdown.
+   While you are READING an offer (hovering one), new brief OFFERS are HELD in a
+   queue and released when you stop hovering or SIGN / PASS the current one, so a
+   newly-arriving offer can't reflow the stack and shove the card you're reading
+   past the "+N more" cap (the "skip"). Real notifications (payments/leads/calls)
+   are NOT held.
 
-   Fix: while you are READING an offer (hovering one), HOLD new brief OFFERS in a
-   queue and release them when you un-hover or SIGN / PASS the current one.
-   Regular notifications (payments, leads, calls) are NOT held anymore — they
-   still come through, so the game never feels frozen while you read.
+   Hover is read from the game's OWN state: dock.js marks the offer card under the
+   cursor with the `.reading` class every frame (it sets that from the toast's
+   pointerenter/leave). Keying off that class is robust no matter how many toasts
+   exist or whether the "+N more" chip is present — the previous version attached
+   listeners to `lastElementChild`, which became the "+N more" chip once the stack
+   overflowed, so hover was never detected and offers kept popping.
 
-   Safe by construction: the brief scheduler self-limits (activeCount +
-   pendingToasts < cap) and a held offer keeps pendingToasts high, so the queue
-   can't grow past the cap; held offers keep their callback so pendingToasts
-   stays balanced when they resolve.
+   Safe by construction: the scheduler self-limits (activeCount + pendingToasts <
+   cap) and a held offer keeps pendingToasts high, so the queue can't grow past
+   the cap; held offers keep their callback so pendingToasts stays balanced.
    -------------------------------------------------------------------------- */
 (function(){
   if(!window.G || !G.dock) return;
@@ -22,27 +24,19 @@
 
   var origBrief = G.dock.showBriefToast.bind(G.dock);
   var queue = [];
-  var overBrief = false;
 
-  function attachHover(el){
-    if(!el) return;
-    el.addEventListener('pointerenter', function(){ overBrief = true; });
-    el.addEventListener('pointerleave', function(){ overBrief = false; });
-  }
+  // dock.js toggles `.reading` on the brief offer card currently hovered
+  function isReading(){ return !!toastsEl.querySelector('.brief-toast.reading'); }
 
   G.dock.showBriefToast = function(def, cb){
-    if(overBrief){ queue.push({ def: def, cb: cb }); return; }
+    if(isReading()){ queue.push({ def: def, cb: cb }); return; }
     origBrief(def, cb);
-    attachHover(toastsEl.lastElementChild);
   };
 
   function drain(){
-    // self-heal: if no offer card is on screen, nothing is being read
-    if(!toastsEl.querySelector('.brief-toast')) overBrief = false;
-    if(queue.length && !overBrief){
+    if(queue.length && !isReading()){
       var item = queue.shift();
       origBrief(item.def, item.cb);
-      attachHover(toastsEl.lastElementChild);
     }
     requestAnimationFrame(drain);
   }

@@ -291,13 +291,24 @@
     ctx.rect(w.x, w.y, w.w, w.h);
     ctx.clip();
 
-    // 1) sky as three flat bands (keep it pixel, no smooth gradient)
-    var bh = w.h / 3;
-    var bands = [sk.top, sk.mid, sk.bot];
-    for(var b = 0; b < 3; b++){
-      ctx.fillStyle = rgb(bands[b]);
-      ctx.fillRect(w.x, w.y + b * bh, w.w, Math.ceil(bh) + 1);
-    }
+    // 1) smooth atmospheric sky — one vertical gradient through the existing
+    // top/mid/bot tones plus a softened horizon glow, so the old 3-band look is
+    // gone. Stays within the clipped glass area; frame/mullions redrawn later.
+    var glowC = mixC(sk.bot, isNight ? [40, 40, 60] : [255, 236, 196], isNight ? 0.20 : 0.42);
+    var sg = ctx.createLinearGradient(0, w.y, 0, w.y + w.h);
+    sg.addColorStop(0.00, rgb(sk.top));
+    sg.addColorStop(0.32, rgb(mixC(sk.top, sk.mid, 0.55)));
+    sg.addColorStop(0.56, rgb(sk.mid));
+    sg.addColorStop(0.80, rgb(mixC(sk.mid, sk.bot, 0.65)));
+    sg.addColorStop(1.00, rgb(glowC));
+    ctx.fillStyle = sg;
+    ctx.fillRect(w.x, w.y, w.w, w.h);
+    // faint horizon haze glow pooled at the bottom of the glass
+    var hg = ctx.createLinearGradient(0, w.y + w.h * 0.6, 0, w.y + w.h);
+    hg.addColorStop(0, 'rgba(' + Math.round(glowC[0]) + ',' + Math.round(glowC[1]) + ',' + Math.round(glowC[2]) + ',0)');
+    hg.addColorStop(1, 'rgba(' + Math.round(glowC[0]) + ',' + Math.round(glowC[1]) + ',' + Math.round(glowC[2]) + ',' + (isNight ? 0.18 : 0.34) + ')');
+    ctx.fillStyle = hg;
+    ctx.fillRect(w.x, w.y + w.h * 0.6, w.w, w.h * 0.4);
 
     // 2) sun OR moon arcing across the glass
     var p = dayProgress(hour);
