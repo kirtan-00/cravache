@@ -844,6 +844,7 @@
   // All rects verified against where the art/procedural draws appear.
   var HOTSPOTS = {
     chai:    { x: 712,  y: 176, w: 30,  h: 30  },  // tiny kettle on the RIGHT of the windowsill
+    alexa:   { x: 744,  y: 176, w: 22,  h: 24  },  // Echo-Dot speaker just right of the kettle (music toggle)
     printer: { x: 1178, y: 372, w: 56,  h: 60  },  // right wall, clear of desks + plant
     window:  { x: 520,  y: 50,  w: 250, h: 150 },  // the live studio window glass
     board:   { x: 14,   y: 55,  w: 441, h: 145 },  // HUSTLE board (under HUD panel, clears window at x520)
@@ -940,6 +941,75 @@
     labelChip(ctx, used ? 'CHAI (kal)' : 'CHAI ☕', lx, lyl, 8, 'center', true);
     pxText(ctx, used ? 'CHAI (kal)' : 'CHAI ☕', lx, lyl, 8,
            used ? 'rgba(159,232,255,0.45)' : '#ffe066', 'center', true);
+  }
+
+  // Alexa — a tiny Echo-Dot-style smart speaker on the windowsill, just RIGHT of
+  // the chai kettle. Squat charcoal-fabric cylinder with a glowing cyan light
+  // ring around the top rim. Plays the ambient music (drawAlexa reacts to music
+  // state; click toggles it via handleClick reading HOTSPOTS.alexa). It sits on
+  // the same sill as the kettle (sill top ~y200), kettle-sized so it does not
+  // overlap the kettle or clip the window frame (right frame ends ~x780).
+  function drawAlexa(ctx){
+    var h = HOTSPOTS.alexa;
+    var bw = 18, bh = 12;                          // squat cylinder body
+    var bx = h.x + Math.round((h.w - bw) / 2);     // centre body in the hotspot
+    var by = 200 - bh;                             // base rests on the sill top
+    var ringY = by + 2;                            // ring sits around the top rim
+    var playing = !!(window.G && G.music && !G.music.isMuted());
+
+    // contact shadow on the sill
+    ctx.fillStyle = 'rgba(0,0,0,0.30)';
+    ctx.fillRect(bx + 1, by + bh - 1, bw - 2, 2);
+
+    // charcoal fabric body (flat hard pixels) + a darker base shade
+    ctx.fillStyle = '#2b2f36'; ctx.fillRect(bx, by + 2, bw, bh - 2);
+    ctx.fillStyle = '#23262c'; ctx.fillRect(bx, by + bh - 3, bw, 3);     // base shade
+    ctx.fillStyle = '#3a3f47'; ctx.fillRect(bx + 1, by + 3, bw - 2, 1);  // fabric speckle highlight
+    // dark top cap (recessed) under the ring
+    ctx.fillStyle = '#1a1d22'; ctx.fillRect(bx + 1, ringY + 1, bw - 2, 3);
+
+    if(playing){
+      // glowing cyan ring around the top rim, gently pulsing
+      var pulse = 0.6 + 0.4 * Math.abs(Math.sin(t * 2.4));
+      // soft additive glow halo
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      var gr = 18;
+      var rg = ctx.createRadialGradient(bx + bw / 2, ringY + 1, 0, bx + bw / 2, ringY + 1, gr);
+      rg.addColorStop(0, 'rgba(159,232,255,' + (0.30 * pulse).toFixed(3) + ')');
+      rg.addColorStop(1, 'rgba(159,232,255,0)');
+      ctx.fillStyle = rg; ctx.fillRect(bx + bw / 2 - gr, ringY + 1 - gr, gr * 2, gr * 2);
+      ctx.restore();
+      // the ring itself (bright cyan band on the rim)
+      ctx.fillStyle = 'rgba(159,232,255,' + (0.7 + 0.3 * pulse).toFixed(3) + ')';
+      ctx.fillRect(bx, ringY, bw, 2);
+      ctx.fillStyle = 'rgba(210,245,255,' + (0.6 + 0.4 * pulse).toFixed(3) + ')';
+      ctx.fillRect(bx + 2, ringY, bw - 4, 1);
+
+      // 1-3 small cyan sound-wave arcs emanating up-right and fading
+      ctx.save();
+      ctx.strokeStyle = '#9fe8ff';
+      ctx.lineWidth = 1;
+      var wcx = bx + bw + 1, wcy = ringY;
+      for(var wv = 0; wv < 3; wv++){
+        var ph = (t * 1.1 + wv * 0.33) % 1;        // 0..1 expand cycle
+        var rad = 3 + ph * 9;
+        ctx.globalAlpha = (1 - ph) * 0.8;
+        ctx.beginPath();
+        ctx.arc(wcx, wcy, rad, -Math.PI * 0.55, -Math.PI * 0.05);
+        ctx.stroke();
+      }
+      ctx.restore();
+    } else {
+      // muted: dim grey ring, no waves, tiny mute slash
+      ctx.fillStyle = 'rgba(120,134,158,0.45)';
+      ctx.fillRect(bx, ringY, bw, 2);
+      ctx.strokeStyle = 'rgba(180,190,205,0.55)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(bx + bw - 3, ringY - 3);
+      ctx.lineTo(bx + 3, ringY + 5);
+      ctx.stroke();
+    }
   }
 
   function drawPrinter(ctx){
@@ -1363,6 +1433,7 @@
     var u = s.upgrades || {};
     drawBoard(ctx);
     drawChaiStation(ctx);
+    drawAlexa(ctx);
     drawPrinter(ctx);
     drawTrophies(ctx);
     // decor (gated; undefined => falsy => not owned)
@@ -1467,6 +1538,18 @@
           });
           G.audio.chaChing();
           G.dock.infoToast('CHAI ROUND ☕', sipped + ' cutting chais. Burnout −' + G.BAL.CHAI_RELIEF + '%. Morale: briefly real.', 'good');
+        }
+        return;
+      }
+
+      // alexa: toggle the ambient music
+      if(inBox(HOTSPOTS.alexa)){
+        if(window.G && G.music){
+          var nowMuted = G.music.toggle();
+          G.audio.click();
+          if(G.dock && G.dock.infoToast){
+            G.dock.infoToast('ALEXA', nowMuted ? 'Music off. Just the city now.' : 'Late-night lo-fi, on.', '');
+          }
         }
         return;
       }
