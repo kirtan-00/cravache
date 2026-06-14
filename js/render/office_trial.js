@@ -847,7 +847,7 @@
     alexa:   { x: 744,  y: 176, w: 22,  h: 24  },  // Echo-Dot speaker just right of the kettle (music toggle)
     printer: { x: 1178, y: 372, w: 56,  h: 60  },  // right wall, clear of desks + plant
     window:  { x: 520,  y: 50,  w: 250, h: 150 },  // the live studio window glass
-    board:   { x: 14,   y: 55,  w: 441, h: 145 },  // HUSTLE board (under HUD panel, clears window at x520)
+    board:   { x: 14,   y: 55,  w: 337, h: 145 },  // HUSTLE board: x+w match the HUD stat panel (14..351), top 5px below it, bottom on the window line (y200)
     tv:      { x: 860,  y: 60,  w: 200, h: 120 }   // flatscreen on back wall (right)
   };
 
