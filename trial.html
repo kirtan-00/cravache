@@ -2,41 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>CravAche</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<!-- PWA / iOS add-to-home-screen -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0a0e1a">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="CravAche">
-<link rel="apple-touch-icon" href="art/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="art/icon-192.png">
+<title>CravAche — TRIAL art direction</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
-<style id="mobile-overrides">
-  /* mobile / standalone: kill scroll-bounce, zoom, tap-highlight; honor safe areas */
-  html, body { margin:0; height:100%; background:#05070f; overflow:hidden;
-    overscroll-behavior:none; touch-action:none; -webkit-tap-highlight-color:transparent;
-    -webkit-user-select:none; user-select:none; }
-  /* clip off-stage elements (e.g. the parked WhatsApp panel) so they don't show
-     in the letterbox margins when the stage is scaled smaller than the screen */
-  #stage { overflow:hidden; }
-  /* rotate-to-landscape hint on portrait phones (the game is 16:9 landscape) */
-  #rotate-hint { display:none; }
-  @media (orientation:portrait) and (max-width:900px) {
-    #rotate-hint { display:flex; position:fixed; inset:0; z-index:99999; background:#06090f;
-      flex-direction:column; align-items:center; justify-content:center; text-align:center;
-      gap:20px; padding:32px; color:#9fe8ff; font-family:'Silkscreen',monospace; }
-    #rotate-hint .rh-ico { font-size:60px; animation:rh 1.8s ease-in-out infinite; }
-    #rotate-hint .rh-t { font-size:18px; letter-spacing:1px; }
-    #rotate-hint .rh-s { font-family:'VT323',monospace; font-size:22px; color:#f4e8cf; }
-  }
-  @keyframes rh { 0%,100%{ transform:rotate(0) } 50%{ transform:rotate(-90deg) } }
-</style>
 <style id="trial-css-overrides">
   /* compact, tidy night-skip pill above the dock (was an oversized square) */
   #btn-skipnight{ width:auto; height:34px; padding:0 16px; top:-44px; right:14px;
@@ -82,12 +53,6 @@
 </style>
 </head>
 <body>
-<!-- portrait phones: ask to rotate (game is 16:9 landscape) -->
-<div id="rotate-hint">
-  <div class="rh-ico">📱</div>
-  <div class="rh-t">ROTATE YOUR PHONE</div>
-  <div class="rh-s">CravAche runs in landscape.<br>Turn sideways to punch in.</div>
-</div>
 <div id="stage">
   <canvas id="game" width="1280" height="720"></canvas>
 
@@ -185,13 +150,5 @@
 <script src="js/trial_progression.js"></script>
 <script src="js/trial_tutorial.js"></script>
 <script src="js/main.js"></script>
-<script>
-  // register the service worker so the home-screen app works offline
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
-    });
-  }
-</script>
 </body>
 </html>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CravAche — Production Studio (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#0a0e1a; --navy2:#0c1120; --cream:#f4e8cf; --teal:#9fe8ff;
+    --gold:#ffe066; --warm:#ff9a56; --red:#ff5c5c;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;background:#05070d;overflow:hidden;}
+  body{
+    display:flex;align-items:center;justify-content:center;
+    font-family:'VT323',monospace;color:var(--cream);
+  }
+  /* fixed logical canvas, scaled to window */
+  #wrap{
+    position:fixed;left:50%;top:50%;
+    width:1280px;height:720px;
+    margin-left:-640px;margin-top:-360px;
+    transform-origin:center center;
+    background:var(--navy);
+    image-rendering:pixelated;
+    overflow:hidden;
+  }
+  #scene{position:absolute;inset:0;}
+  canvas{position:absolute;left:0;top:0;image-rendering:pixelated;}
+  /* HEADER CHIP */
+  .chip{
+    position:absolute;top:16px;left:50%;transform:translateX(-50%);
+    font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:1px;
+    color:var(--navy);background:var(--teal);
+    padding:8px 16px;border:3px solid #06303d;
+    box-shadow:0 0 0 3px var(--navy), 0 0 22px rgba(159,232,255,.45);
+    z-index:30;
+  }
+  .chip b{color:#06303d;}
+  /* LEFT NAV ARROW */
+  .navL{
+    position:absolute;left:14px;top:50%;transform:translateY(-50%);
+    z-index:30;text-align:center;cursor:pointer;
+    animation:nudge 1.6s ease-in-out infinite;
+  }
+  @keyframes nudge{0%,100%{transform:translateY(-50%) translateX(0);}50%{transform:translateY(-50%) translateX(-6px);}}
+  .navL .arrow{
+    font-family:'Silkscreen',monospace;font-size:42px;line-height:1;
+    color:var(--gold);
+    text-shadow:0 0 14px rgba(255,224,102,.6), 3px 3px 0 #5a3b00;
+  }
+  .navL .lbl{
+    margin-top:8px;font-family:'Silkscreen',monospace;font-size:10px;
+    letter-spacing:1px;color:var(--cream);
+    background:var(--navy2);border:2px solid #2a3550;padding:5px 7px;
+    box-shadow:0 0 0 2px #05070d;
+  }
+  /* CAPTION STRIP */
+  .caption{
+    position:absolute;left:0;right:0;bottom:0;height:42px;z-index:30;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    background:linear-gradient(180deg, rgba(6,9,17,0) 0%, rgba(6,9,17,.92) 60%);
+    font-family:'VT323',monospace;font-size:21px;color:var(--cream);
+    letter-spacing:.5px;
+  }
+  .caption .dot{width:8px;height:8px;background:var(--red);box-shadow:0 0 10px var(--red);animation:blink 1s steps(1) infinite;}
+  .caption .tag{font-family:'Silkscreen',monospace;font-size:11px;color:var(--gold);}
+  @keyframes blink{0%,49%{opacity:1;}50%,100%{opacity:.15;}}
+  /* vignette overlay */
+  .vig{position:absolute;inset:0;z-index:25;pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 46%, rgba(0,0,0,0) 52%, rgba(0,0,0,.62) 100%);}
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="scene">
+      <canvas id="room" width="1280" height="720"></canvas>   <!-- static room -->
+      <canvas id="fx"   width="1280" height="720"></canvas>     <!-- animated -->
+    </div>
+    <div class="vig"></div>
+
+    <div class="chip">PRODUCTION STUDIO &nbsp;<b>·</b>&nbsp; 2 / 2</div>
+
+    <div class="navL" title="Go to Main Office">
+      <div class="arrow">&#9664;</div>
+      <div class="lbl">MAIN OFFICE</div>
+    </div>
+
+    <div class="caption">
+      <span class="tag">PRODUCTION</span>
+      <span class="dot"></span>
+      phone &amp; camera shooters film the brief
+    </div>
+  </div>
+
+<script>
+/* ---------- scaling ---------- */
+function fit(){
+  const w=window.innerWidth, h=window.innerHeight;
+  const s=Math.min(w/1280, h/720);
+  document.getElementById('wrap').style.transform='scale('+s+')';
+}
+window.addEventListener('resize',fit); fit();
+
+/* ---------- palette ---------- */
+const C={navy:'#0a0e1a',navy2:'#0c1120',wall:'#11182b',wall2:'#0d1320',
+  floor:'#161f33',floorDk:'#101727',cream:'#f4e8cf',teal:'#9fe8ff',
+  gold:'#ffe066',warm:'#ff9a56',red:'#ff5c5c',skin:'#e0a878',skin2:'#caa06f',
+  hair:'#241a14',shirtA:'#3a6ea5',shirtB:'#7b4a8c',shirtC:'#c25a4a',
+  metal:'#5a6680',metalDk:'#39425c',black:'#05070d'};
+
+const PX=4; // pixel block size for character art
+function px(ctx,x,y,c){ctx.fillStyle=c;ctx.fillRect(x,y,PX,PX);}
+/* draw a pixel sprite from a string map */
+function sprite(ctx,ox,oy,rows,map,scale){
+  scale=scale||PX;
+  for(let r=0;r<rows.length;r++){
+    const row=rows[r];
+    for(let c=0;c<row.length;c++){
+      const ch=row[c]; if(ch===' '||ch==='.')continue;
+      ctx.fillStyle=map[ch]||'#f0f';
+      ctx.fillRect(ox+c*scale, oy+r*scale, scale, scale);
+    }
+  }
+}
+
+/* ============ STATIC ROOM ============ */
+const rc=document.getElementById('room').getContext('2d');
+function drawRoom(){
+  rc.clearRect(0,0,1280,720);
+  // void base
+  rc.fillStyle=C.navy; rc.fillRect(0,0,1280,720);
+
+  // ---- framed CABIN: walls + floor distinct from void ----
+  const RX=120, RY=70, RW=1040, RH=600;      // room rect
+  const floorY=470;
+  // back wall
+  rc.fillStyle=C.wall; rc.fillRect(RX,RY,RW,floorY-RY);
+  // wall vertical shading bands
+  for(let i=0;i<RW;i+=80){
+    rc.fillStyle = (i/80)%2===0 ? C.wall : C.wall2;
+    rc.fillRect(RX+i,RY,80,floorY-RY);
+  }
+  // floor
+  rc.fillStyle=C.floor; rc.fillRect(RX,floorY,RW,RY+RH-floorY);
+  // floor perspective tiles
+  rc.strokeStyle='rgba(255,255,255,.04)'; rc.lineWidth=2;
+  for(let i=0;i<=RW;i+=104){rc.beginPath();rc.moveTo(RX+i,floorY);rc.lineTo(RX+RW/2+(i-RW/2)*1.7, RY+RH);rc.stroke();}
+  for(let j=floorY;j<RY+RH;j+=34){rc.beginPath();rc.moveTo(RX,j);rc.lineTo(RX+RW,j);rc.stroke();}
+  // floor/wall seam highlight
+  rc.fillStyle=C.floorDk; rc.fillRect(RX,floorY,RW,6);
+
+  // room frame (cabin edge) — chunky pixel border
+  rc.lineWidth=6; rc.strokeStyle='#1c2944'; rc.strokeRect(RX,RY,RW,RH);
+  rc.lineWidth=2; rc.strokeStyle='#28365a'; rc.strokeRect(RX+5,RY+5,RW-10,RH-10);
+
+  // ---- seamless CYCLORAMA backdrop / cyc curve at back ----
+  // a paper sweep behind the products: lighter panel with curved bottom
+  const cycX=470, cycW=440, cycTop=RY+30, cycFloor=floorY;
+  // panel
+  const g=rc.createLinearGradient(0,cycTop,0,cycFloor+70);
+  g.addColorStop(0,'#26344f'); g.addColorStop(.55,'#33425f'); g.addColorStop(1,'#1c2840');
+  rc.fillStyle=g;
+  rc.beginPath();
+  rc.moveTo(cycX,cycTop);
+  rc.lineTo(cycX+cycW,cycTop);
+  rc.lineTo(cycX+cycW,cycFloor);
+  // curved sweep onto floor
+  rc.quadraticCurveTo(cycX+cycW, cycFloor+60, cycX+cycW-70, cycFloor+60);
+  rc.lineTo(cycX+70, cycFloor+60);
+  rc.quadraticCurveTo(cycX, cycFloor+60, cycX, cycFloor);
+  rc.closePath(); rc.fill();
+  // cyc top bar (mounting)
+  rc.fillStyle=C.metalDk; rc.fillRect(cycX-6,cycTop-10,cycW+12,12);
+
+  // hint of a C-stand on the right of cyc + cables on floor
+  // C-stand
+  rc.fillStyle=C.metalDk; rc.fillRect(905,300,6,190);          // column
+  rc.fillRect(870,486,80,7);                                    // base bar
+  rc.fillRect(905,300,70,6);                                    // arm
+  rc.fillStyle=C.metal; rc.fillRect(972,290,6,26);             // knuckle
+  // cables snaking on floor
+  rc.strokeStyle='#0a1120'; rc.lineWidth=7;
+  rc.beginPath(); rc.moveTo(300,560); rc.bezierCurveTo(430,540,560,610,690,575); rc.stroke();
+  rc.strokeStyle='#16203a'; rc.lineWidth=3;
+  rc.beginPath(); rc.moveTo(300,560); rc.bezierCurveTo(430,540,560,610,690,575); rc.stroke();
+
+  // ---- TWO SOFTBOX STUDIO LIGHTS on stands ----
+  drawSoftbox(rc, 250, 250, C.warm, +1);  // warm, left, faces right
+  drawSoftbox(rc, 1010, 235, C.teal, -1); // cool, right, faces left
+
+  // ---- product pedestals / turntable (static base; specular drawn in fx) ----
+  // pedestal 1 (hero) centre
+  drawPedestal(rc, 612, 452, 96, 54);
+  // pedestal 2 (smaller) left-of-centre
+  drawPedestal(rc, 470, 470, 70, 40);
+
+  // small ground glow seats under pedestals
+}
+
+function drawSoftbox(ctx, sx, sy, col, face){
+  // stand legs
+  ctx.fillStyle=C.metalDk;
+  ctx.fillRect(sx-3, sy+60, 6, 200);            // pole
+  ctx.fillRect(sx-40, sy+250, 80, 6);           // tripod base
+  ctx.fillRect(sx-40, sy+250, 6, 14);
+  ctx.fillRect(sx+34, sy+250, 6, 14);
+  // softbox body (octagon-ish chunky)
+  const bw=92, bh=92, bx=sx-bw/2, by=sy-bh+10;
+  ctx.fillStyle='#0e1525'; ctx.fillRect(bx-4,by-4,bw+8,bh+8);    // dark rim
+  // diffusion panel glowing in col
+  const g=ctx.createRadialGradient(bx+bw/2,by+bh/2,4, bx+bw/2,by+bh/2,bw/1.4);
+  g.addColorStop(0, col); g.addColorStop(.5, col); g.addColorStop(1, 'rgba(255,255,255,.05)');
+  ctx.fillStyle=g; ctx.fillRect(bx,by,bw,bh);
+  // diffusion cross
+  ctx.strokeStyle='rgba(10,14,26,.5)'; ctx.lineWidth=3;
+  ctx.strokeRect(bx,by,bw,bh);
+  ctx.beginPath();ctx.moveTo(bx+bw/2,by);ctx.lineTo(bx+bw/2,by+bh);
+  ctx.moveTo(bx,by+bh/2);ctx.lineTo(bx+bw,by+bh/2);ctx.stroke();
+}
+
+function drawPedestal(ctx, cx, topY, w, h){
+  // turntable disc
+  ctx.fillStyle=C.metalDk; ctx.beginPath();
+  ctx.ellipse(cx, topY, w/2, h/2, 0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=C.metal; ctx.beginPath();
+  ctx.ellipse(cx, topY-4, w/2-6, h/2-4, 0,0,Math.PI*2); ctx.fill();
+  // column
+  ctx.fillStyle=C.metalDk; ctx.fillRect(cx-10, topY, 20, 18);
+  ctx.fillStyle='#222c44'; ctx.beginPath();
+  ctx.ellipse(cx, topY+20, 22, 9, 0,0,Math.PI*2); ctx.fill();
+}
+drawRoom();
+
+/* ============ ANIMATED FX LAYER ============ */
+const fx=document.getElementById('fx').getContext('2d');
+
+/* ---- products (drawn each frame so specular sweeps) ---- */
+function drawBottle(ctx,cx,baseY,t){
+  // a fun no-brand juice bottle
+  const w=34,h=78;
+  const bx=cx-w/2, by=baseY-h;
+  ctx.fillStyle='#e7563f'; ctx.fillRect(bx,by+14,w,h-14);       // body
+  ctx.fillStyle='#c43c2a'; ctx.fillRect(bx,by+14,6,h-14);       // shade side
+  ctx.fillStyle='#3a2a18'; ctx.fillRect(cx-7,by,14,16);         // cap
+  ctx.fillStyle=C.cream; ctx.fillRect(bx+6,by+34,w-12,22);      // label
+  ctx.fillStyle='#e7563f'; ctx.fillRect(bx+10,by+40,3,3);ctx.fillRect(bx+16,by+40,3,3);ctx.fillRect(bx+22,by+40,3,3);
+  // specular sweep
+  const sweep=(Math.sin(t/520)+1)/2;
+  const sx=bx+4+sweep*(w-10);
+  const g=ctx.createLinearGradient(sx-8,0,sx+8,0);
+  g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=g; ctx.fillRect(bx,by+14,w,h-14);
+}
+function drawSnackBox(ctx,cx,baseY,t){
+  const w=44,h=52; const bx=cx-w/2, by=baseY-h;
+  ctx.fillStyle='#5ab36a'; ctx.fillRect(bx,by,w,h);
+  ctx.fillStyle='#479456'; ctx.fillRect(bx,by,8,h);
+  ctx.fillStyle=C.gold; ctx.fillRect(bx+8,by+10,w-16,12);       // band
+  ctx.fillStyle='#2e5a38'; ctx.fillRect(bx+12,by+30,w-24,6);
+  ctx.fillStyle='#2e5a38'; ctx.fillRect(bx+12,by+40,w-30,5);
+  const sweep=(Math.sin(t/600+1.7)+1)/2; const sx=bx+sweep*w;
+  const g=ctx.createLinearGradient(sx-8,0,sx+8,0);
+  g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,.4)');g.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=g; ctx.fillRect(bx,by,w,h);
+}
+
+/* ---- CAMERA OPERATOR (right side, shooting left toward hero) ---- */
+function drawCameraOp(ctx,ox,oy,t){
+  const bob=Math.round(Math.sin(t/700)*2);  // breathing
+  oy+=bob;
+  const M={
+    H:C.hair,S:C.skin,s:C.skin2,B:C.shirtA,b:'#2c558a',
+    P:'#2a3346',D:C.metalDk,d:'#222c44',L:'#0c1322',R:C.red,V:'rgba(159,232,255,.0)'};
+  // operator legs (he stands; tripod sits in front holding the camera)
+  ctx.fillStyle=M.P; ctx.fillRect(ox+10,oy+52,9,52); ctx.fillRect(ox+24,oy+52,9,52);
+  ctx.fillStyle='#1a2438'; ctx.fillRect(ox+8,oy+102,13,7); ctx.fillRect(ox+24,oy+102,13,7);
+  // tripod (to the left, under camera)
+  ctx.fillStyle=M.D; ctx.fillRect(ox-12,oy+34,5,74);
+  ctx.fillStyle=M.d; ctx.fillRect(ox-28,oy+104,22,5); ctx.fillRect(ox-8,oy+104,22,5);
+  ctx.fillStyle=M.D; ctx.fillRect(ox-26,oy+104,5,16); ctx.fillRect(ox+10,oy+104,5,16);
+  const op=[
+    "....HHHH....",
+    "...HHHHHH...",
+    "...HSSSSH...",
+    "...SSSSSS...",
+    "...sSSSSs...",
+    "....SSSS....",
+    "...BBBBBB...",
+    "..BBBBBBBB..",
+    "..BBBBBBBB..",
+    "..bBBBBBBb..",
+    "..PPPPPPPP..",
+  ];
+  sprite(ctx,ox,oy,op,M,4);
+  // arms raised to camera
+  ctx.fillStyle=C.skin; ctx.fillRect(ox+8,oy+30,12,8); ctx.fillRect(ox+36,oy+30,12,8);
+  // CAMERA body up at eye (to the left of head)
+  const camX=ox-30, camY=oy+8;
+  ctx.fillStyle=M.L; ctx.fillRect(camX-3,camY-3,52,34);        // body rim
+  ctx.fillStyle=M.D; ctx.fillRect(camX,camY,46,28);            // body
+  ctx.fillStyle=M.d; ctx.fillRect(camX,camY,46,6);
+  // lens (faces LEFT toward product)
+  ctx.fillStyle=M.d; ctx.fillRect(camX-16,camY+7,16,16);
+  ctx.fillStyle='#11203a'; ctx.fillRect(camX-16,camY+10,5,10);
+  ctx.fillStyle=C.teal; ctx.globalAlpha=.5; ctx.fillRect(camX-15,camY+11,3,8); ctx.globalAlpha=1; // glass glint
+  // top handle
+  ctx.fillStyle=M.D; ctx.fillRect(camX+8,camY-7,22,5);
+  // blinking REC dot
+  if(Math.floor(t/600)%2===0){ctx.fillStyle=C.red;ctx.fillRect(camX+38,camY+3,5,5);
+    ctx.fillStyle='rgba(255,92,92,.5)';ctx.fillRect(camX+36,camY+1,9,9);}
+  // viewfinder glow behind operator eye
+  const vg=ctx.createRadialGradient(camX+24,camY+14,2,camX+24,camY+14,30);
+  vg.addColorStop(0,'rgba(159,232,255,.30)');vg.addColorStop(1,'rgba(159,232,255,0)');
+  ctx.fillStyle=vg; ctx.fillRect(camX-12,camY-12,72,56);
+}
+
+/* ---- PHONE SHOOTER (left, shooting right toward hero/vertical) ---- */
+function drawPhoneShooter(ctx,ox,oy,t){
+  const bob=Math.round(Math.sin(t/650+1)*2);
+  oy+=bob;
+  const M={H:'#2a1d2e',S:C.skin,s:C.skin2,B:C.shirtB,b:'#5e3a6c',
+    P:'#23314a',G:'#0e1830'};
+  // legs
+  ctx.fillStyle='#23314a'; ctx.fillRect(ox+8,oy+92,9,52); ctx.fillRect(ox+22,oy+92,9,52);
+  ctx.fillStyle='#1a2438'; ctx.fillRect(ox+6,oy+142,13,7); ctx.fillRect(ox+22,oy+142,13,7);
+  const sp=[
+    "...HHHH...",
+    "..HHHHHH..",
+    "..HSSSSH..",
+    "..SSSSSS..",
+    "..sSSSSs..",
+    "...SSSS...",
+    "..BBBBBB..",
+    ".BBBBBBBB.",
+    ".BBBBBBBB.",
+    ".bBBBBBBb.",
+    ".PPPPPPPP.",
+    ".PP....PP.",
+  ];
+  sprite(ctx,ox,oy,sp,M,4);
+  // both arms forward holding phone (to the RIGHT)
+  ctx.fillStyle=C.skin; ctx.fillRect(ox+30,oy+28,14,7); ctx.fillRect(ox+30,oy+40,14,7);
+  // PHONE held vertical, screen faces right (toward product)
+  const phX=ox+46, phY=oy+18;
+  ctx.fillStyle='#0a0f1c'; ctx.fillRect(phX-2,phY-2,22,42);    // case
+  // glowing screen
+  const sg=ctx.createLinearGradient(phX,phY,phX+18,phY+38);
+  sg.addColorStop(0,'#1b2f50'); sg.addColorStop(1,'#274b7a');
+  ctx.fillStyle=sg; ctx.fillRect(phX,phY,18,38);
+  // framing guides (rule-of-thirds) on screen
+  ctx.strokeStyle='rgba(159,232,255,.55)'; ctx.lineWidth=1;
+  ctx.strokeRect(phX+2,phY+3,14,32);
+  ctx.beginPath();
+  ctx.moveTo(phX+2,phY+13.5);ctx.lineTo(phX+16,phY+13.5);
+  ctx.moveTo(phX+2,phY+24);ctx.lineTo(phX+16,phY+24);
+  ctx.moveTo(phX+6.6,phY+3);ctx.lineTo(phX+6.6,phY+35);
+  ctx.moveTo(phX+11.3,phY+3);ctx.lineTo(phX+11.3,phY+35);
+  ctx.stroke();
+  // tiny REC dot on screen
+  if(Math.floor(t/550)%2===0){ctx.fillStyle=C.red;ctx.fillRect(phX+4,phY+5,3,3);}
+  // screen glow spill
+  const gg=ctx.createRadialGradient(phX+9,phY+19,2,phX+9,phY+19,34);
+  gg.addColorStop(0,'rgba(159,232,255,.28)');gg.addColorStop(1,'rgba(159,232,255,0)');
+  ctx.fillStyle=gg; ctx.fillRect(phX-20,phY-12,60,62);
+}
+
+/* ---- CLAPPERBOARD CREW (third, seated-ish near cyc, holds clapper) ---- */
+function drawClapperCrew(ctx,ox,oy,t){
+  const bob=Math.round(Math.sin(t/800+2)*1);
+  oy+=bob;
+  const M={H:'#1c2a1a',S:C.skin2,s:'#b88f5e',B:C.shirtC,b:'#9c4537',P:'#2a3346'};
+  const cr=[
+    "..HHHH..",
+    ".HHHHHH.",
+    ".HSSSSH.",
+    ".SSSSSS.",
+    ".sSSSSs.",
+    "..SSSS..",
+    ".BBBBBB.",
+    "BBBBBBBB",
+    "BBBBBBBB",
+    "bBBBBBBb",
+  ];
+  sprite(ctx,ox,oy,cr,M,3.5);
+  // arm up holding clapper
+  ctx.fillStyle=C.skin2; ctx.fillRect(ox+24,oy+18,9,6);
+  // clapperboard
+  const clX=ox+30, clY=oy+4;
+  ctx.fillStyle='#0c1322'; ctx.fillRect(clX,clY+8,26,18);       // slate
+  // stripes top (the clap stick) — flips angle
+  const flip = Math.floor(t/900)%2===0;
+  ctx.save();
+  ctx.translate(clX, clY+8);
+  ctx.rotate(flip? -0.28 : -0.02);
+  for(let i=0;i<6;i++){ctx.fillStyle=i%2?'#0c1322':C.cream; ctx.fillRect(i*4.4,-8,4.4,8);}
+  ctx.restore();
+  // slate text lines
+  ctx.fillStyle='rgba(159,232,255,.5)'; ctx.fillRect(clX+3,clY+13,18,2); ctx.fillRect(clX+3,clY+18,12,2);
+}
+
+/* ---- light pools on floor (additive) ---- */
+function drawLightPools(ctx,t){
+  ctx.save(); ctx.globalCompositeOperation='lighter';
+  // warm pool under left softbox / left product
+  const pulse=0.06*Math.sin(t/900);
+  let g=ctx.createRadialGradient(470,500,10,470,500,230);
+  g.addColorStop(0,'rgba(255,154,86,'+(0.34+pulse)+')');g.addColorStop(1,'rgba(255,154,86,0)');
+  ctx.fillStyle=g; ctx.fillRect(180,300,560,360);
+  // hero centre warm+gold pool
+  g=ctx.createRadialGradient(612,470,10,612,470,250);
+  g.addColorStop(0,'rgba(255,224,102,'+(0.30+pulse)+')');g.addColorStop(1,'rgba(255,224,102,0)');
+  ctx.fillStyle=g; ctx.fillRect(350,260,520,400);
+  // cool pool right
+  g=ctx.createRadialGradient(870,480,10,870,480,240);
+  g.addColorStop(0,'rgba(159,232,255,'+(0.26-pulse)+')');g.addColorStop(1,'rgba(159,232,255,0)');
+  ctx.fillStyle=g; ctx.fillRect(620,280,520,380);
+  // soft glow halo at each softbox face
+  g=ctx.createRadialGradient(250,210,6,250,210,120);
+  g.addColorStop(0,'rgba(255,154,86,.45)');g.addColorStop(1,'rgba(255,154,86,0)');
+  ctx.fillStyle=g; ctx.fillRect(130,90,240,240);
+  g=ctx.createRadialGradient(1010,200,6,1010,200,120);
+  g.addColorStop(0,'rgba(159,232,255,.42)');g.addColorStop(1,'rgba(159,232,255,0)');
+  ctx.fillStyle=g; ctx.fillRect(890,80,240,240);
+  ctx.restore();
+}
+
+/* ---- dust motes ---- */
+const motes=[];
+for(let i=0;i<14;i++){motes.push({x:300+Math.random()*640,y:200+Math.random()*300,
+  s:.15+Math.random()*.3, r:1+Math.random()*2, ph:Math.random()*6});}
+function drawMotes(ctx,t){
+  ctx.save(); ctx.globalCompositeOperation='lighter';
+  for(const m of motes){
+    const y=m.y - ((t*m.s/40 + m.ph*60)%420);
+    const a=0.18+0.12*Math.sin(t/600+m.ph);
+    ctx.fillStyle='rgba(244,232,207,'+a+')';
+    ctx.fillRect(m.x, y, m.r, m.r);
+  }
+  ctx.restore();
+}
+
+/* ============ LOOP ============ */
+function frame(t){
+  fx.clearRect(0,0,1280,720);
+  // light pools UNDER everything (on floor)
+  drawLightPools(fx,t);
+
+  // products on pedestals
+  drawBottle(fx, 612, 452, t);     // hero centre on big pedestal
+  drawSnackBox(fx, 470, 470, t);   // second product on small pedestal
+
+  // crew
+  drawClapperCrew(fx, 720, 350, t);  // behind, near cyc right
+  drawPhoneShooter(fx, 360, 340, t); // left, shoots right
+  drawCameraOp(fx, 840, 300, t);     // right, shoots left
+
+  // atmosphere
+  drawMotes(fx,t);
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
