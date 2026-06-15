@@ -184,17 +184,20 @@
     hasArt: function(key){ return !!data.images[key]; },
 
     load: function(){
-      return Promise.all([
-        tryLoad('content/clients.json'),
-        tryLoad('content/briefs.json'),
-        tryLoad('content/staff.json'),
-        tryLoad('content/events.json'),
-        tryLoad('art/manifest.json')
-      ]).then(function(res){
+      var em = G.EMBED || {};
+      // The shipped build carries a complete embedded dataset (js/embed-data.js)
+      // and does NOT ship content/*.json. When the embed is complete, skip
+      // probing those files so there are no harmless-but-noisy 404s. Dev setups
+      // that DO provide content/*.json (no embed) still load them normally.
+      var haveEmbed = !!(em.clients && em.briefs && em.staff && em.events);
+      var contentLoaders = haveEmbed
+        ? [Promise.resolve(null), Promise.resolve(null), Promise.resolve(null), Promise.resolve(null)]
+        : [tryLoad('content/clients.json'), tryLoad('content/briefs.json'),
+           tryLoad('content/staff.json'), tryLoad('content/events.json')];
+      return Promise.all(contentLoaders.concat([tryLoad('art/manifest.json')])).then(function(res){
         var clients = res[0], briefs = res[1], staff = res[2], events = res[3], manifest = res[4];
-        // fetch blocked (file:// double-click)? fall back to the embedded
-        // snapshot (js/embed-data.js, regenerate with: node tools/embed.js)
-        var em = G.EMBED || {};
+        // fetch blocked (file:// double-click) or skipped? fall back to the
+        // embedded snapshot (js/embed-data.js, regenerate with: node tools/embed.js)
         clients = clients || em.clients; briefs = briefs || em.briefs;
         staff = staff || em.staff; events = events || em.events;
         manifest = manifest || em.manifest;
