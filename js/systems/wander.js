@@ -111,6 +111,12 @@
         }
 
         a.t += dt;
+        // a tapped one-line gripe (set in office handleClick) fades on its own
+        // while they walk; the chatting branch manages its own bubble timing.
+        if(a.mode !== 'chatting' && a.bubble){
+          a.bubbleT -= dt;
+          if(a.bubbleT <= 0) a.bubble = null;
+        }
         if(a.mode === 'going' || a.mode === 'returning'){
           var f = Math.min(1, a.t / WALK_DUR);
           // ease nothing; pixel people march. slight vertical bob while walking.
