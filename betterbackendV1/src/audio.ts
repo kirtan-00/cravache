@@ -39,11 +39,15 @@ declare global {
 }
 
 // ---- playlist config ----------------------------------------------------------
+// Relative URLs (no leading slash) so they resolve against the deploy base —
+// works at localhost root AND under a subpath like /cravache/ on GitHub Pages.
+// An absolute "/songs/.." would 404 on a project-page subpath and the speaker
+// would silently never start. Matches how content/ and art/ are loaded.
 const PLAYLIST: ReadonlyArray<{ title: string; url: string }> = [
-  { title: 'Track 1', url: '/songs/01.mp3' },
-  { title: 'Track 2', url: '/songs/02.mp3' },
-  { title: 'Track 3', url: '/songs/03.mp3' },
-  { title: 'Track 4', url: '/songs/04.mp3' },
+  { title: 'Track 1', url: 'songs/01.mp3' },
+  { title: 'Track 2', url: 'songs/02.mp3' },
+  { title: 'Track 3', url: 'songs/03.mp3' },
+  { title: 'Track 4', url: 'songs/04.mp3' },
 ];
 
 // base 0.5, +20% -> 0.6, then -10% -> 0.54 (clamped to 0..1).
