@@ -109,6 +109,41 @@
     'Fixed. It printed someone\'s resume on the way back. Awkward.',
     'Un-jammed. It made the noise anyway, out of spite.'
   ];
+  // tap a staffer who is not heads-down on a brief: a one-line gripe about
+  // agency life. Same dry voice as the office props. pickGripe() rotates so the
+  // same person never repeats back-to-back, and occasionally uses their own line.
+  var GRIPES = [
+    'Client said "make it pop". I made it explode. They loved it.',
+    'Three revisions in and we are back to version one.',
+    'The brief said "creative freedom". It did not mean it.',
+    'Mood board approved. Budget: a packet of Parle-G.',
+    'It is not a logo, it is a "visual identity system". Same price though.',
+    'Deadline was yesterday. Brief arrives today. Classic.',
+    'Reference attached: a screenshot of a screenshot.',
+    'Feedback was "I will know it when I see it". I have shown 40 versions.',
+    'They want Apple-level design at samosa-level budget.',
+    'Sir wants it "viral". Sir, that is not a font.',
+    'Logo bigger. Now the logo is the whole ad. Happy?',
+    'Approved! Wait. One small change. (It is never small.)',
+    'Pitch deck due at 9. It is 3 AM. The chai has given up.',
+    'Sent the invoice. Followed up. Followed up the follow-up.',
+    'The intern\'s idea was better. Do not tell the intern.',
+    'Can we add the founder\'s face? Bigger? Bigger than that?',
+    '"As per our discussion." We did not discuss anything.',
+    'Our USP is that we reply on weekends. Send help.',
+    'Making a WhatsApp forward look like a campaign. Again.',
+    'They loved it. They are now ghosting the invoice.'
+  ];
+  function pickGripe(st){
+    // 1-in-4 use the character's own line if they have a set; else a gripe.
+    var pool = (st && st.lines && st.lines.length && Math.random() < 0.25) ? st.lines : GRIPES;
+    var line = pool[Math.floor(Math.random() * pool.length)];
+    if(st && line === st._lastGripe && pool.length > 1){
+      line = pool[(pool.indexOf(line) + 1) % pool.length];
+    }
+    if(st) st._lastGripe = line;
+    return line;
+  }
 
   function deskHitbox(i){
     var d = DESKS[i];
@@ -982,7 +1017,7 @@
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ellipse(ctx, a.x, a.y + 4, 18, 6);
       drawSprite(ctx, st.portraitKey, a.x - CHAR_W / 2, a.y - CHAR_H + 4, CHAR_W, CHAR_H, frame);
-      if(a.mode === 'chatting' && a.bubble){
+      if(a.bubble){
         drawBubble(ctx, a.x + 14, a.y - CHAR_H - 2, a.bubble);
       }
     }
@@ -1988,10 +2023,25 @@
             if(st.briefId && G.time.onClock(st)){
               G.staff.nudge(st);
             } else {
-              G.staff.say(st, st.trait);
+              G.staff.say(st, pickGripe(st));
               G.audio.click();
             }
           }
+          return;
+        }
+      }
+
+      // tap a staffer out at the cooler (drawn in drawWanderers, not at a desk):
+      // same one-line gripe. Bubble shows in any walk mode and decays (wander.js).
+      for(var w = 0; w < s.staff.length; w++){
+        var wst = s.staff[w];
+        var aw = wst.away;
+        if(!aw) continue;
+        if(lx >= aw.x - CHAR_W / 2 && lx <= aw.x + CHAR_W / 2 &&
+           ly >= aw.y - CHAR_H && ly <= aw.y + 6){
+          aw.bubble = pickGripe(wst);
+          aw.bubbleT = 4.5;
+          G.audio.click();
           return;
         }
       }
