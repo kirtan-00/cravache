@@ -1,0 +1,85 @@
+/* arcade Breakout minigame overlay — pixel aesthetic (navy/brass, Silkscreen/VT323).
+   Self-contained overlay, layered above the game UI. */
+
+.arcade-overlay{
+  position:fixed;
+  inset:0;
+  z-index:9000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'VT323', monospace;
+}
+
+.arcade-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(5,7,15,0.78);
+  cursor:pointer;
+}
+
+.arcade-panel{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:14px;
+  background:var(--navy, #23304a);
+  border:4px solid var(--navy-dd, #0d1426);
+  box-shadow:0 0 0 3px var(--brass, #ffe066), 0 18px 0 rgba(0,0,0,0.4);
+  image-rendering:pixelated;
+}
+
+.arcade-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:var(--paper, #f4e8cf);
+}
+
+.arcade-title{
+  font-family:'Silkscreen', monospace;
+  font-size:14px;
+  color:var(--brass, #ffe066);
+  letter-spacing:1px;
+}
+
+.arcade-hud{
+  display:flex;
+  gap:14px;
+  margin-left:auto;
+  font-family:'Silkscreen', monospace;
+  font-size:11px;
+}
+.arcade-score{ color:var(--green, #7ee08a); }
+.arcade-lives{ color:var(--red, #ff5c5c); }
+
+.arcade-close{
+  margin-left:8px;
+  min-width:28px;
+  padding:4px 8px;
+  font-family:'Silkscreen', monospace;
+  font-size:12px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.arcade-canvas{
+  display:block;
+  width:480px;
+  height:360px;
+  background:#0d1426;
+  border:3px solid var(--navy-dd, #0d1426);
+  image-rendering:pixelated;
+  image-rendering:crisp-edges;
+  cursor:none;
+}
+
+.arcade-hint{
+  font-family:'VT323', monospace;
+  font-size:15px;
+  color:var(--teal, #9fe8ff);
+  opacity:0.8;
+  text-align:center;
+}

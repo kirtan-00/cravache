@@ -1,0 +1,53 @@
+/* CravAche — the 6PM call as a small ringing LANDLINE. Lives bottom-left of the
+   stage, lifted off the floor so it clears the dock. Does NOT dim the screen.
+   Ported from react-app ModalLayer.css (#call-phone). Pixel aesthetic: navy box,
+   brass border, Silkscreen kickers + VT323 body. Vars from style.css. */
+
+#call-phone{
+  position:absolute; left:24px; bottom:230px; z-index:65; width:300px;
+  background:var(--navy);
+  border:3px solid var(--brass);
+  box-shadow:inset 0 3px 0 rgba(159,232,255,.15), inset 0 -3px 0 rgba(0,0,0,.5), 2px 2px 0 #000;
+  padding:12px 14px 12px;
+  font-family:'VT323', monospace;
+  animation:cp-in .12s steps(3);
+}
+@keyframes cp-in{ from{ transform:translateY(8px) scale(.94); } to{ transform:none; } }
+
+/* subtle ringing wobble until the player starts holding LISTEN */
+#call-phone.ringing{ animation:cp-ring .3s steps(2) infinite; }
+@keyframes cp-ring{
+  0%{ transform:rotate(-1deg); }
+  50%{ transform:rotate(1.4deg); }
+  100%{ transform:rotate(-1deg); }
+}
+
+#call-phone .cp-kick{
+  font-family:'Silkscreen', monospace; font-size:9px; color:var(--brass);
+  letter-spacing:.3px; line-height:1.3;
+}
+#call-phone .cp-title{
+  font-family:'Silkscreen', monospace; font-size:13px; color:var(--teal);
+  margin:5px 0 6px; line-height:1.1;
+}
+#call-phone .cp-quote{
+  font-size:18px; color:var(--paper); line-height:1.12;
+}
+#call-phone .cp-fine{
+  font-size:13px; color:#b9ac8e; margin-top:6px; line-height:1.1;
+}
+
+/* hold-to-listen progress track */
+#call-phone .hold-track{
+  height:16px; background:var(--ink); border:2px solid #000;
+  margin:9px 0 6px; box-shadow:inset 0 2px 0 rgba(0,0,0,.5);
+}
+#call-phone .hold-fill{
+  height:100%; width:0%; background:var(--teal);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.35);
+}
+
+#call-phone .cp-btns{ display:flex; gap:8px; margin-top:8px; }
+#call-phone .cp-btns .px-btn{
+  flex:1; font-size:11px; text-align:center; touch-action:none; user-select:none;
+}

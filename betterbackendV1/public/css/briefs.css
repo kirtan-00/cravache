@@ -1,0 +1,76 @@
+/* CravAche — incoming brief OFFERS as a compact vertical STACK in the top-right
+   corner. One card on top of another (gap between), accept/reject in place. No
+   hover-expand: each card shows everything compactly and has its own thin
+   countdown bar; resolving one slides it out and the rest reflow up. Cap at 3
+   visible cards; the rest wait behind a "+N more" pill. Ported from the React
+   BriefOffers component; rendered by js/render/dock.js (showBriefToast). */
+
+#brief-offers{
+  position:absolute; right:14px; top:62px; width:248px;
+  display:flex; flex-direction:column; gap:6px; z-index:42;
+  pointer-events:none;            /* let clicks through gaps to the canvas */
+}
+#brief-offers > *{ pointer-events:auto; }
+
+/* "+N more queued" pill sits at the TOP of the stack */
+.bo-more{
+  align-self:flex-end; font-family:'Silkscreen', monospace; font-size:8px;
+  color:var(--brass); background:rgba(13,20,38,.85); border:2px solid var(--brass);
+  padding:2px 7px 1px; letter-spacing:.5px;
+}
+
+.bo-card{
+  background:var(--navy);
+  border:2px solid var(--brass);
+  box-shadow:inset 0 2px 0 rgba(159,232,255,.12),
+             inset 0 -2px 0 rgba(0,0,0,.5), 2px 2px 0 #000;
+  padding:6px 8px;
+  animation:boIn .16s steps(3);
+}
+.bo-card.leaving{ animation:boOut .16s steps(3) forwards; }
+@keyframes boIn{ from{ transform:translateX(40px); opacity:0; } to{ transform:none; opacity:1; } }
+@keyframes boOut{ to{ transform:translateX(40px); opacity:0; } }
+
+.bo-head{
+  font-family:'Silkscreen', monospace; font-size:8px; color:var(--brass);
+  margin-bottom:3px; display:flex; align-items:center; gap:4px;
+}
+.bo-urgency{
+  margin-left:auto; font-family:'Silkscreen', monospace; font-size:7px;
+  padding:1px 5px 0; border:1px solid currentColor; white-space:nowrap;
+}
+.bo-urgency.u-chill{ color:var(--green); }
+.bo-urgency.u-tight{ color:var(--sun); }
+.bo-urgency.u-insane{ color:var(--red); animation:chaosblink .5s steps(2) infinite; }
+
+.bo-title{
+  font-size:18px; line-height:1.05; color:var(--paper);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.bo-sub{
+  font-size:14px; color:var(--teal); margin-top:2px;
+  display:flex; align-items:center; gap:5px;
+}
+.bo-sub .bc-role{ font-size:8px; }
+.bo-fee{ font-size:15px; color:var(--green); }
+
+.bo-fine{
+  font-size:12px; color:#d8c9a8; margin-top:3px; line-height:1.1;
+  font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.bo-fine::before{
+  content:"FINE PRINT: "; font-family:'Silkscreen', monospace; font-size:6px;
+  font-style:normal; color:var(--rose);
+}
+
+.bo-btns{ display:flex; gap:6px; margin-top:6px; }
+.bo-btns .px-btn{
+  flex:1; font-family:'Silkscreen', monospace; font-size:9px; line-height:1;
+  padding:6px 8px 5px; text-transform:uppercase;
+}
+.bo-btns .px-btn.pass{ flex:0 0 auto; }
+
+.bo-timer{
+  height:4px; background:var(--navy-dd); margin-top:6px; border:1px solid #000;
+}
+.bo-timer > div{ height:100%; background:var(--sun); transition:width .08s linear; }
