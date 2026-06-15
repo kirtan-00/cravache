@@ -108,6 +108,19 @@
     },
     slotTick: function(){ beep('square', 1568, 1568, 0.025, 0.05); },
 
+    // water cooler pour: a soft falling-pitch glug + a faint splash of noise.
+    waterPour: function(){
+      if(muted) return;
+      var c = ac(); if(!c) return;
+      // descending bubbly "glug-glug" (sine drops in pitch like a draining jug)
+      beep('sine', 540, 300, 0.22, 0.10);
+      beep('sine', 460, 260, 0.20, 0.08, 0.10);
+      beep('sine', 400, 220, 0.18, 0.06, 0.20);
+      // faint water hiss / splash on top
+      noiseHit(0.18, 0.05, 0.02);
+      noiseHit(0.12, 0.035, 0.16);
+    },
+
     // ---------- ambient layer: editors at work ----------
     // 50% earphones (faint hi-hat leak), 25% playing edit music (lo-fi square
     // bassline), 25% Premiere Pro (razor clicks + scrub). Whisper-quiet by

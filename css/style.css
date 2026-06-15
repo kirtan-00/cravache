@@ -125,10 +125,13 @@ canvas#game{
 @keyframes chaosblink{ 0%{opacity:1} 50%{opacity:.55} 100%{opacity:1} }
 #hud-chaos{ font-size:20px; color:var(--sun); }
 
-/* ---------- toasts (capped column: 3 visible + "+N more") ---------- */
+/* ---------- prop-tap notifications: ONE line, centred, replaced on re-tap ----------
+   (the brief offers live top-right in #brief-offers; these sit up-centre so they
+   never pile onto the briefs or each other — newest text replaces the old) */
 #toasts{
-  position:absolute; right:14px; top:92px; width:320px;
-  display:flex; flex-direction:column; gap:8px; z-index:40;
+  position:absolute; left:50%; top:84px; transform:translateX(-50%);
+  max-width:540px; display:flex; flex-direction:column; align-items:center;
+  gap:8px; z-index:40; pointer-events:none; text-align:center;
 }
 .toast{
   background:var(--navy-d);
@@ -145,7 +148,7 @@ canvas#game{
   padding:6px 12px 5px; text-align:center;
   font-family:'Silkscreen', monospace; font-size:10px; color:var(--teal);
 }
-@keyframes toastin{ from{ transform:translateX(40px); opacity:0 } to{ transform:none; opacity:1 } }
+@keyframes toastin{ from{ transform:translateY(-10px); opacity:0 } to{ transform:none; opacity:1 } }
 .toast.brief-toast{ border-color:var(--brass); }
 .toast-head{ font-family:'Silkscreen', monospace; font-size:10px; color:var(--brass); margin-bottom:4px; }
 .toast-title{ font-size:21px; line-height:1.05; color:var(--paper); }

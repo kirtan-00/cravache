@@ -24,18 +24,22 @@
       G.dock.init();
       G.modals.init();
 
-      // canvas clicks (quotes wall, staffers) in logical coords
+      // canvas clicks (quotes wall, staffers) in logical coords — routed to the
+      // active scene (office or production studio).
       canvas.addEventListener('click', function(e){
         if(!G.state || !G.state.running || G.state.paused) return;
         var r = canvas.getBoundingClientRect();
         var s = r.width / 1280;
-        G.render.office.handleClick((e.clientX - r.left) / s, (e.clientY - r.top) / s);
+        var lx = (e.clientX - r.left) / s, ly = (e.clientY - r.top) / s;
+        if(G.state.scene === 'studio' && G.render.studio){ G.render.studio.handleClick(lx, ly); }
+        else { G.render.office.handleClick(lx, ly); }
       });
 
       // hover tracking: leaning in to a desk (drives the ambient audio boost)
       canvas.addEventListener('pointermove', function(e){
         var r = canvas.getBoundingClientRect();
         var s = r.width / 1280;
+        if(G.state && G.state.scene === 'studio') return; // studio uses tap, not hover
         G.render.office.setHover((e.clientX - r.left) / s, (e.clientY - r.top) / s);
       });
       canvas.addEventListener('pointerleave', function(){
@@ -98,6 +102,13 @@
       G.dock.refreshTray();
       G.dock.refreshCollect();
       G.hud.flashDayBanner();
+      // welcome nudge: encourage players to poke around the office (the props,
+      // the people, the studio are all tappable). Lands just after the day banner.
+      setTimeout(function(){
+        if(G.dock && G.dock.infoToast){
+          G.dock.infoToast('BE CURIOUS', 'Tap things — the people, the chai, the speaker, the screen. Poke around.', '');
+        }
+      }, 2600);
     },
 
     screenShake: function(){
@@ -166,6 +177,9 @@
     var w = window.innerWidth, h = window.innerHeight;
     var s = Math.min(w / 1280, h / 720);
     stageEl.style.transform = 'scale(' + s + ')';
+    // publish the live scale so shake/juice animations can COMPOSE with it
+    // instead of overwriting transform (which made the viral burst snap size).
+    stageEl.style.setProperty('--stage-scale', s);
     stageEl.style.left = Math.round((w - 1280 * s) / 2) + 'px';
     stageEl.style.top = Math.round((h - 720 * s) / 2) + 'px';
   }
@@ -209,7 +223,11 @@
       }
     }
 
-    G.render.office.draw(ctx, simActive ? rdt : 0);
+    if(s.scene === 'studio' && G.render.studio){
+      G.render.studio.draw(ctx, simActive ? rdt : 0);
+    } else {
+      G.render.office.draw(ctx, simActive ? rdt : 0);
+    }
     G.hud.update(rdt);
     G.dock.update(simActive ? rdt : 0, rdt);
     G.modals.update(rdt);

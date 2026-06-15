@@ -9,6 +9,29 @@
     return arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
   }
 
+  // dumb things clients call to ask at 6PM — agency inside jokes. Mixed in with
+  // the client's own lines so the call is funnier (and never the same twice).
+  var CALL_DEMANDS = [
+    'Can you make the logo bigger? Now smaller. Now bigger. Perfect, like before.',
+    'Make it pop. More pop. I want it to POP off the screen and into my heart.',
+    'Small change: can we change everything? We loved it though.',
+    'My nephew knows Photoshop. He says this should take ten minutes.',
+    'Just make it go viral. That is the whole brief. Viral. By Monday.',
+    'Use our brand blue. No, not that blue. The blue from my imagination.',
+    'Add more white space. Also fill the empty parts, looks unfinished.',
+    'Make it look premium but also like we did not spend money.',
+    'Can the logo be bigger than the actual building in the photo?',
+    'Keep it minimal. Also add these fourteen things and a QR code.',
+    'CEO\'s wife saw it. She has notes. She has so many notes.',
+    'Can you deliver by EOD? It is 6:02 PM. EOD today, beta.',
+    'Make the video 4K but also under 12 kilobytes for WhatsApp.',
+    'Can you add a drone shot? We do not have a drone. Or a budget.',
+    'Remove the competitor from this stock photo we did not license.',
+    'It needs more energy. No I cannot define energy. You know. ENERGY.',
+    'Final files. Wait. FINAL final. Okay FINAL_final_v9_USETHIS.',
+    'Can you make it trending before we decide what we are selling?'
+  ];
+
   // voicemail the client leaves when you let the 6PM call ring out. Censored
   // rage (G.rage()) + one of these consequences. Pure flavour, the chaos and
   // relationship hit already landed in callIgnored.
@@ -89,7 +112,10 @@
       var client = pick(liveClients);
       if(!client) return;
       var def = pick(G.data.eventsByType('call'));
-      var quote = pick(client.quotes) || 'We need to talk.';
+      // ~65% a dumb agency-client demand, else one of this client's own lines
+      var quote = (Math.random() < 0.65)
+        ? pick(CALL_DEMANDS)
+        : (pick(client.quotes) || pick(CALL_DEMANDS) || 'We need to talk.');
       s.activeCall = { client: client, def: def, quote: quote, held: 0 };
       G.audio.phoneRing();
       G.modals.showCall(s.activeCall);

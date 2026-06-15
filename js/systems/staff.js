@@ -13,6 +13,7 @@
     },
 
     deptUnlocked: function(dept){
+      // production opens once the studio unlocks (week 2 by balance).
       if(dept === 'production') return G.state.week >= G.BAL.PRODUCTION_UNLOCK_WEEK;
       return true;
     },
@@ -23,9 +24,16 @@
 
     // can this staffer work this brief?
     canWork: function(st, brief){
-      if(st.universal) return true;                  // Devang / the Producer
-      if(!brief.role || brief.role === 'any') return true;
-      return st.dept === brief.role;
+      var role = brief.role;
+      // production crew ONLY shoot production briefs — never content/edit/'any'.
+      // (Preet, Kirtan, etc. work the studio, not desk tasks.)
+      if(st.dept === 'production') return role === 'production';
+      // production briefs are shot in the studio by production crew — no other
+      // department (and no 'universal') can pick them up.
+      if(role === 'production') return false;
+      if(st.universal) return true;                  // Devang / the Producer (desk work)
+      if(!role || role === 'any') return true;
+      return st.dept === role;
     },
 
     // ---------- the special-character engine ----------
@@ -49,6 +57,12 @@
       // Director on payroll: whole production dept +20%
       if(st.dept === 'production' && this.byId('s_dev_anand')){
         speed *= G.BAL.DIRECTOR_BOOST;
+      }
+      // night owls (besides Arya, who has her own night magic) get a focus
+      // bonus after hours, so staying for night work is a real choice, not
+      // just a free skip.
+      if(G.state.night && G.BAL.NIGHT_OWLS[st.id] && st.id !== 's_arya'){
+        speed *= (G.BAL.NIGHT_OWL_SPEED || 1.2);
       }
       return speed;
     },
@@ -114,7 +128,7 @@
     },
 
     // ---------- the shoulder-stand: click a working staffer ----------
-    // tiny chunk of real progress (30 clicks = 1 game hour of their output)
+    // tiny chunk of real progress (12 clicks = 1 game hour of their output)
     // plus one excuse from the pool. Free-ish: each click adds a sliver of
     // burnout, because being watched IS work.
     nudge: function(st){
@@ -274,8 +288,8 @@
   // ---------- walk-in generator ----------
   var FIRST = ['Hardik','Mansi','Rohan','Khushi','Parth','Avni','Yash','Disha','Kunal',
     'Shreya','Nikhil','Pooja','Raj','Esha','Tejas','Krupa','Sahil','Dhruvi','Meet','Tanvi'];
-  var LAST = ['Pandya','Soni','Bhatt','Gandhi','Vora','Mehta','Dholakia','Acharya',
-    'Parmar','Thakkar','Raval','Chauhan','Modi','Vyas','Solanki','Dave'];
+  var LAST = ['Pandya','Soni','Bhatt','Vora','Mehta','Dholakia','Acharya',
+    'Parmar','Thakkar','Raval','Chauhan','Vyas','Solanki','Dave'];
   var TAGS = ['skips_legal','slowmo_lover','blue_only','meme_brain',
     'deadline_blind','perfection_loop','boring_allergy','trend_chaser'];
   var TRAITS = [

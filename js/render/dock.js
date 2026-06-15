@@ -6,22 +6,27 @@
   window.G = window.G || {};
 
   var trayEl, toastsEl, countEl, hintEl, ghostEl, stageEl;
-  var briefToasts = [];   // {el, fill, t, total, done, cb}
-  var infoToasts = [];    // {el, t}
-  var moreChip = null;    // the "+N more" collapse chip
-  var TOAST_CAP = 3;      // max visible toasts; rest collapse
+  // brief OFFERS are now a compact vertical stack in the top-right corner
+  // (#brief-offers), one card on top of another, each with its own draining
+  // timer. See showBriefToast / renderOffers below.
+  var offersEl = null;    // #brief-offers container (created at runtime)
+  var briefOffers = [];   // {def, cb, t, total, done, key, el?, fill?, leaving?}
+  var offerKey = 0;
+  var OFFER_CAP = 3;      // max visible cards; the rest wait behind a "+N more" pill
 
-  // cap the visible toast column at TOAST_CAP, newest on top. Older toasts past
-  // the cap are hidden and summarised by a single "+N more" chip at the bottom.
+  var infoToasts = [];    // {el, t}  (bottom toast column, unchanged)
+  var moreChip = null;    // the info "+N more" collapse chip
+  var TOAST_CAP = 3;      // max visible info toasts; rest collapse
+
+  // cap the visible info-toast column at TOAST_CAP, newest on top. Older toasts
+  // past the cap are hidden and summarised by a single "+N more" chip.
   function reflowToasts(){
     if(!toastsEl) return;
-    // all toast elements in DOM order (oldest first), excluding the more-chip
     var nodes = [];
     for(var i = 0; i < toastsEl.children.length; i++){
       var c = toastsEl.children[i];
       if(c !== moreChip) nodes.push(c);
     }
-    // keep the newest TOAST_CAP visible (last in DOM = newest)
     var hidden = 0;
     for(var j = 0; j < nodes.length; j++){
       var keep = j >= nodes.length - TOAST_CAP;
@@ -38,6 +43,76 @@
     } else if(moreChip && moreChip.parentNode){
       moreChip.remove();
     }
+  }
+
+  // ---- brief OFFER stack (top-right) ---------------------------------------
+  // The card markup for a single offer. Compact: header (NEW BRIEF · client ·
+  // pips + urgency), title, sub-line (role · fee · N days), optional fine print,
+  // SIGN/PASS buttons, and a thin timer bar.
+  function offerCardHTML(def){
+    var c = G.data.clientById(def.clientId);
+    var u = urgency(def);
+    return '<div class="bo-head">NEW BRIEF · ' + esc(c ? c.name : '???') + ' · ' + diffPips(def.difficulty) +
+        '<span class="bo-urgency ' + u.cls + '">' + u.label + '</span></div>' +
+      '<div class="bo-title">' + esc(def.title) + '</div>' +
+      '<div class="bo-sub">' + roleChip(def.role) +
+        ' <span class="bo-fee">' + G.fmtMoney(def.fee) + '</span> · ' +
+        def.deadlineDays + ' day' + (def.deadlineDays > 1 ? 's' : '') + '</div>' +
+      ((def.finePrint && def.finePrint.length)
+        ? '<div class="bo-fine">' + esc(def.finePrint.join(' ')) + '</div>' : '') +
+      '<div class="bo-btns">' +
+        '<button class="px-btn" data-yes>SIGN IT</button>' +
+        '<button class="px-btn px-btn-dim pass" data-no>PASS (−rep)</button>' +
+      '</div>' +
+      '<div class="bo-timer"><div></div></div>';
+  }
+
+  // (Re)build the visible part of the stack. Only the most-recent OFFER_CAP
+  // offers get a card; the rest wait behind a single "+N more" pill at the top
+  // and stay frozen (their timer doesn't tick) until a visible slot frees up.
+  function renderOffers(){
+    if(!offersEl) return;
+    // drop any DOM for offers that are no longer in the model
+    offersEl.innerHTML = '';
+    var hidden = Math.max(0, briefOffers.length - OFFER_CAP);
+    if(hidden > 0){
+      var pill = document.createElement('div');
+      pill.className = 'bo-more';
+      pill.textContent = '+' + hidden + ' more queued · waiting their turn';
+      offersEl.appendChild(pill);
+    }
+    var visible = briefOffers.slice(-OFFER_CAP);
+    visible.forEach(function(o){
+      var el = document.createElement('div');
+      el.className = 'bo-card' + (o.leaving ? ' leaving' : '');
+      el.innerHTML = offerCardHTML(o.def);
+      o.el = el;
+      o.fill = el.querySelector('.bo-timer > div');
+      o.fill.style.width = Math.max(0, (o.t / o.total) * 100) + '%';
+      el.querySelector('[data-yes]').addEventListener('click', function(){ resolveOffer(o, true); });
+      el.querySelector('[data-no]').addEventListener('click', function(){ resolveOffer(o, false); });
+      offersEl.appendChild(el);
+    });
+  }
+
+  function resolveOffer(o, accepted){
+    if(o.done) return;
+    o.done = true;
+    o.leaving = true;   // so a mid-animation re-render keeps the slide-out
+    G.audio.click();
+    var cb = o.cb;
+    // slide the card out, then drop it from the model and reflow the rest
+    if(o.el){
+      o.el.classList.add('leaving');
+    }
+    setTimeout(function(){
+      var idx = briefOffers.indexOf(o);
+      if(idx >= 0) briefOffers.splice(idx, 1);
+      renderOffers();
+    }, 170);
+    // hand the decision back to the engine (cb(true)=sign → accept,
+    // cb(false)=pass/timeout → decline penalty). pendingToasts is balanced here.
+    try { if(cb) cb(accepted); } catch(e){ console.error('[offer resolve]', e); }
   }
 
   function esc(str){
@@ -107,6 +182,15 @@
       ghostEl = document.getElementById('drag-ghost');
       stageEl = document.getElementById('stage');
 
+      // top-right compact offer stack. index.html has no element for it, so we
+      // mount it into #stage at runtime (styled in css/briefs.css).
+      offersEl = document.getElementById('brief-offers');
+      if(!offersEl){
+        offersEl = document.createElement('div');
+        offersEl.id = 'brief-offers';
+        stageEl.appendChild(offersEl);
+      }
+
       document.getElementById('btn-growth').addEventListener('click', function(){
         if(!G.state.running || G.state.paused) return;
         if(!G.growth.unlocked()){
@@ -160,6 +244,14 @@
         ghostEl.classList.add('hidden');
         ghostEl.innerHTML = '';
 
+        // STUDIO scene: drop a brief onto the set and an idle crew shoots it
+        if(G.state && G.state.scene === 'studio' && G.render.studio){
+          var p = logicalXY(e);
+          if(G.render.studio.isOverSet(p.x, p.y)) G.render.studio.assignDrop(brief);
+          G.dock.refreshTray();
+          return;
+        }
+
         if(d >= 0){
           var st = G.staff.atDesk(d);
           if(!st){
@@ -183,17 +275,19 @@
         var canSkip = s.night && !s.staff.some(function(st){ return G.BAL.NIGHT_OWLS[st.id] && st.briefId; });
         skipBtn.classList.toggle('hidden', !canSkip);
       }
-      // brief toasts tick down on sim time; hovering ANY toast pauses ALL of
-      // them (reading one offer is free; the others wait their turn too)
-      var anyHover = briefToasts.some(function(x){ return x.hover; });
-      for(var i = briefToasts.length - 1; i >= 0; i--){
-        var tt = briefToasts[i];
-        if(!anyHover) tt.t -= simDt;
-        tt.fill.style.width = Math.max(0, (tt.t / tt.total) * 100) + '%';
-        // the hovered toast reads loud; the rest get a quieter held cue
-        tt.el.classList.toggle('reading', !!tt.hover);
-        tt.el.classList.toggle('held', anyHover && !tt.hover);
-        if(tt.t <= 0) resolveToast(tt, false);
+      // brief offers tick down on SIM time (simDt is 0 while the sim is paused /
+      // a modal is open / game-over / restructure — see main.js — so the
+      // countdowns freeze automatically then). Only the visible cards (most
+      // recent OFFER_CAP) drain; queued ones behind the "+N more" pill wait.
+      var firstVisible = Math.max(0, briefOffers.length - OFFER_CAP);
+      for(var i = briefOffers.length - 1; i >= 0; i--){
+        var o = briefOffers[i];
+        if(o.done) continue;
+        if(i >= firstVisible){
+          o.t -= simDt;
+          if(o.fill) o.fill.style.width = Math.max(0, (o.t / o.total) * 100) + '%';
+          if(o.t <= 0){ resolveOffer(o, false); } // timeout = pass
+        }
       }
       // info toasts expire on real time
       var removed = false;
@@ -243,50 +337,31 @@
       hintEl.textContent = briefs.length ? 'drag a brief onto a desk' : 'tray empty. enjoy it. it will not last.';
     },
 
-    // brief offer toast: SIGN / PASS, auto-pass on timeout
+    // brief offer: append a compact card to the top-right stack. SIGN / PASS in
+    // place, auto-pass on timeout. Same name + (def, cb) signature the engine
+    // (briefs.js) calls, so the engine contract is unchanged — only what it
+    // renders changed.
     showBriefToast: function(def, cb){
-      var c = G.data.clientById(def.clientId);
-      var u = urgency(def);
-      var el = document.createElement('div');
-      el.className = 'toast brief-toast';
-      el.innerHTML =
-        '<div class="toast-head">NEW BRIEF · ' + esc(c ? c.name : '???') + ' · ' + diffPips(def.difficulty) +
-          '<span class="toast-urgency ' + u.cls + '">' + u.label + '</span></div>' +
-        '<div class="toast-title">' + esc(def.title) + '</div>' +
-        '<div class="toast-sub">' + esc(def.ask) + '</div>' +
-        '<div class="toast-sub">' + roleChip(def.role) + ' <span class="toast-fee">' + G.fmtMoney(def.fee) + '</span> · ' +
-          def.deadlineDays + ' day' + (def.deadlineDays > 1 ? 's' : '') + '</div>' +
-        ((def.finePrint && def.finePrint.length)
-          ? '<div class="bc-fine">' + esc(def.finePrint.join(' ')) + '</div>' : '') +
-        '<div class="toast-btns">' +
-          '<button class="px-btn" data-yes>SIGN IT</button>' +
-          '<button class="px-btn px-btn-dim" data-no>PASS (−rep)</button>' +
-        '</div>' +
-        '<div class="toast-timer"><div></div></div>' +
-        '<div class="toast-read-hint">hovering pauses the clock. read.</div>';
-      toastsEl.appendChild(el);
-      reflowToasts();
-      el.addEventListener('pointerenter', function(){ tt.hover = true; });
-      el.addEventListener('pointerleave', function(){ tt.hover = false; });
-      G.audio.click();
-
       // decide-time: very first brief is unhurried, then the week curve takes over
       var secs = G.curve.toastSeconds(G.state.week);
       if(!G.state._firstToastShown){
         G.state._firstToastShown = true;
         secs = G.BAL.FIRST_TOAST_SECONDS;
       }
-      var tt = {
-        el: el,
-        fill: el.querySelector('.toast-timer > div'),
+      var o = {
+        key: offerKey++,
+        def: def,
+        cb: cb,
         t: secs,
         total: secs,
         done: false,
-        cb: cb
+        leaving: false,
+        el: null,
+        fill: null
       };
-      briefToasts.push(tt);
-      el.querySelector('[data-yes]').addEventListener('click', function(){ resolveToast(tt, true); });
-      el.querySelector('[data-no]').addEventListener('click', function(){ resolveToast(tt, false); });
+      briefOffers.push(o);
+      G.audio.click();
+      renderOffers();
     },
 
     // transient info toast. cls: '' | 'good' | 'bad'
@@ -298,23 +373,13 @@
         '<div class="toast-title">' + esc(body) + '</div>';
       toastsEl.appendChild(el);
       infoToasts.push({ el: el, t: 7 });
-      while(infoToasts.length > 4){ // hard ceiling on retained info toasts
+      while(infoToasts.length > 1){ // single-slot: a new toast replaces the old one (no queue)
         var old = infoToasts.shift();
         old.el.remove();
       }
       reflowToasts();
     }
   };
-
-  function resolveToast(tt, accepted){
-    if(tt.done) return;
-    tt.done = true;
-    tt.el.remove();
-    var idx = briefToasts.indexOf(tt);
-    if(idx >= 0) briefToasts.splice(idx, 1);
-    reflowToasts();
-    tt.cb(accepted);
-  }
 
   function moveGhost(e){
     var p = logicalXY(e);

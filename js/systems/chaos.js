@@ -30,6 +30,12 @@
         // the office TV: background noise calms the room 15% faster
         var rate = G.BAL.CHAOS_DECAY_PER_SEC * (s.upgrades.tv ? 1.15 : 1);
         s.chaos = Math.max(0, s.chaos - rate * dt);
+      } else {
+        // off-track (a brief gone critical or someone about to snap): chaos
+        // doesn't just stall, it CLIMBS — the room gets worse on its own and
+        // snowballs toward the wall. This makes hitting max a real threat.
+        s.chaos = Math.min(100, s.chaos + (G.BAL.CHAOS_CREEP_OFFTRACK || 1.2) * dt);
+        if(s.chaos >= 100 && !s.gameOver) G.main.loseGame('chaos');
       }
     }
   };

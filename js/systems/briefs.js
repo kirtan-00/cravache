@@ -11,6 +11,33 @@
     return a;
   }
 
+  // staff were blitzing briefs too fast — stretch the work so tasks take longer,
+  // scaled by how hard they are: hard +20%, medium +15%, small +5%.
+  function workTimeBand(diff){
+    if(diff >= 4) return 1.20;   // hard
+    if(diff === 3) return 1.15;  // medium
+    return 1.05;                 // small (diff 1-2)
+  }
+
+  // production (shoots) are slower than desk work: +10% time on every production
+  // brief, and big-budget productions (fee > Rs 2,00,000) take even longer still.
+  function productionTimeFactor(def){
+    if(def.role !== 'production') return 1;
+    var f = 1.10;
+    if(def.fee > 200000) f *= 1.20;   // >2L shoots: an extra 20% on top
+    return f;
+  }
+
+  // higher-paying briefs are bigger jobs — they take proportionally longer to
+  // clear. This keeps a full, all-working roster genuinely occupied: a fresh
+  // brief can't always be picked up the instant it lands. Tuned to stay
+  // manageable, not punishing. Fees run ~Rs 4k..9L; +1% time per Rs 13,000 of
+  // fee, capped at +60% on the very biggest brand jobs.
+  function feeTimeFactor(def){
+    var fee = def.fee || 0;
+    return 1 + Math.min(0.60, fee / 1300000);
+  }
+
   G.briefs = {
     init: function(){
       var s = G.state;
@@ -105,12 +132,21 @@
     offerNext: function(){
       var s = G.state, self = this;
 
+      // gentle window: the first 2 briefs of a run must be ones a CURRENT
+      // staffer can actually do, so a brand-new player is never handed an
+      // undeliverable first brief (e.g. a content brief with no writer hired).
+      var gentle = (s._offeredCount || 0) < 2;
+      function workableNow(cand){
+        return s.staff.some(function(st){ return G.staff.canWork(st, cand); });
+      }
+
       function pick(requireRoleFit){
         for(var i = 0; i < s.briefDeck.length; i++){
           var cand = s.briefDeck[i];
           if(s.goneClients[cand.clientId]){ s.briefDeck.splice(i, 1); i--; continue; }
           if(!self.offerable(cand)) continue;
           if(requireRoleFit && !self.roleWanted(cand.role)) continue;
+          if(gentle && !workableNow(cand)) continue;
           s.briefDeck.splice(i, 1);
           return cand;
         }
@@ -118,6 +154,9 @@
       }
 
       var def = pick(true) || pick(false);
+      // never deadlock on the gentle filter: if nothing workable is offerable
+      // right now, drop the gentle constraint and pick normally.
+      if(!def && gentle){ gentle = false; def = pick(true) || pick(false); }
       if(!def){
         // deck exhausted: the city never runs out of bad ideas. Reshuffle.
         s.briefDeck = G.data.briefs.filter(function(b){ return !s.goneClients[b.clientId]; });
@@ -130,13 +169,17 @@
       }
 
       s.pendingToasts++;
+      s._offeredCount = (s._offeredCount || 0) + 1;   // tracks the gentle window
       var deliver = function(){
         G.dock.showBriefToast(def, function(accepted){
           s.pendingToasts--;
           if(accepted){
             G.briefs.accept(def);
           } else {
+            // declining/ignoring isn't free: rep dips AND the room gets a little
+            // more chaotic, so you can't dodge every risky brief for free.
             s.rep = Math.max(0, s.rep + G.BAL.REP_DECLINE);
+            if(G.chaos && G.BAL.CHAOS_DECLINE) G.chaos.add(G.BAL.CHAOS_DECLINE);
             G.audio.decline();
             G.hud.poke('rep');
           }
@@ -177,7 +220,7 @@
         staffId: null,
         deadlineTotal: G.time.daysToReal(def.deadlineDays),
         deadlineLeft: G.time.daysToReal(def.deadlineDays),
-        workNeeded: G.BAL.WORK_BASE + def.difficulty * G.BAL.WORK_PER_DIFF,
+        workNeeded: (G.BAL.WORK_BASE + def.difficulty * G.BAL.WORK_PER_DIFF) * workTimeBand(def.difficulty) * productionTimeFactor(def) * feeTimeFactor(def),
         workDone: 0,
         escrowLeft: Math.round(def.fee * G.BAL.ESCROW_SHARE),
         ticked: 0,

@@ -107,12 +107,17 @@
         c.el.textContent = c.fmt(v);
         if(f >= 1) counters.splice(i, 1);
       }
-      // call hold
-      if(callCtx && callCtx.holding){
-        callCtx.call.held += rdt;
-        var frac = Math.min(1, callCtx.call.held / G.BAL.CALL_HOLD_REAL_SECONDS);
-        callCtx.fillEl.style.width = (frac * 100) + '%';
-        if(frac >= 1) this._resolveCall(true);
+      // 6PM call: hold-to-listen fill + auto ring-out
+      if(callCtx){
+        callCtx.ring += rdt;
+        if(callCtx.holding){
+          callCtx.call.held += rdt;
+          var frac = Math.min(1, callCtx.call.held / (G.BAL.CALL_HOLD_REAL_SECONDS || 5));
+          callCtx.fillEl.style.width = (frac * 100) + '%';
+          if(frac >= 1){ this._resolveCall(true); return; }
+        }
+        // ring-out: client gives up if you ignore it long enough
+        if(callCtx.ring >= callCtx.ringOut){ this._resolveCall(false, false); }
       }
     },
 
@@ -234,46 +239,80 @@
       setTimeout(spin, 350);
     },
 
-    // ---------- 6PM call: screen dims, sim keeps running ----------
+    // ---------- 6PM call: small ringing LANDLINE, bottom-left ----------
+    // Does NOT dim the screen, does NOT pause the sim, does NOT join the modal
+    // stack (so it can't hide other modals or unpause anything). Hold LISTEN to
+    // fill the bar over CALL_HOLD_REAL_SECONDS = survive. Hang up BEFORE full =
+    // +1 chaos, -0.5 rep, then callIgnored. Ring-out (~14s untouched) = callIgnored.
     showCall: function(call){
-      dimEl.classList.remove('hidden');
-      var el = modalShell({
-        cls: 'call-shake',
-        kicker: 'INCOMING · ' + call.client.name + ' · ' + (call.client.industry || ''),
-        title: 'THE 6PM CALL',
-        bodyHTML:
-          '<div class="modal-body"><span class="q">"' + esc(call.quote) + '"</span></div>' +
-          '<div class="modal-fine">Hold LISTEN to survive the call. Release and they notice. Hang up and they REALLY notice. Work continues without you.</div>' +
-          '<div class="hold-track"><div class="hold-fill"></div></div>'
-      });
-      var entry = push(el, { pausing: false });
-      callCtx = { call: call, entry: entry, fillEl: el.querySelector('.hold-fill'), holding: false };
+      // a previous call should never linger
+      if(callCtx) this._resolveCall(false, false);
 
-      var row = addButtons(el, [
-        { label: 'LISTEN (HOLD)', onClick: function(){} },
-        { label: 'HANG UP', cls: 'px-btn-red', onClick: function(){ G.modals._resolveCall(false); } }
-      ]);
-      var holdBtn = row.children[0];
-      holdBtn.addEventListener('pointerdown', function(e){
-        e.preventDefault();
+      var el = document.createElement('div');
+      el.id = 'call-phone';
+      el.className = 'ringing';
+      el.innerHTML =
+        '<div class="cp-kick">📞 INCOMING · ' + esc(call.client.name) + ' · ' + esc(call.client.industry || '') + '</div>' +
+        '<div class="cp-title">THE 6PM CALL</div>' +
+        '<div class="cp-quote">"' + esc(call.quote) + '"</div>' +
+        '<div class="hold-track"><div class="hold-fill"></div></div>' +
+        '<div class="cp-fine">Hold LISTEN to survive. Hang up early and they REALLY notice. Work continues without you.</div>' +
+        '<div class="cp-btns">' +
+          '<button class="px-btn" data-listen>LISTEN (HOLD)</button>' +
+          '<button class="px-btn px-btn-red" data-hangup>HANG UP</button>' +
+        '</div>';
+      stageEl.appendChild(el);
+
+      callCtx = {
+        call: call, el: el,
+        fillEl: el.querySelector('.hold-fill'),
+        holding: false,
+        ring: 0,
+        ringOut: 14   // seconds before the client gives up
+      };
+
+      var listenBtn = el.querySelector('[data-listen]');
+      var hangBtn = el.querySelector('[data-hangup]');
+
+      function startHold(e){
+        if(e) e.preventDefault();
         if(!callCtx) return;
         callCtx.holding = true;
-        el.classList.remove('call-shake');
-      });
+        el.classList.remove('ringing'); // stop the wobble once they engage
+      }
+      function releaseHold(){ if(callCtx) callCtx.holding = false; }
+
+      listenBtn.addEventListener('pointerdown', startHold);
+      listenBtn.addEventListener('pointerup', releaseHold);
+      listenBtn.addEventListener('pointerleave', releaseHold);
       window.addEventListener('pointerup', releaseHold);
       callCtx.release = releaseHold;
-      function releaseHold(){ if(callCtx) callCtx.holding = false; }
+
+      hangBtn.addEventListener('click', function(){
+        // early hang-up if the bar isn't full yet
+        var frac = call.held / (G.BAL.CALL_HOLD_REAL_SECONDS || 5);
+        G.modals._resolveCall(false, frac < 1);
+      });
     },
 
-    _resolveCall: function(survived){
+    // survived = held to full; earlyHangup = manual hang-up before the bar filled
+    _resolveCall: function(survived, earlyHangup){
       if(!callCtx) return;
       var ctx = callCtx;
       callCtx = null;
       window.removeEventListener('pointerup', ctx.release);
-      dimEl.classList.add('hidden');
-      close(ctx.entry);
-      if(survived) G.events.callSurvived(ctx.call);
-      else G.events.callIgnored(ctx.call);
+      if(ctx.el && ctx.el.parentNode) ctx.el.remove();
+
+      if(survived){
+        G.events.callSurvived(ctx.call);
+        return;
+      }
+      // a MISSED call (hung up early OR rung out) leaves the client stewing:
+      // +3 chaos and -1 rep, on top of the normal ignore effects.
+      try { G.chaos.add(3); } catch(e){}
+      if(G.state) G.state.rep = Math.max(0, G.state.rep - 1);
+      try { G.hud.poke('rep'); } catch(e){}
+      G.events.callIgnored(ctx.call);
     },
 
     // ---------- Friday report card + one-purchase shop ----------

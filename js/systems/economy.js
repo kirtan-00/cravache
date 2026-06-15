@@ -84,9 +84,19 @@
     // rent + AC + software: the office costs money even when nobody works,
     // and the rent only ever goes up
     overheadTotal: function(){
+      var s = G.state;
+      // each client tier you unlock beyond LOCAL bumps the rent: bigger clients,
+      // bigger studio, bigger bills. Keeps costs scaling with your ambition so
+      // money never stops mattering mid-run.
+      var tiersOpen = 0, tier = G.BAL.TIER_UNLOCK || {};
+      for(var t in tier){
+        if(t === 'local') continue;
+        if(G.tierOpen(t, s.week)) tiersOpen++;
+      }
       return G.BAL.OVERHEAD_BASE +
-             G.state.staff.length * G.BAL.OVERHEAD_PER_STAFF +
-             (G.state.week - 1) * G.BAL.OVERHEAD_WEEK_RAMP;
+             s.staff.length * G.BAL.OVERHEAD_PER_STAFF +
+             (s.week - 1) * G.BAL.OVERHEAD_WEEK_RAMP +
+             tiersOpen * (G.BAL.OVERHEAD_TIER_STEP || 0);
     },
 
     runPayroll: function(){

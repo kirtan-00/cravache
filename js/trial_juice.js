@@ -31,7 +31,9 @@
       '.juice-squash{position:fixed;z-index:89;pointer-events:none;width:64px;height:64px;margin-left:-32px;margin-top:-32px;border:3px solid rgba(255,255,255,.9);border-radius:8px;box-shadow:0 0 0 2px rgba(0,0,0,.5) inset;will-change:transform,opacity}',
       // stage shake (own, in case main.screenShake is weak) + red vignette
       '#stage.juice-shake{animation:juiceShake .32s cubic-bezier(.36,.07,.19,.97)}',
-      '@keyframes juiceShake{10%{transform:translate(-3px,2px) rotate(-.4deg)}20%{transform:translate(4px,-2px) rotate(.4deg)}30%{transform:translate(-5px,1px)}40%{transform:translate(5px,-1px)}50%{transform:translate(-3px,2px)}60%{transform:translate(3px,-1px)}70%{transform:translate(-2px,1px)}80%{transform:translate(2px,0)}100%{transform:translate(0,0)}}',
+      // every step keeps scale(var(--stage-scale)) so the shake COMPOSES with the
+      // letterbox scale instead of wiping it (that wipe made the screen jump size).
+      '@keyframes juiceShake{10%{transform:scale(var(--stage-scale,1)) translate(-3px,2px) rotate(-.4deg)}20%{transform:scale(var(--stage-scale,1)) translate(4px,-2px) rotate(.4deg)}30%{transform:scale(var(--stage-scale,1)) translate(-5px,1px)}40%{transform:scale(var(--stage-scale,1)) translate(5px,-1px)}50%{transform:scale(var(--stage-scale,1)) translate(-3px,2px)}60%{transform:scale(var(--stage-scale,1)) translate(3px,-1px)}70%{transform:scale(var(--stage-scale,1)) translate(-2px,1px)}80%{transform:scale(var(--stage-scale,1)) translate(2px,0)}100%{transform:scale(var(--stage-scale,1)) translate(0,0)}}',
       '.juice-vignette{position:fixed;inset:0;z-index:87;pointer-events:none;box-shadow:inset 0 0 160px 60px rgba(220,30,30,.6);opacity:0;will-change:opacity}'
     ].join('\n');
     (document.head || document.documentElement).appendChild(st);

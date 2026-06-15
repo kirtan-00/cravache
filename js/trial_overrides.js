@@ -1,6 +1,6 @@
-// CravAche — TRIAL-ONLY overrides. Loaded ONLY by trial.html, never by
-// index.html, so the committed/live build behaves identically. Everything
-// here is a runtime monkey-patch + injected DOM/CSS. Safe to delete.
+// CravAche — TRIAL overrides. Loaded by BOTH index.html and trial.html (this
+// IS the shipping experience now). Everything here is a runtime monkey-patch +
+// injected DOM/CSS. Safe to delete to fall back to the bare committed build.
 //
 // What this does:
 //   1) Payments 80/20 — big invoices mostly auto-pay (UPI), only ~20% chase.
@@ -110,8 +110,9 @@
     st.id = 'wa-style';
     st.textContent = [
       // launcher
-      // lower-right, just above the dock, clear of the desk columns
-      '#wa-launcher{position:absolute;right:14px;bottom:108px;z-index:70;',
+      // lower-right, lifted above the night-only SKIP NIGHT button (which sits at
+      // right:14 just above the dock) so the two never overlap
+      '#wa-launcher{position:absolute;right:14px;bottom:172px;z-index:70;',
         'width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;',
         'background:#25d366;color:#073b2a;font-size:26px;line-height:1;display:flex;',
         'align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4);}',
@@ -120,8 +121,9 @@
         'padding:0 5px;border-radius:10px;background:#ff3b30;color:#fff;font:700 12px/20px system-ui,sans-serif;',
         'text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.4);}',
       '#wa-launcher .wa-badge.empty{display:none;}',
-      // notifications
-      '#wa-notes{position:absolute;top:64px;right:14px;z-index:80;display:flex;flex-direction:column;',
+      // notifications — anchored bottom-right just above the WhatsApp launcher
+      // so they never collide with the brief-offer toasts in the TOP-right.
+      '#wa-notes{position:absolute;bottom:172px;right:14px;z-index:80;display:flex;flex-direction:column-reverse;',
         'gap:8px;width:300px;pointer-events:none;}',
       '.wa-note{pointer-events:auto;cursor:pointer;background:#1f2c33;color:#e9edef;',
         'border-left:4px solid #25d366;border-radius:8px;padding:9px 11px;',
@@ -162,6 +164,16 @@
       '.wa-row .wa-unread{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#25d366;',
         'color:#06291d;font:700 11px/18px system-ui,sans-serif;text-align:center;}',
       '.wa-empty{padding:30px 18px;color:#6b7a82;text-align:center;font-size:13px;line-height:1.5;}',
+      // tabs (ALL / UNPAID) + a paused banner + a total-due banner
+      '#wa-tabs{flex:0 0 auto;display:flex;background:#0b141a;border-bottom:1px solid rgba(255,255,255,.06);}',
+      '#wa-panel.in-thread #wa-tabs{display:none;}',
+      '#wa-tabs .wa-tab{flex:1;background:none;border:none;color:#8696a0;cursor:pointer;',
+        'font:700 12px system-ui,sans-serif;padding:11px 8px;border-bottom:3px solid transparent;}',
+      '#wa-tabs .wa-tab.active{color:#25d366;border-bottom-color:#25d366;}',
+      '#wa-pausebar{flex:0 0 auto;background:#142a1f;color:#7ee0c0;font:700 11px system-ui,sans-serif;',
+        'text-align:center;padding:6px 8px;letter-spacing:.3px;}',
+      '#wa-duebar{flex:0 0 auto;background:rgba(244,196,48,.10);color:#f4c430;',
+        'font:700 12px system-ui,sans-serif;text-align:center;padding:8px;}',
       // thread (scrollable)
       '#wa-thread{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;',
         'gap:7px;padding:14px 12px;background:#0b141a;}',
@@ -199,8 +211,25 @@
   }
 
   // ------------------------------------------------------------- DOM build
-  var panelEl, listEl, threadEl, titleEl, subEl, headAvEl, backBtn, launcherEl, notesEl;
+  var panelEl, listEl, threadEl, titleEl, subEl, headAvEl, backBtn, launcherEl, notesEl, tabsEl;
   var openClientKey = null;   // null = list view; else thread view key
+  var listFilter = 'all';     // 'all' | 'unpaid'
+  var waPausedByUs = false;   // we paused the sim because the panel is open
+
+  // total money owed to you across every client (sum of all receivables)
+  function totalDue(){
+    var s = G.state, t = 0;
+    if(s && s.receivables) for(var i=0;i<s.receivables.length;i++) t += s.receivables[i].amount;
+    return t;
+  }
+  // clients with money outstanding (count)
+  function owedCount(){
+    var s = G.state, seen = {}, n = 0;
+    if(s && s.receivables) for(var i=0;i<s.receivables.length;i++){
+      var k = clientKey(s.receivables[i].clientId); if(!seen[k]){ seen[k]=1; n++; }
+    }
+    return n;
+  }
 
   function isThreadOpen(key){
     return panelEl && panelEl.classList.contains('open') && openClientKey === key;
@@ -236,6 +265,11 @@
         '<div class="wa-title" data-title>Clients<div class="wa-sub" data-sub>WhatsApp Business</div></div>' +
         '<button class="wa-close" title="close">✕</button>' +
       '</div>' +
+      '<div id="wa-pausebar">⏸ GAME PAUSED while you handle messages</div>' +
+      '<div id="wa-tabs">' +
+        '<button class="wa-tab active" data-f="all">ALL CHATS</button>' +
+        '<button class="wa-tab" data-f="unpaid">UNPAID</button>' +
+      '</div>' +
       '<div id="wa-list"></div>' +
       '<div id="wa-thread"></div>';
     stage().appendChild(panelEl);
@@ -245,8 +279,15 @@
     subEl = panelEl.querySelector('[data-sub]');
     headAvEl = panelEl.querySelector('[data-headav]');
     backBtn = panelEl.querySelector('.wa-back');
+    tabsEl = panelEl.querySelector('#wa-tabs');
     backBtn.addEventListener('click', function(){ showList(); });
     panelEl.querySelector('.wa-close').addEventListener('click', function(){ closePanel(); });
+    tabsEl.querySelectorAll('.wa-tab').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        listFilter = btn.getAttribute('data-f');
+        showList();
+      });
+    });
   }
 
   function ensureDOM(){ injectCSS(); buildNotes(); buildLauncher(); buildPanel(); }
@@ -261,29 +302,66 @@
   }
 
   // ----------------------------------------------------------- list view
+  function paintTabs(){
+    if(!tabsEl) return;
+    var due = totalDue();
+    tabsEl.querySelectorAll('.wa-tab').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-f') === listFilter);
+      if(b.getAttribute('data-f') === 'unpaid'){
+        b.textContent = due > 0 ? ('UNPAID · ' + G.fmtMoney(due)) : 'UNPAID';
+      }
+    });
+  }
+
   function renderList(){
     if(!listEl) return;
+    paintTabs();
     listEl.innerHTML = '';
-    var keys = Object.keys(threads).filter(function(k){ return threads[k].msgs.length; });
+
+    // total-due banner: how much money is owed to you right now, across everyone
+    var due = totalDue();
+    if(due > 0){
+      var bar = document.createElement('div');
+      bar.id = 'wa-duebar';
+      bar.textContent = G.fmtMoney(due) + ' to collect · ' + owedCount() + ' client' + (owedCount()===1?'':'s');
+      listEl.appendChild(bar);
+    }
+
+    var keys;
+    if(listFilter === 'unpaid'){
+      // derive straight from who owes you — ensure a thread exists for each,
+      // even if they've never messaged, so every debtor is collectable here.
+      var seen = {}; keys = [];
+      (G.state.receivables || []).forEach(function(inv){
+        var t = thread(inv.clientId);
+        if(!seen[t.key]){ seen[t.key] = 1; keys.push(t.key); }
+      });
+    } else {
+      keys = Object.keys(threads).filter(function(k){ return threads[k].msgs.length; });
+    }
     if(!keys.length){
       var e = document.createElement('div');
       e.className = 'wa-empty';
-      e.textContent = 'No client chats yet. Ship something and they will message you.';
+      e.textContent = listFilter === 'unpaid'
+        ? 'Nobody owes you right now. Rare. Enjoy it.'
+        : 'No client chats yet. Ship something and they will message you.';
       listEl.appendChild(e);
       return;
     }
-    // most-recent first
+    // unpaid: biggest debt first; all: most-recent first
     keys.sort(function(a,b){
+      if(listFilter === 'unpaid') return dueFor(threads[b].id) - dueFor(threads[a].id);
       var ma = threads[a].msgs, mb = threads[b].msgs;
       return mb[mb.length-1].t - ma[ma.length-1].t;
     });
     keys.forEach(function(k){
       var t = threads[k];
-      var last = t.msgs[t.msgs.length-1];
+      var last = t.msgs.length ? t.msgs[t.msgs.length-1] : null;
       var due = dueFor(t.id);
       var row = document.createElement('div');
       row.className = 'wa-row';
-      var prev = (last.from === 'me' ? 'You: ' : '') + last.text;
+      var prev = last ? ((last.from === 'me' ? 'You: ' : '') + last.text)
+                      : 'Payment pending — tap to remind';
       row.innerHTML =
         '<span class="wa-av" style="background:' + hashColor(t.name) + '">' + esc(firstLetter(t.name)) + '</span>' +
         '<div class="wa-rmain"><div class="wa-rname">' + esc(t.name) + '</div>' +
@@ -301,7 +379,8 @@
     openClientKey = null;
     panelEl.classList.remove('in-thread');
     titleEl.childNodes[0].nodeValue = 'Clients';
-    subEl.textContent = 'WhatsApp Business';
+    var due = totalDue();
+    subEl.textContent = due > 0 ? (G.fmtMoney(due) + ' to collect') : 'WhatsApp Business';
     headAvEl.style.background = '#25d366';
     headAvEl.textContent = '💬';
     renderList();
@@ -330,6 +409,7 @@
         if(m.answered) return;
         m.answered = true;
         m.pickedLabel = opt.label;
+        if(m._expireTimer){ clearTimeout(m._expireTimer); m._expireTimer = null; }
         // run the REAL outcome first, then lock + echo the reply
         try{ if(opt.onPick) opt.onPick(); }catch(e){ try{ console.error('[trial] choice onPick failed', e); }catch(_){} }
         blip('click');
@@ -346,7 +426,7 @@
     if(!m.answered){
       var hint = document.createElement('div');
       hint.className = 'wa-choice-hint';
-      hint.textContent = 'tap to reply · ignore to dodge';
+      hint.textContent = 'tap to reply · no reply = a NO';
       wrap.appendChild(hint);
     }
     threadEl.appendChild(wrap);
@@ -407,6 +487,11 @@
   function openPanel(toKey){
     ensureDOM();
     blip('click');
+    // OPENING WHATSAPP PAUSES THE GAME: time stops, briefs don't pile up or slip
+    // away, worker animations freeze — you can read/collect in peace.
+    if(G.state && G.state.running && !G.state.gameOver && !G.state.paused){
+      G.state.paused = true; waPausedByUs = true;
+    }
     panelEl.classList.add('open');
     if(toKey != null && threads[toKey]) openThread(toKey);
     else if(openClientKey != null && threads[openClientKey]) openThread(openClientKey);
@@ -417,6 +502,9 @@
     blip('click');
     panelEl.classList.remove('open');
     openClientKey = null;
+    // resume the game only if WE paused it for the panel
+    if(waPausedByUs && G.state){ G.state.paused = false; }
+    waPausedByUs = false;
   }
 
   // -------------------------------------------------------- notifications
@@ -578,9 +666,28 @@
         return { label: o.label, onPick: o.onPick };
       });
 
-      pushChoice(id, body, opts);
+      var res = pushChoice(id, body, opts);
       pulseLauncher();
       refreshBadge();
+
+      // Ignoring a decision is NOT free: if you don't reply within the window,
+      // the client reads it as a NO and the last option (the decline/refuse
+      // path) auto-fires, so its authored consequence still lands. A retainer
+      // "NOT NOW" is harmless; a scope-creep refuse applies its relationship/
+      // chaos cost. This closes the "ignore everything for free" exploit.
+      var IGNORE_SECS = 22;
+      res.msg._expireTimer = setTimeout(function(){
+        if(res.msg.answered) return;
+        res.msg.answered = true;
+        res.msg.pickedLabel = '(no reply)';
+        res.msg._expireTimer = null;
+        var last = opts[opts.length - 1];
+        try{ if(last && last.onPick) last.onPick(); }catch(e){ try{ console.error('[trial] auto-decline failed', e); }catch(_){} }
+        res.thread.msgs.push({ from: 'me', text: '(no reply)', t: Date.now() });
+        try{ if(G.dock && G.dock.refreshCollect) G.dock.refreshCollect(); }catch(e){}
+        if(isThreadOpen(clientKey(id))) renderThread(clientKey(id));
+        refreshBadge();
+      }, IGNORE_SECS * 1000);
 
       // if the relevant view is already open, paint it live
       if(isThreadOpen(clientKey(id))) renderThread(clientKey(id));

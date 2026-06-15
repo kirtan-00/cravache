@@ -51,13 +51,18 @@
   var goodCount = {};   // clientId -> int
   var offering  = {};   // clientId -> true while an offer is live/unanswered
 
-  var GOOD_DELIVERIES_FOR_OFFER = 2;
+  var GOOD_DELIVERIES_FOR_OFFER = (G.BAL && G.BAL.RETAINER_GOOD_DELIVERIES) || 4;
+  var MAX_RETAINERS = (G.BAL && G.BAL.MAX_RETAINERS) || 3;
 
   // ----- fee picking -----------------------------------------------------
   // a sensible LOCKED weekly retainer fee from the client's typical brief fee.
   // We take the median of that client's brief-def fees (falls back to the
   // delivered brief's own fee, then a flat default).
   function typicalFee(clientId, fallbackFee){
+    // a retainer is a COMMITMENT DISCOUNT: the client pays a fraction of their
+    // typical per-brief fee in exchange for a guaranteed weekly slot. So a
+    // retainer is steady, but never as lucrative as chasing one-off big briefs.
+    var frac = (G.BAL && G.BAL.RETAINER_FEE_FRAC) || 0.4;
     var fees = [];
     try{
       var all = (G.data && G.data.briefs) ? G.data.briefs : [];
@@ -65,13 +70,14 @@
         if(all[i].clientId === clientId && typeof all[i].fee === 'number') fees.push(all[i].fee);
       }
     }catch(e){}
+    var raw;
     if(!fees.length){
-      if(typeof fallbackFee === 'number' && fallbackFee > 0) return Math.round(fallbackFee);
-      return 50000;
+      raw = (typeof fallbackFee === 'number' && fallbackFee > 0) ? fallbackFee : 50000;
+    } else {
+      fees.sort(function(a, b){ return a - b; });
+      raw = fees[Math.floor((fees.length - 1) / 2)];
     }
-    fees.sort(function(a, b){ return a - b; });
-    var mid = fees[Math.floor((fees.length - 1) / 2)];
-    return Math.round(mid);
+    return Math.max(1000, Math.round(raw * frac));
   }
 
   // ----- brief def for a retainer drop -----------------------------------
@@ -122,6 +128,8 @@
   function offerRetainer(clientId, fallbackFee){
     if(retainers[clientId] !== undefined) return;   // already a retainer
     if(offering[clientId]) return;                   // offer already pending
+    // cap concurrent retainers so the economy can't be put on autopilot
+    if(Object.keys(retainers).length >= MAX_RETAINERS) return;
     var c = (G.data && G.data.clientById) ? G.data.clientById(clientId) : null;
     var cname = (c && c.name) ? c.name : 'Client';
     var fee = typicalFee(clientId, fallbackFee);

@@ -5,7 +5,7 @@
 
   // ---------- balance (DESIGN.md economy first-pass, tune freely keep ratios) ----------
   G.BAL = {
-    START_MONEY: 80000,          // ~2.5 starting weeks of costs. Tight is the point.
+    START_MONEY: 100000,         // ~2 starting weeks of costs. Tight is the point.
 
     // economy rebalance (2026-06-13 design pass): briefs.json is now re-priced
     // to real Indian agency rates (role x tier ladder), so the JSON is ground
@@ -25,20 +25,24 @@
     // sleeps at home. Skippable when no owl is mid-task.
     NIGHT_REAL_SECONDS: 15,
     NIGHT_END_HOUR: 24,
-    NIGHT_OWLS: { s_arya: true, s_natasha: true, s_dev_anand: true },
+    // night workers: Arya (own night magic), Preet, Nirav + Kirtan/Ohm (production)
+    // and Vraj (editor) who also pull night shifts.
+    NIGHT_OWLS: { s_arya: true, s_natasha: true, s_dev_anand: true, s_vicky: true, s_imran: true, s_farhan: true },
+    NIGHT_OWL_SPEED: 1.2,        // staff.js: night owls work this much faster at night, so staying for night work is a real choice, not just a skip
     WEEKS: 8,                    // local -> gujarat -> india -> dubai -> global
 
     // departments
     DEPT_CAPS: { designer: 5, editor: 5, content: 3, production: 4 },
-    PRODUCTION_UNLOCK_WEEK: 3,   // survive 2 weeks, production opens
+    PRODUCTION_UNLOCK_WEEK: 2,   // survive 1 week, production studio opens
     DIRECTOR_BOOST: 1.2,         // production dept speed while the Director is hired
     ARYA_SPEED_CAP: 2.0,         // night+hard-brief stack used to hit x2.38
 
     // weekly office overhead beyond payroll: rent, AC, the one Adobe bill.
     // Scales with headcount so growth costs something ongoing.
     OVERHEAD_BASE: 9000,
-    OVERHEAD_PER_STAFF: 1500,
-    OVERHEAD_WEEK_RAMP: 2500,    // rent hikes weekly. The landlord saw your reel.
+    OVERHEAD_PER_STAFF: 3000,
+    OVERHEAD_WEEK_RAMP: 4500,    // rent hikes weekly. The landlord saw your reel.
+    OVERHEAD_TIER_STEP: 15000,   // extra rent per client tier unlocked beyond local (economy.js reads this)
 
     // client tiers: week each tier starts appearing
     TIER_UNLOCK: { local: 1, gujarat: 2, india: 3, dubai: 3, global: 8 },
@@ -50,7 +54,7 @@
 
     // workload tracks headcount: active briefs cap = staff × this.
     // Always slightly more work than hands. That is the anxiety engine.
-    WORKLOAD_OVERREACH: 1.15,
+    WORKLOAD_OVERREACH: 1.6,
 
     // work: units needed vs staffer speed (units/sec while working)
     WORK_BASE: 20, WORK_PER_DIFF: 12,
@@ -68,9 +72,10 @@
     TICK_MIN: 20, TICK_MAX: 90,
 
     // verdict base odds (verdict.js normalizes)
-    ODDS: { approve: 50, small: 33, scrapped: 7, viral: 6 },
-    VIRAL_FEE_MULT: 3,
+    ODDS: { approve: 50, small: 24, scrapped: 7, viral: 6 },
+    VIRAL_FEE_MULT: 2,
     SMALL_EXTRA_WORK: 0.40,
+    MOOD_APPROVE_PER: 4,         // verdict.js: a GOOD client relationship adds this×mood to approve odds (positive mirror of the negative-mood penalty)
 
     // rep deltas
     REP_DECLINE: -2, REP_SCRAPPED: -6, REP_OVERDUE: -4,
@@ -78,7 +83,7 @@
     NEON_REP_BONUS: 1,           // extra rep on positive verdicts
 
     // money penalties: bad work costs real money (clawbacks)
-    CLAWBACK_SCRAPPED: 0.25,     // of fee, when the client scraps your work
+    CLAWBACK_SCRAPPED: 0.40,     // of fee, when the client scraps your work
     CLAWBACK_OVERDUE: 0.15,      // of fee, when a deadline lapses
 
     // receivables: approved fees become invoices. Hold CALL to collect now;
@@ -91,6 +96,8 @@
     CHAOS_OVERDUE: 12, CHAOS_IGNORED_CALL: 8, CHAOS_SCOPE_REFUSE: 5,
     CHAOS_DECAY_PER_SEC: 0.45,   // only when everything on-track
     CHAOS_QUIT: 10,
+    CHAOS_DECLINE: 1,            // declining a brief: -2 rep AND +1 chaos (briefs.js) so dodging risk has teeth
+    CHAOS_CREEP_OFFTRACK: 1.2,   // chaos.js: while things are off-track (late brief / burnt-out staff) chaos CLIMBS on its own, snowballing toward the wall
 
     // events (call/scope-creep chances live in G.curve)
     CALL_HOLD_REAL_SECONDS: 5,   // "10 in-game minutes" of your attention
@@ -99,7 +106,6 @@
     // shop (Friday upgrade moment, TWO purchases per week)
     SHOP: {
       plant:         { name:"Office plant",     price:12000, desc:"morale. allegedly." },
-      posters:       { name:"Wall posters",     price:15000, desc:"\"GREAT WORK\" energy. burnout builds 8% slower" },
       plant_big:     { name:"Big monstera",     price:18000, desc:"a whole jungle corner. burnout builds 10% slower" },
       string_lights: { name:"String lights",    price:20000, desc:"cosy late-night glow. burnout builds 8% slower" },
       cooler:        { name:"Water cooler",     price:35000, desc:"gossip station. idle staff recover faster, together" },
@@ -109,6 +115,17 @@
       coffee:        { name:"Coffee machine",    price:60000, desc:"burnout builds 30% slower" },
       neon:          { name:"Neon sign",         price:80000, desc:"rep gains hit harder" }
     },
+
+    // auto-assign (trial_autoassign.js): a big-ticket ops upgrade. Once bought,
+    // tray briefs route themselves to the fastest free, on-clock, capable staffer.
+    // Gated behind a couple of weeks so the player learns assignment by hand first.
+    AUTOASSIGN_COST: 600000,
+    AUTOASSIGN_UNLOCK_WEEK: 3,  // "after week 2" = buyable from week 3 onward
+
+    // retainers (trial_retainers.js): a client who likes you signs a weekly deal
+    MAX_RETAINERS: 3,            // cap concurrent retainers so the economy can't be auto-piloted
+    RETAINER_FEE_FRAC: 0.4,      // retainer weekly fee = this × median brief fee (a commitment discount)
+    RETAINER_GOOD_DELIVERIES: 4, // good deliveries before a client offers a retainer
 
     // decor perk knobs (kept MINOR; see js/systems/staff.js + chaos.js):
     //   aquarium      idle burnout recovery +15% (calming fish)
@@ -128,9 +145,9 @@
     INTRO_CLIENTS_FULL: 3,       // first N new clients get the full signing dossier modal
 
     // standing over shoulders: click a working staffer -> tiny work boost +
-    // one excuse. 30 clicks = one game hour of their output. Not free: burnout.
-    NUDGE_CLICKS_PER_HOUR: 45,
-    NUDGE_BURNOUT: 0.8,
+    // one excuse. 12 clicks = one game hour of output. Not free: burnout.
+    NUDGE_CLICKS_PER_HOUR: 12,
+    NUDGE_BURNOUT: 0.25,
 
     // office clickables: idle hands get things to do
     CHAI_COST: 200,              // one chai round, whole office
@@ -178,7 +195,8 @@
     // seconds to decide on a brief toast: generous early, brutal in overtime.
     // (hovering a toast pauses its timer; reading is always free)
     toastSeconds: function(w){
-      return ramp([30, 22, 16, 12, 10, 8, 7, 6], w,
+      // +10%: a touch more time to read/decide on each new brief offer
+      return 1.1 * ramp([30, 22, 16, 12, 10, 8, 7, 6], w,
         function(o, last){ return Math.max(5, last - o * 0.25); });
     }
   };
@@ -219,12 +237,15 @@
       chaos: 0,
       strikes: 0,
 
+      scene: 'office',          // 'office' | 'studio' (production studio)
       week: 1, day: 1,          // day 1=Mon .. 5=Fri
       dayT: 0,                  // real seconds into current day
       night: false, nightT: 0,  // night shift phase
 
       upgrades: { plant:false, coffee:false, neon:false, tv:false, cooler:false,
-                  aquarium:false, arcade:false, plant_big:false, posters:false, string_lights:false },
+                  aquarium:false, arcade:false, plant_big:false, posters:false, string_lights:false,
+                  autoassign:false },
+      autoAssignOn: true,       // when autoassign upgrade owned, the toggle (player can pause it)
       neonText: 'CRAVACHE',     // what the neon sign reads (set on purchase)
       tvChannel: 0,             // current TV scene (player can cycle by clicking)
 

@@ -38,6 +38,9 @@
       if(mood < 0){
         o.scrapped += -mood * 4;
         o.small += -mood * 3;
+      } else if(mood > 0){
+        // a GOOD relationship is a real lever: a happy client forgives more
+        o.approve += mood * (G.BAL.MOOD_APPROVE_PER || 4);
       }
 
       return { odds: o, conflict: conflict };

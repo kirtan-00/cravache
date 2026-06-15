@@ -4,28 +4,27 @@
 <meta charset="UTF-8">
 <title>CravAche</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<!-- PWA / iOS add-to-home-screen -->
-<link rel="manifest" href="manifest.json">
+<!-- PWA manifest + service worker are injected by vite-plugin-pwa -->
 <meta name="theme-color" content="#0a0e1a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CravAche">
-<link rel="apple-touch-icon" href="art/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="art/icon-192.png">
+<link rel="apple-touch-icon" href="./art/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="./art/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="./css/style.css">
+<!-- feature stylesheets (populated by feature agents) -->
+<link rel="stylesheet" href="./css/call.css">
+<link rel="stylesheet" href="./css/briefs.css">
+<link rel="stylesheet" href="./css/arcade.css">
 <style id="mobile-overrides">
-  /* mobile / standalone: kill scroll-bounce, zoom, tap-highlight; honor safe areas */
   html, body { margin:0; height:100%; background:#05070f; overflow:hidden;
     overscroll-behavior:none; touch-action:none; -webkit-tap-highlight-color:transparent;
     -webkit-user-select:none; user-select:none; }
-  /* clip off-stage elements (e.g. the parked WhatsApp panel) so they don't show
-     in the letterbox margins when the stage is scaled smaller than the screen */
   #stage { overflow:hidden; }
-  /* rotate-to-landscape hint on portrait phones (the game is 16:9 landscape) */
   #rotate-hint { display:none; }
   @media (orientation:portrait) and (max-width:900px) {
     #rotate-hint { display:flex; position:fixed; inset:0; z-index:99999; background:#06090f;
@@ -38,51 +37,30 @@
   @keyframes rh { 0%,100%{ transform:rotate(0) } 50%{ transform:rotate(-90deg) } }
 </style>
 <style id="trial-css-overrides">
-  /* compact, tidy night-skip pill above the dock (was an oversized square) */
   #btn-skipnight{ width:auto; height:34px; padding:0 16px; top:-44px; right:14px;
     font-size:11px; display:inline-flex; align-items:center; gap:6px; box-shadow:2px 2px 0 #000; }
-
-  /* ============================================================
-     1) SLIM NEW-BRIEF OFFER CARDS
-     Default = compact: client + title + fee/deadline line + SIGN/PASS + timer.
-     The ask-flavor line, the fine print, and the teaching hint only appear on
-     hover (hovering already pauses the clock, so detail belongs there).
-     Structure inside .toast.brief-toast (dock.js showBriefToast):
-       .toast-head            client · stars · urgency   (keep)
-       .toast-title           (keep)
-       .toast-sub  (1st)      = def.ask flavor sentence  (hide by default)
-       .toast-sub  (2nd)      = role + fee + days  (has .toast-fee)  (keep)
-       .bc-fine               = fine print                  (hide by default)
-       .toast-btns            SIGN / PASS                   (keep)
-       .toast-timer           (keep)
-       .toast-read-hint       teaching hint                 (hide by default)
-     NOTE: :first-of-type is by element TAG (both subs are <div>), so it cannot
-     single out the ask line. The ask is the only .toast-sub WITHOUT .toast-fee,
-     so target it with :not(:has(.toast-fee)).
-     ============================================================ */
   #toasts .toast.brief-toast{ padding:6px 11px 6px; }
-  /* the ask flavor is the .toast-sub that does NOT carry the fee/role/days */
   #toasts .toast.brief-toast .toast-sub:not(:has(.toast-fee)){ display:none; }
   #toasts .toast.brief-toast .bc-fine{ display:none; }
-  /* keep the title a touch tighter so a default card is ~half height */
   #toasts .toast.brief-toast .toast-title{ font-size:18px; line-height:1.02; }
   #toasts .toast.brief-toast .toast-sub{ margin-top:1px; }
   #toasts .toast.brief-toast .toast-btns{ margin-top:6px; }
   #toasts .toast.brief-toast .toast-timer{ margin-top:6px; }
-  /* hover (game already paused on hover) reveals the full detail */
   #toasts .toast.brief-toast:hover .toast-sub:not(:has(.toast-fee)){ display:block; }
   #toasts .toast.brief-toast:hover .bc-fine{ display:block; }
   #toasts .toast.brief-toast:hover .toast-read-hint{ display:block; }
-
-  /* ============================================================
-     2) HUD labels — money reads as money (₹), so hide ONLY its label.
-     Keep the REP and CHAOS labels so players know what those two values are.
-     ============================================================ */
   #chip-money .chip-label{ display:none; }
+  .chip-label{ font-size:11px !important; }
+  .bc-role, .bc-fine{ font-size:12px !important; }
+  .toast-read-hint{ font-size:12px !important; }
+  #chip-chaos.chaos-danger{ outline:2px solid #ff5c5c; outline-offset:1px; border-radius:5px;
+    animation:chaosWarn 1s ease-in-out infinite; }
+  #chip-chaos.chaos-danger .chip-label::before{ content:'⚠ '; }
+  @keyframes chaosWarn{ 0%,100%{ outline-color:#ff5c5c; } 50%{ outline-color:rgba(255,92,92,.25); } }
 </style>
-</head>
+  <script type="module" crossorigin src="./assets/index-U9jG_8p8.js"></script>
+<link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
 <body>
-<!-- portrait phones: ask to rotate (game is 16:9 landscape) -->
 <div id="rotate-hint">
   <div class="rh-ico">📱</div>
   <div class="rh-t">ROTATE YOUR PHONE</div>
@@ -91,8 +69,6 @@
 <div id="stage">
   <canvas id="game" width="1280" height="720"></canvas>
 
-  <!-- HUD: top chips (DOM). Dave-the-Diver chrome: one merged stat bar on the
-       left, one clock chip + two equal square icon-buttons on the right. -->
   <div id="hud">
     <div class="chip statbar" id="chip-stats">
       <span class="stat" id="chip-money"><span class="chip-label">CASH</span><span class="chip-val" id="hud-money">₹0</span></span>
@@ -110,10 +86,8 @@
     <button class="chip chip-iconbtn" id="btn-mute" title="mute">🔊</button>
   </div>
 
-  <!-- toasts -->
   <div id="toasts"></div>
 
-  <!-- bottom dock -->
   <div id="dock">
     <div class="tray-wrap">
       <div class="tray-tab">TRAY <span id="tray-count"></span></div>
@@ -128,16 +102,10 @@
     <button class="px-btn dock-btn hidden" id="btn-skipnight">🌙 SKIP NIGHT</button>
   </div>
 
-  <!-- drag ghost -->
   <div id="drag-ghost" class="hidden"></div>
-
-  <!-- dim layer for 6PM call -->
   <div id="dim" class="hidden"></div>
-
-  <!-- modal root -->
   <div id="modal-root" class="hidden"></div>
 
-  <!-- restructure mode (investor bailout): sim frozen, manage freely -->
   <div id="restructure" class="hidden">
     <div class="rs-banner">
       <div class="rs-title">⏸ RESTRUCTURING</div>
@@ -146,14 +114,11 @@
     <button id="btn-letsgo" class="px-btn px-btn-big">LET'S GO!</button>
   </div>
 
-  <!-- start screen — Minecraft-style main menu (full-stage timelapse sky bg,
-       big logo top-center, centered wide button stack, smaller bottom row).
-       Button IDs (#btn-start / #btn-continue) + handlers are preserved. -->
   <div id="start-screen">
     <canvas id="home-sky" width="1280" height="720"></canvas>
     <div class="mc-menu">
       <div class="mc-top">
-        <img id="mc-logo" src="art/logo_cravache.png" alt="CRAVACHE" draggable="false">
+        <img id="mc-logo" src="./art/logo_cravache.png" alt="CRAVACHE" draggable="false">
         <div class="start-tag">an indian ad agency survival sim</div>
       </div>
       <div class="mc-stack">
@@ -164,102 +129,61 @@
           <button id="btn-sound" class="px-btn px-btn-dim mc-btn-sm" type="button">SOUND: ON</button>
         </div>
       </div>
-      <div class="start-foot">laptop only · sound on recommended · autosaves</div>
+      <div class="start-foot">ideally played on a PC / laptop · sound on recommended · autosaves</div>
     </div>
   </div>
   <style id="home-menu-css">
-    /* scoped Minecraft-style menu — lives only inside #start-screen */
     #start-screen{ overflow:hidden; }
-    #start-screen #home-sky{
-      position:absolute; inset:0; width:1280px; height:720px;
-      image-rendering:pixelated; z-index:0;
-    }
-    #start-screen .mc-menu{
-      position:absolute; inset:0; z-index:1;
-      display:flex; flex-direction:column; align-items:center;
-      padding:48px 0 36px; text-align:center;
-    }
-    /* logo near top-center — ~46% of the 1280 stage (~590px), 15% bigger than MC's ~40% */
+    #start-screen #home-sky{ position:absolute; inset:0; width:1280px; height:720px; image-rendering:pixelated; z-index:0; }
+    #start-screen .mc-menu{ position:absolute; inset:0; z-index:1; display:flex; flex-direction:column; align-items:center; padding:48px 0 36px; text-align:center; }
     #start-screen .mc-top{ margin-top:34px; display:flex; flex-direction:column; align-items:center; }
-    #start-screen #mc-logo{
-      width:590px; height:auto; display:block;
-      image-rendering:pixelated;
-      filter:drop-shadow(5px 6px 0 #000) drop-shadow(0 0 0 #000);
-      animation:mc-bob 3.4s ease-in-out infinite;
-      transition:filter .15s ease;
-    }
+    #start-screen #mc-logo{ width:590px; height:auto; display:block; image-rendering:pixelated;
+      filter:drop-shadow(5px 6px 0 #000) drop-shadow(0 0 0 #000); animation:mc-bob 3.4s ease-in-out infinite; transition:filter .15s ease; }
     @keyframes mc-bob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
-    #start-screen .start-tag{
-      margin:14px 0 0; font-family:'Silkscreen',monospace; font-size:13px;
-      color:var(--brass); letter-spacing:2px;
-      text-shadow:2px 2px 0 #000;
-    }
-    /* centered vertical stack of WIDE buttons (MC layout) */
-    #start-screen .mc-stack{
-      margin-top:auto; margin-bottom:14px;
-      display:flex; flex-direction:column; align-items:center; gap:14px;
-    }
-    #start-screen .mc-btn{
-      width:440px; font-size:18px; padding:15px 20px 13px;
-      letter-spacing:1px;
-    }
-    #start-screen .mc-row{
-      display:flex; gap:14px; width:440px; margin-top:2px;
-    }
-    #start-screen .mc-btn-sm{
-      flex:1 1 0; font-size:13px; padding:11px 10px 9px;
-    }
-    #start-screen .start-foot{
-      font-family:'VT323',monospace; font-size:17px;
-      color:var(--paper); opacity:.78; margin-top:6px;
-      text-shadow:1px 1px 0 #000;
-    }
+    #start-screen .start-tag{ margin:14px 0 0; font-family:'Silkscreen',monospace; font-size:13px; color:var(--brass); letter-spacing:2px; text-shadow:2px 2px 0 #000; }
+    #start-screen .mc-stack{ margin-top:auto; margin-bottom:14px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+    #start-screen .mc-btn{ width:440px; font-size:18px; padding:15px 20px 13px; letter-spacing:1px; }
+    #start-screen .mc-row{ display:flex; gap:14px; width:440px; margin-top:2px; }
+    #start-screen .mc-btn-sm{ flex:1 1 0; font-size:13px; padding:11px 10px 9px; }
+    #start-screen .start-foot{ font-family:'VT323',monospace; font-size:17px; color:var(--paper); opacity:.78; margin-top:6px; text-shadow:1px 1px 0 #000; }
   </style>
 </div>
 
-<script src="js/audio.js"></script>
-<script src="js/embed-data.js"></script>
-<script src="js/data.js"></script>
-<script src="js/state.js"></script>
-<script src="js/save.js"></script>
-<script src="js/time.js"></script>
-<script src="js/systems/briefs.js"></script>
-<script src="js/systems/staff.js"></script>
-<script src="js/systems/economy.js"></script>
-<script src="js/systems/growth.js"></script>
-<script src="js/systems/chaos.js"></script>
-<script src="js/systems/events.js"></script>
-<script src="js/systems/verdict.js"></script>
-<script src="js/systems/wander.js"></script>
-<script src="js/render/office_trial.js"></script>
-<script src="js/render/hud.js"></script>
-<script src="js/render/dock.js"></script>
-<script src="js/render/modals.js"></script>
-<script src="js/render/monday.js"></script>
-<script src="js/trial_overrides.js"></script>
-<script src="js/trial_uxfixes.js"></script>
-<script src="js/trial_briefqueue.js"></script>
-<script src="js/trial_juice.js"></script>
-<script src="js/trial_progression.js"></script>
-<script src="js/trial_music.js"></script>
-<script src="js/trial_homescreen.js"></script>
-<script src="js/trial_retainers.js"></script>
-<script src="js/main.js"></script>
-<script>
-  // register the service worker so the home-screen app works offline.
-  // network-first SW + this auto-reload means a new build reaches the phone the
-  // next time it opens online, instead of staying frozen on an old cache.
-  if ('serviceWorker' in navigator) {
-    var __reloading = false;
-    navigator.serviceWorker.addEventListener('controllerchange', function () {
-      if (__reloading) return; __reloading = true; window.location.reload();
-    });
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js')
-        .then(function (reg) { reg.update(); })
-        .catch(function () {});
-    });
-  }
-</script>
+<!-- ===== PROVEN GAME (served verbatim from public/, classic scripts, load order matters) ===== -->
+<script src="./js/audio.js"></script>
+<script src="./js/embed-data.js"></script>
+<script src="./js/data.js"></script>
+<script src="./js/state.js"></script>
+<script src="./js/save.js"></script>
+<script src="./js/time.js"></script>
+<script src="./js/systems/briefs.js"></script>
+<script src="./js/systems/staff.js"></script>
+<script src="./js/systems/economy.js"></script>
+<script src="./js/systems/growth.js"></script>
+<script src="./js/systems/chaos.js"></script>
+<script src="./js/systems/events.js"></script>
+<script src="./js/systems/verdict.js"></script>
+<script src="./js/systems/wander.js"></script>
+<script src="./js/render/office_trial.js"></script>
+<script src="./js/render/studio.js"></script>
+<script src="./js/render/hud.js"></script>
+<script src="./js/render/dock.js"></script>
+<script src="./js/render/modals.js"></script>
+<script src="./js/render/monday.js"></script>
+<script src="./js/trial_overrides.js"></script>
+<script src="./js/trial_uxfixes.js"></script>
+<script src="./js/trial_briefqueue.js"></script>
+<script src="./js/trial_juice.js"></script>
+<script src="./js/trial_progression.js"></script>
+<script src="./js/trial_music.js"></script>
+<script src="./js/trial_homescreen.js"></script>
+<script src="./js/trial_retainers.js"></script>
+<script src="./js/trial_onboarding.js"></script>
+<script src="./js/trial_lifelines.js"></script>
+<script src="./js/trial_autoassign.js"></script>
+<script src="./js/arcade.js"></script>
+<script src="./js/main.js"></script>
+
+<!-- ===== modern src/ layer (bundled by Vite: Howler audio, GSAP, enhancements) ===== -->
 </body>
 </html>

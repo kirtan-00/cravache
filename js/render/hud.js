@@ -26,6 +26,7 @@
       el.rep = document.getElementById('hud-rep');
       el.chaos = document.getElementById('hud-chaos');
       el.chaosFill = document.getElementById('hud-chaos-fill');
+      el.chaosChip = document.getElementById('chip-chaos');
       el.clock = document.getElementById('hud-clock');
       el.week = document.getElementById('hud-week');
       el.mute = document.getElementById('btn-mute');
@@ -74,6 +75,8 @@
       el.chaos.textContent = c + '%';
       el.chaosFill.style.width = c + '%';
       el.chaosFill.classList.toggle('hot', c >= 60);
+      // colour-blind-safe danger cue (CSS adds a ⚠ + pulsing ring past 60%)
+      if(el.chaosChip) el.chaosChip.classList.toggle('chaos-danger', c >= 60);
 
       el.clock.textContent = G.time.clockString();
       el.week.textContent = 'WK ' + s.week + ' · ' +

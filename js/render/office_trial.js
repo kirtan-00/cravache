@@ -46,7 +46,7 @@
   // POSITIONS (d.x/d.y) where they are. Everything that sits on a desk — the
   // seated char, laptop, blue glow, drop hitbox, "empty"/dept labels — is derived
   // from these scaled constants (and SEAT_OVERLAP below), so it all stays aligned.
-  var DESK_SCALE = 0.8;
+  var DESK_SCALE = 0.64;   // desks 20% smaller again (0.8 -> 0.64); grid positions stay aligned
   var DESK_W = Math.round(150 * DESK_SCALE), DESK_H = Math.round(64 * DESK_SCALE); // drawn desk size (front-on)
   var CHAR_W = Math.round(50 * DESK_SCALE), CHAR_H = Math.round(76 * DESK_SCALE);  // staff drawn size (scaled to match)
 
@@ -62,6 +62,28 @@
 
   // hotspot flavor rotors (not saved; the city has infinite material)
   var windowIdx = 0, boardIdx = 0, printerIdx = 0;
+
+  // ---- aquarium fish sim (persistent; fish stay INSIDE the glass, swim to food) ----
+  // Tank rect matches HOTSPOTS.aquarium / drawAquarium (ax=40, ay=560, 150x100).
+  var AQ = { x: 40, y: 560, w: 150, h: 100, pad: 14 };
+  var aqFish = null;      // lazy init: two fish { x, y, vx, vy, col, sz, fed }
+  var aqFood = [];        // sinking pellets: { x, y, vy, life }
+  var aqLastT = 0;        // for dt inside the draw call (no dt is passed to props)
+
+  function aqInit(){
+    aqFish = [
+      { x: AQ.x + 45, y: AQ.y + 38, vx: 22, vy: 5,  col: '#ff9a56', sz: 1.0, fed: 0 },
+      { x: AQ.x + 95, y: AQ.y + 64, vx: -18, vy: -7, col: '#ffe066', sz: 0.9, fed: 0 }
+    ];
+  }
+
+  // tapping the tank drops a food pellet just under the surface; fish gather to it.
+  function feedAquarium(lx, ly){
+    if(!aqFish) aqInit();
+    var fx = Math.max(AQ.x + 10, Math.min(AQ.x + AQ.w - 10, lx));
+    aqFood.push({ x: fx, y: AQ.y + 10, vy: 16, life: 9 });
+    while(aqFood.length > 6) aqFood.shift();   // never blast the tank with pellets
+  }
   var WINDOW_LINES = [
     'SG Highway is jammed. Like your printer.',
     'An auto just overtook a Fortuner. Both honked. Neither moved.',
@@ -561,6 +583,8 @@
     var fadeUnlocked = (G.state && G.state.week > 1);
     for(var c = 0; c < CLUSTERS.length; c++){
       var cl = CLUSTERS[c];
+      // production lives in the STUDIO now — never draw its cluster in the office
+      if(cl.dept === 'production') continue;
       var unlocked = G.staff.deptUnlocked(cl.dept);
       var bb = deptBounds(cl.dept);
       var cx = (bb.minX + bb.maxX) / 2;
@@ -791,6 +815,7 @@
     var s = G.state;
     for(var i = 0; i < DESKS.length; i++){
       var d = DESKS[i];
+      if(d.dept === 'production') continue;       // production works in the STUDIO, not the office floor
       if(!G.staff.deptUnlocked(d.dept)) continue; // taped-off zone draws nothing
 
       var st = G.staff.atDesk(i);
@@ -801,18 +826,33 @@
       var dyTop = d.y;                       // desk top/back edge
       var deskBottom = dyTop + DESK_H;
 
-      // drop highlight (dept-aware)
+      // drop highlight (dept-aware) — available workers GLOW strongly while
+      // you drag a brief, so it's obvious who can take it. Pulsing green halo.
       if(G.dock.dragging){
         var ok = st && !st.briefId && G.staff.canWork(st, G.dock.dragging);
-        ctx.fillStyle = hover
-          ? (ok ? 'rgba(126,224,138,0.25)' : 'rgba(255,92,92,0.25)')
-          : (ok ? 'rgba(159,232,255,0.10)' : 'rgba(0,0,0,0)');
         var hb = deskHitbox(i);
-        ctx.fillRect(hb.x, hb.y, hb.w, hb.h);
         if(ok){
-          ctx.strokeStyle = hover ? '#7ee08a' : 'rgba(159,232,255,0.5)';
-          ctx.lineWidth = 3;
+          var pulse = 0.5 + 0.5 * Math.sin(t * 6 + i);
+          ctx.fillStyle = hover ? 'rgba(126,224,138,0.34)'
+                                : 'rgba(126,224,138,' + (0.14 + pulse * 0.10).toFixed(3) + ')';
+          ctx.fillRect(hb.x, hb.y, hb.w, hb.h);
+          // additive green glow halo so the desk clearly "lights up"
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          var gx = d.x, gy = dyTop + DESK_H / 2;
+          var grd = ctx.createRadialGradient(gx, gy, 4, gx, gy, DESK_W * 1.05);
+          var ga = (hover ? 0.42 : 0.22 + pulse * 0.14);
+          grd.addColorStop(0, 'rgba(126,224,138,' + ga.toFixed(3) + ')');
+          grd.addColorStop(1, 'rgba(126,224,138,0)');
+          ctx.fillStyle = grd;
+          ctx.fillRect(hb.x - 24, hb.y - 24, hb.w + 48, hb.h + 48);
+          ctx.restore();
+          ctx.strokeStyle = hover ? '#bdffd2' : 'rgba(126,224,138,' + (0.6 + pulse * 0.3).toFixed(3) + ')';
+          ctx.lineWidth = hover ? 4 : 3;
           ctx.strokeRect(hb.x + 1.5, hb.y + 1.5, hb.w - 3, hb.h - 3);
+        } else if(hover){
+          ctx.fillStyle = 'rgba(255,92,92,0.25)';
+          ctx.fillRect(hb.x, hb.y, hb.w, hb.h);
         }
       }
 
@@ -968,10 +1008,12 @@
   var HOTSPOTS = {
     chai:    { x: 800,  y: 194, w: 30,  h: 30  },  // tiny kettle on the RIGHT of the WIDENED windowsill, clear of the right mullion (x≈746)
     alexa:   { x: 836,  y: 194, w: 22,  h: 24  },  // Echo-Dot speaker just right of the kettle (music toggle)
-    printer: { x: 1148, y: 272, w: 34,  h: 36  },  // ~40% smaller, sitting ON the back content desk (x:1130,y:300)
+    printer: { x: 652,  y: 272, w: 34,  h: 36  },  // sits ON Arya's editor desk (first editor desk x:640,y:300)
     window:  { x: 440,  y: 46,  w: 459, h: 172 },  // the live studio window glass (widened +35%, right edge x=899)
     board:   { x: 14,   y: 55,  w: 337, h: 145 },  // HUSTLE board: x+w match the HUD stat panel (14..351), top 5px below it, bottom on the window line (y200)
-    tv:      { x: 920,  y: 60,  w: 200, h: 120 }   // flatscreen on back wall (right) — moved right to clear the widened window (right frame ends x=909)
+    tv:      { x: 920,  y: 60,  w: 200, h: 120 },  // flatscreen on back wall (right) — moved right to clear the widened window (right frame ends x=909)
+    aquarium:{ x: 40,   y: 560, w: 150, h: 100 },  // the fish tank (gated on the aquarium upgrade) — tap to drop food
+    studio:  { x: 858,  y: 556, w: 270, h: 58  }   // "GO TO PRODUCTION STUDIO" button (front-right, where the prod desks were)
   };
 
   // absurd ad-industry headlines for the TV news ticker (no real brands)
@@ -1079,7 +1121,7 @@
     var bx = h.x + Math.round((h.w - bw) / 2);     // centre body in the hotspot
     var by = (WIN.y + WIN.h) - bh;                 // base rests on the sill top (218)
     var ringY = by + 2;                            // ring sits around the top rim
-    var playing = !!(window.G && G.music && !G.music.isMuted());
+    var playing = !!(window.CravacheAlexa ? window.CravacheAlexa.isPlaying() : (window.G && G.music && !G.music.isMuted()));
 
     // contact shadow on the sill
     ctx.fillStyle = 'rgba(0,0,0,0.30)';
@@ -1168,19 +1210,24 @@
   function drawTrophies(ctx){
     var tr = G.state.trophies;
     if(!tr || !tr.length) return;
-    // shelf on the back wall, left of the TV
-    var x0 = 600, y0 = 250, n = Math.min(tr.length, 8);
-    labelChip(ctx, 'AWARDS', x0, y0 - 4, 8, 'left', true);
-    pxText(ctx, 'AWARDS', x0, y0 - 4, 8, 'rgba(255,224,102,0.7)', 'left', true);
-    ctx.fillStyle = '#3a2a14'; ctx.fillRect(x0 - 3, y0 + 18, n * 17 + 6, 4);
+    // a glass display case in the GAP between the hustle board (right edge ~x351)
+    // and the window (left edge x440) — a little trophy shelf beside the window.
+    var bx = 360, by = 64, cols = 2, cw = 36, rh = 22;
+    var n = Math.min(tr.length, 8);
+    labelChip(ctx, 'AWARDS', bx, by - 13, 8, 'left', true);
+    pxText(ctx, 'AWARDS', bx, by - 13, 8, 'rgba(255,224,102,0.85)', 'left', true);
     for(var i = 0; i < n; i++){
-      var x = x0 + i * 17;
+      var c = i % cols, r = Math.floor(i / cols);
+      var x = bx + c * cw, y = by + r * rh;
+      // wooden shelf line under each row
+      if(c === 0){ ctx.fillStyle = '#3a2a14'; ctx.fillRect(bx - 2, y + 18, cols * cw - 4, 3); }
+      // gold cup
       ctx.fillStyle = '#ffe066';
-      ctx.fillRect(x + 3, y0 + 2, 9, 8);
-      ctx.fillRect(x + 5, y0 + 10, 5, 4);
-      ctx.fillRect(x + 2, y0 + 14, 11, 3);
+      ctx.fillRect(x + 3, y + 2, 9, 8);
+      ctx.fillRect(x + 5, y + 10, 5, 4);
+      ctx.fillRect(x + 2, y + 14, 11, 3);
       ctx.fillStyle = '#b8860b';
-      ctx.fillRect(x + 3, y0 + 7, 9, 2);
+      ctx.fillRect(x + 3, y + 7, 9, 2);
     }
   }
 
@@ -1337,13 +1384,58 @@
   var COOLER_S = 0.62;               // shrunk per "make the team thing small"
   G.render.coolerPoint = function(){ return { x: COOLER.x + 20 * COOLER_S, y: COOLER.y + 70 * COOLER_S }; };
 
+  // Pour cycle: a short ~1.2s water stream from the tap, then a rest. It runs
+  // whenever a staffer is chatting at the cooler, and otherwise auto-fires on a
+  // gentle periodic timer so the prop always feels alive. _pourSfx guards the
+  // SFX so it triggers ONCE per pour (at the rising edge), not every frame.
+  var POUR_DUR = 1.2;          // seconds of visible stream
+  var POUR_GAP = 6.0;          // idle gap between auto-pours
+  var _pourSfx = false;        // true while we've already played the SFX this pour
+
+  // is anyone currently at the cooler? (away.mode === 'chatting' is the signal;
+  // see drawWanderers / wander.js — read-only, never written here)
+  function someoneAtCooler(){
+    if(!G.state || !G.state.staff) return false;
+    for(var i = 0; i < G.state.staff.length; i++){
+      var a = G.state.staff[i].away;
+      if(a && a.mode === 'chatting') return true;
+    }
+    return false;
+  }
+
   function drawCooler(ctx){
     var cx = COOLER.x, cy = COOLER.y;
     ctx.save();
     ctx.translate(cx, cy); ctx.scale(COOLER_S, COOLER_S); ctx.translate(-cx, -cy);
     ctx.fillStyle = 'rgba(0,0,0,0.30)'; ellipse(ctx, cx + 20, cy + 70, 28, 7);
+
+    // ----- decide whether water is pouring this frame -----
+    var pouring, pourPhase;   // pourPhase 0..1 over the active pour
+    if(someoneAtCooler()){
+      // continuous pour while someone is there; phase just cycles for the splash
+      pouring = true;
+      pourPhase = (t % POUR_DUR) / POUR_DUR;
+    } else {
+      // periodic auto-pour: POUR_DUR on, POUR_GAP off
+      var cycle = POUR_DUR + POUR_GAP;
+      var ph = t % cycle;
+      pouring = ph < POUR_DUR;
+      pourPhase = pouring ? (ph / POUR_DUR) : 0;
+    }
+
+    // rising edge -> play the pour SFX exactly once (defensive G.audio access)
+    if(pouring){
+      if(!_pourSfx){
+        _pourSfx = true;
+        if(window.G && G.audio && G.audio.waterPour) G.audio.waterPour();
+      }
+    } else {
+      _pourSfx = false;
+    }
+
     if(G.data.hasArt('water_cooler')){
       drawSprite(ctx, 'water_cooler', cx - 3, cy - 4, 46, 74);
+      if(pouring) drawCoolerStream(ctx, cx + 20, cy + 38, pourPhase);
       ctx.restore(); return;
     }
     ctx.fillStyle = '#05070f'; ctx.fillRect(cx - 2, cy + 30, 44, 38);
@@ -1357,13 +1449,42 @@
     ctx.fillStyle = '#8a94a0'; ctx.fillRect(cx + 8, cy + 58, 24, 3);
     ctx.fillStyle = '#05070f'; ctx.fillRect(cx + 6, cy - 2, 28, 34);
     ctx.fillStyle = 'rgba(120,180,220,0.85)'; ctx.fillRect(cx + 8, cy, 24, 30);
-    ctx.fillStyle = 'rgba(180,220,245,0.9)'; ctx.fillRect(cx + 8, cy + 4, 24, 24);
+
+    // jug water level gently bobs while pouring (subtle, ~1px)
+    var lvlDrop = pouring ? Math.round(Math.sin(t * 3) * 1 + 1) : 0;
+    ctx.fillStyle = 'rgba(180,220,245,0.9)'; ctx.fillRect(cx + 8, cy + 4 + lvlDrop, 24, 24 - lvlDrop);
+
+    // rising jug bubbles (existing flavour)
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
     var by = (t * 14) % 24;
     ctx.fillRect(cx + 14, cy + 26 - by, 2, 2);
     ctx.fillRect(cx + 22, cy + 28 - ((by + 12) % 24), 2, 2);
     ctx.fillStyle = '#3a6a8a'; ctx.fillRect(cx + 14, cy + 28, 12, 4);
+
+    // the spout stream + splash at the dispenser button area (cy+43)
+    if(pouring) drawCoolerStream(ctx, cx + 14, cy + 47, pourPhase);
     ctx.restore();
+  }
+
+  // a thin animated water stream falling from (sx,sy) with a little splash.
+  // Drawn in cooler-local coords (already inside the cooler transform).
+  function drawCoolerStream(ctx, sx, sy, phase){
+    var len = 14;
+    ctx.fillStyle = 'rgba(160,215,245,0.85)';
+    ctx.fillRect(sx, sy, 2, len);                 // the stream column
+    // a couple of falling droplets for life
+    ctx.fillStyle = 'rgba(200,235,255,0.9)';
+    var d1 = (t * 30) % len;
+    var d2 = (t * 30 + len / 2) % len;
+    ctx.fillRect(sx - 1, sy + d1, 2, 2);
+    ctx.fillRect(sx + 1, sy + d2, 2, 2);
+    // splash ripple at the base, pulsing with the pour phase
+    var spread = 3 + Math.abs(Math.sin(phase * Math.PI * 6)) * 3;
+    ctx.fillStyle = 'rgba(180,225,250,0.5)';
+    ctx.fillRect(sx - spread, sy + len, spread * 2 + 2, 2);
+    ctx.fillStyle = 'rgba(220,240,255,0.4)';
+    ctx.fillRect(sx - spread + 1, sy + len + 2, 2, 1);
+    ctx.fillRect(sx + spread - 1, sy + len + 2, 2, 1);
   }
 
   // ============================================================
@@ -1399,18 +1520,71 @@
       ctx.fillRect(wx + sway, ay + ah - 40, 5, 30);
       ctx.fillRect(wx + sway * 0.5, ay + ah - 56, 5, 18);
     }
-    // 3 drifting fish (wrap horizontally)
-    var fishCol = ['#ff9a56', '#ffe066', '#9fe8ff'];
-    for(var f = 0; f < 3; f++){
-      var span = aw + 30;
-      var fx = ax - 14 + ((f * 0.33 * span + t * (14 + f * 6)) % span);
-      var fy = ay + 24 + f * 22 + Math.sin(t * 2 + f) * 5;
-      ctx.fillStyle = fishCol[f];
-      ctx.fillRect(fx, fy, 12, 7);            // body
-      ctx.fillRect(fx + 12, fy + 1, 5, 5);    // tail
-      ctx.fillStyle = '#05070f';
-      ctx.fillRect(fx + 2, fy + 2, 2, 2);     // eye
+
+    // ---- simulate: keep fish INSIDE the glass; gather to dropped food ----
+    if(!aqFish) aqInit();
+    var dt = Math.max(0, Math.min(0.05, t - aqLastT));  // clamp (tab-switch safety)
+    aqLastT = t;
+    // inner swim box (fish centre stays clear of glass + gravel)
+    var minX = ax + AQ.pad, maxX = ax + aw - AQ.pad;
+    var minY = ay + AQ.pad, maxY = ay + ah - 18;
+
+    // food pellets sink, then rest on the gravel and expire
+    for(var fp = aqFood.length - 1; fp >= 0; fp--){
+      var pel = aqFood[fp];
+      pel.y = Math.min(maxY, pel.y + pel.vy * dt);
+      pel.life -= dt;
+      if(pel.life <= 0){ aqFood.splice(fp, 1); continue; }
+      ctx.fillStyle = 'rgba(255,210,120,' + Math.min(1, pel.life) + ')';
+      ctx.fillRect(pel.x - 1, pel.y - 1, 3, 3);
     }
+
+    // fish: seek nearest pellet if any, else gentle wander — always clamped in-tank
+    for(var fi = 0; fi < aqFish.length; fi++){
+      var fsh = aqFish[fi];
+      var target = null, best = 1e9;
+      for(var q = 0; q < aqFood.length; q++){
+        var dx0 = aqFood[q].x - fsh.x, dy0 = aqFood[q].y - fsh.y;
+        var d2 = dx0 * dx0 + dy0 * dy0;
+        if(d2 < best){ best = d2; target = aqFood[q]; }
+      }
+      if(target){
+        // accelerate toward the food (both fish converge on it)
+        var dist = Math.sqrt(best) || 1;
+        fsh.vx += (target.x - fsh.x) / dist * 120 * dt;
+        fsh.vy += (target.y - fsh.y) / dist * 120 * dt;
+        if(dist < 7){ // eaten
+          var ti = aqFood.indexOf(target);
+          if(ti >= 0) aqFood.splice(ti, 1);
+          fsh.fed = 0.6; // brief happy wiggle
+        }
+      } else {
+        // idle drift: tiny jitter + a soft pull back toward tank centre
+        fsh.vx += (Math.sin(t * 1.7 + fi * 2.3) * 8 + (ax + aw / 2 - fsh.x) * 0.4) * dt;
+        fsh.vy += (Math.cos(t * 1.3 + fi * 1.7) * 6 + (ay + ah / 2 - fsh.y) * 0.4) * dt;
+      }
+      // speed clamp (faster when chasing food)
+      var maxSpd = target ? 64 : 34;
+      var spd = Math.sqrt(fsh.vx * fsh.vx + fsh.vy * fsh.vy);
+      if(spd > maxSpd){ fsh.vx = fsh.vx / spd * maxSpd; fsh.vy = fsh.vy / spd * maxSpd; }
+      // integrate + HARD clamp to the swim box (this is what keeps them in the tank)
+      fsh.x += fsh.vx * dt; fsh.y += fsh.vy * dt;
+      if(fsh.x < minX){ fsh.x = minX; fsh.vx = Math.abs(fsh.vx); }
+      if(fsh.x > maxX){ fsh.x = maxX; fsh.vx = -Math.abs(fsh.vx); }
+      if(fsh.y < minY){ fsh.y = minY; fsh.vy = Math.abs(fsh.vy); }
+      if(fsh.y > maxY){ fsh.y = maxY; fsh.vy = -Math.abs(fsh.vy); }
+      if(fsh.fed > 0) fsh.fed -= dt;
+      // draw (tail trails behind travel direction; eye leads)
+      var faceR = fsh.vx >= 0;
+      var bw = Math.round(12 * fsh.sz), bh = Math.round(7 * fsh.sz);
+      var bx2 = Math.round(fsh.x - bw / 2), by2 = Math.round(fsh.y - bh / 2);
+      ctx.fillStyle = fsh.col;
+      ctx.fillRect(bx2, by2, bw, bh);                                  // body
+      ctx.fillRect(faceR ? bx2 - 5 : bx2 + bw, by2 + 1, 5, 5);         // tail (behind)
+      ctx.fillStyle = '#05070f';
+      ctx.fillRect(faceR ? bx2 + bw - 4 : bx2 + 2, by2 + 2, 2, 2);     // eye (leading)
+    }
+
     // bubble stream
     for(var bb = 0; bb < 5; bb++){
       var bx = ax + 30 + (bb % 2) * 4;
@@ -1443,8 +1617,10 @@
   }
 
   // ARCADE cabinet — glowing screen, on the floor.
+  // Click hitbox (see handleClick) is kept in lockstep with the draw rect below.
+  var ARCADE_HIT = { x: 300, y: 535, w: 70, h: 120 };
   function drawArcade(ctx){
-    var ax = 300, ay = 535, aw = 70, ah = 120;
+    var ax = ARCADE_HIT.x, ay = ARCADE_HIT.y, aw = ARCADE_HIT.w, ah = ARCADE_HIT.h;
     ctx.fillStyle = 'rgba(0,0,0,0.28)'; ellipse(ctx, ax + aw / 2, ay + ah, aw * 0.5, 9);
     // cabinet body
     ctx.fillStyle = '#1a2030'; ctx.fillRect(ax, ay, aw, ah);
@@ -1589,6 +1765,26 @@
     }
   }
 
+  // "GO TO PRODUCTION STUDIO" button — front-right, where the prod desks used to
+  // be. Production happens in the studio now; this is the door to it.
+  function drawStudioButton(ctx){
+    var h = HOTSPOTS.studio;
+    var unlocked = G.staff.deptUnlocked('production');
+    var pulse = 0.5 + 0.5 * Math.abs(Math.sin(t * 2));
+    // body
+    ctx.fillStyle = '#10182b'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.strokeStyle = unlocked ? 'rgba(255,224,102,' + (0.6 + 0.4 * pulse).toFixed(2) + ')'
+                               : 'rgba(159,232,255,0.55)';
+    ctx.lineWidth = 3; ctx.strokeRect(h.x + 1.5, h.y + 1.5, h.w - 3, h.h - 3);
+    // clapperboard glyph
+    ctx.fillStyle = '#0c1322'; ctx.fillRect(h.x + 12, h.y + 16, 26, 24);
+    for(var k = 0; k < 4; k++){ ctx.fillStyle = k % 2 ? '#0c1322' : '#f4e8cf'; ctx.fillRect(h.x + 12 + k * 6.5, h.y + 12, 6.5, 6); }
+    // label + arrow
+    pxText(ctx, 'PRODUCTION STUDIO', h.x + 50, h.y + 20, 14, 'rgba(255,224,102,0.96)', 'left', true);
+    pxText(ctx, unlocked ? 'tap to enter  ▶' : 'opens wk ' + G.BAL.PRODUCTION_UNLOCK_WEEK + '  ▶',
+           h.x + 50, h.y + 38, 14, 'rgba(159,232,255,0.9)', 'left');
+  }
+
   // ---------- props orchestrator ----------
   function drawProps(ctx){
     var s = G.state;
@@ -1598,6 +1794,7 @@
     drawAlexa(ctx);
     drawPrinter(ctx);
     drawTrophies(ctx);
+    drawStudioButton(ctx);
     // decor (gated; undefined => falsy => not owned)
     if(u.string_lights) drawStringLights(ctx);
     if(u.posters) drawPosters(ctx);
@@ -1609,11 +1806,7 @@
     if(u.tv) drawTV(ctx);
     if(u.cooler) drawCooler(ctx);
     if(u.neon) drawNeon(ctx);
-    // phone rings when a call is live (on the printer cabinet)
-    if(s.activeCall && Math.floor(t * 8) % 2 === 0){
-      drawSprite(ctx, 'phone_prop', HOTSPOTS.printer.x + 8, HOTSPOTS.printer.y - 30, 36, 36);
-      pxText(ctx, 'RING', HOTSPOTS.printer.x + 26, HOTSPOTS.printer.y - 38, 10, '#ff5c5c', 'center', true);
-    }
+    // (the 6PM call now shows as the bottom-left landline widget — no canvas phone icon)
   }
 
   // ---------- fire overlay (chaos) ----------
@@ -1678,6 +1871,31 @@
       var s = G.state;
       function inBox(h){ return lx >= h.x && lx <= h.x + h.w && ly >= h.y && ly <= h.y + h.h; }
 
+      // arcade cabinet: opens the playable Breakout minigame (gated on the upgrade).
+      // Rect matches drawArcade(): ax=300, ay=535, aw=70, ah=120.
+      if(s.upgrades && s.upgrades.arcade && inBox(ARCADE_HIT)){
+        if(window.CravacheArcade && window.CravacheArcade.open){
+          window.CravacheArcade.open();
+        } else if(G.audio){
+          G.audio.click();
+        }
+        return;
+      }
+
+      // STUDIO button (front-right): walk into the production studio. Players can
+      // always go look — if it hasn't unlocked yet the studio shows a "locked,
+      // unlocks week N" screen instead of the live set.
+      if(inBox(HOTSPOTS.studio)){
+        if(G.render.studio){ G.render.studio.enter(); return; }
+      }
+
+      // aquarium: tap the tank to drop fish food — both fish swim over to it
+      if(s.upgrades && s.upgrades.aquarium && inBox(HOTSPOTS.aquarium)){
+        feedAquarium(lx, ly);
+        if(G.audio && G.audio.click) G.audio.click();
+        return;
+      }
+
       // chai station: one round a day
       if(inBox(HOTSPOTS.chai)){
         var key = s.week * 10 + s.day;
@@ -1696,19 +1914,21 @@
             sipped++;
             if(Math.random() < 0.4) G.staff.say(st, 'chai ☕');
           });
+          G.chaos.add(-5);  // a chai round also calms the floor: chaos −5%
           G.audio.chaChing();
-          G.dock.infoToast('CHAI ROUND ☕', sipped + ' cutting chais. Burnout −' + G.BAL.CHAI_RELIEF + '%. Morale: briefly real.', 'good');
+          G.dock.infoToast('CHAI ROUND ☕', sipped + ' cutting chais. Burnout −' + G.BAL.CHAI_RELIEF + '%, chaos −5%. Morale: briefly real.', 'good');
         }
         return;
       }
 
-      // alexa: toggle the ambient music
+      // alexa: tap starts the song queue, then each tap skips to the next song
       if(inBox(HOTSPOTS.alexa)){
-        if(window.G && G.music){
-          var nowMuted = G.music.toggle();
-          G.audio.click();
+        try{ if(G.audio && G.audio.click) G.audio.click(); }catch(e){}
+        if(window.CravacheAlexa && window.CravacheAlexa.next){
+          var wasPlaying = window.CravacheAlexa.isPlaying && window.CravacheAlexa.isPlaying();
+          window.CravacheAlexa.next();
           if(G.dock && G.dock.infoToast){
-            G.dock.infoToast('ALEXA', nowMuted ? 'Music off. Just the city now.' : 'Late-night lo-fi, on.', '');
+            G.dock.infoToast('ALEXA', wasPlaying ? 'Next track.' : 'Speaker on. Songs rolling.', '');
           }
         }
         return;
