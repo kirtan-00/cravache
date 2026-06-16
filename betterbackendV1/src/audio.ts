@@ -58,6 +58,12 @@ let initialized = false;
 let howls: Howl[] = [];
 let current = 0;
 let songsActive = false;
+// "we have commanded the speaker on" — set the instant we call play(), cleared
+// only by an off tap. The tap state machine reads THIS, not howl.playing(),
+// because an html5 track reports playing()===false while it's still loading
+// over the network; a fast second tap would otherwise re-trigger instead of
+// advancing the queue.
+let playingIntent = false;
 
 function isGloballyMuted(): boolean {
   try {
@@ -96,6 +102,7 @@ function playIndex(i: number): void {
   });
   const howl = howls[current];
   if (howl && !howl.playing()) howl.play();
+  playingIntent = true;
 }
 
 /** Build the Howler playlist WITHOUT playing — playback waits for the first tap. */
@@ -124,6 +131,7 @@ function stopAll(): void {
   howls.forEach((h) => {
     if (h.playing()) h.stop();
   });
+  playingIntent = false;
 }
 
 function exposeController(): void {
@@ -133,7 +141,7 @@ function exposeController(): void {
   const next = (): TapResult => {
     if (!songsActive) return 'none'; // only our songs; never the lo-fi engine
     Howler.mute(isGloballyMuted());
-    if (!anyPlaying()) {
+    if (!playingIntent) {
       playIndex(current); // off → start the queue (current is 0 after a full pass)
       return 'on';
     }
@@ -150,11 +158,7 @@ function exposeController(): void {
     next,
     isPlaying: () => {
       if (songsActive) {
-        try {
-          return anyPlaying();
-        } catch {
-          return false;
-        }
+        return playingIntent; // lights the speaker ring the instant a tap turns it on
       }
       try {
         return !window.G?.music?.isMuted?.();
