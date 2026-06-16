@@ -201,6 +201,76 @@
       });
     },
 
+    // ---------- raise request ----------
+    // A staffer asks for a 10-30% raise. APPROVE: salary up that % (hits Friday
+    // payroll forever) + work speed +4% + a morale bump. DENY: free now, but
+    // burnout climbs — keep saying no and the burnout system may walk them out.
+    fireRaiseRequest: function(staffer){
+      var s = G.state;
+      var absDay = (s.week - 1) * 5 + s.day;
+      var st = staffer;
+      if(!st){
+        var pool = s.staff.filter(function(x){
+          return G.time.onClock(x) && !x.away &&
+                 (absDay - (x._raiseDay == null ? -99 : x._raiseDay) >= G.BAL.RAISE_COOLDOWN_DAYS);
+        });
+        st = pick(pool);
+      }
+      if(!st) return;
+
+      var span = G.BAL.RAISE_MAX_PCT - G.BAL.RAISE_MIN_PCT + 1;
+      var pct = G.BAL.RAISE_MIN_PCT + Math.floor(Math.random() * span);
+      st._raiseDay = absDay; // cooldown starts now, approve or deny
+
+      var first = st.name.split(' ')[0];
+      var ASKS = [
+        'I have carried this quarter on my back and one Red Bull. A %P% raise feels fair.',
+        'Another agency "called". I did not pick up. A %P% bump helps me keep ignoring them.',
+        'My rent went up, my chai went up, my patience went down. %P%?',
+        'I learned three tools nobody asked me to learn. Worth %P%, no?',
+        'I am the reason we did not lose that client last week. Quietly requesting %P%.',
+        'No drama, just numbers: %P% more and I stop refreshing LinkedIn jobs.',
+        'I said "as per our discussion" forty times this week. That is %P% of energy.'
+      ];
+      var line = pick(ASKS).replace('%P', pct);
+
+      G.audio.phoneRing();
+      G.modals.showEvent({
+        kicker: first + ' · wants a word',
+        title: 'RAISE REQUEST',
+        // name lives in the text too: the WhatsApp route shows title+text only
+        // (kicker is used for thread routing), so this is how the player sees WHO.
+        text: first + ': "' + line + '"',
+        options: [
+          {
+            label: 'Approve · +' + pct + '%',
+            cls: '',
+            onPick: function(){
+              st.salaryMonthly = Math.round(st.salaryMonthly * (1 + pct / 100) / 500) * 500;
+              st.raises = (st.raises || 0) + 1;
+              st.burnout = Math.max(0, st.burnout - G.BAL.RAISE_APPROVE_RELIEF);
+              if(G.audio.chaChing) G.audio.chaChing();
+              G.staff.say(st, pick(['legend ✦', 'knew you would', 'worth it', 'chai on me ☕']));
+              G.dock.infoToast('RAISE APPROVED',
+                first + ' is now on ' + G.fmtMoney(st.salaryMonthly) + '/mo. Speed +' +
+                Math.round(G.BAL.RAISE_SPEED_PER * 100) + '%. Payroll will remember this.', 'good');
+            }
+          },
+          {
+            label: 'Deny',
+            cls: 'px-btn-dim',
+            onPick: function(){
+              st.burnout = Math.min(100, st.burnout + G.BAL.RAISE_DENY_BURNOUT);
+              if(G.audio.decline) G.audio.decline();
+              G.staff.say(st, pick(['noted.', 'cool. cool cool cool.', 'fine.', 'updating my CV. kidding. maybe.']));
+              G.dock.infoToast('RAISE DENIED',
+                first + ' took it professionally. (Burnout +' + G.BAL.RAISE_DENY_BURNOUT + '%. They will remember too.)', 'bad');
+            }
+          }
+        ]
+      });
+    },
+
     // ---------- burnout warning ----------
     fireBurnoutWarn: function(staffer){
       var def = pick(G.data.eventsByType('burnoutwarn'));

@@ -103,6 +103,17 @@
     CALL_HOLD_REAL_SECONDS: 5,   // "10 in-game minutes" of your attention
     OFFICE_EVENT_CHANCE_PER_DAY: 0.4,  // wifi/hotspot drama ~ once per 2-3 days
 
+    // raise requests: a staffer asks for a 10-30% bump. Approving permanently
+    // raises their salary (Friday payroll) but boosts work speed; denying stings
+    // morale. Week 2+, once a day at most, per-staffer cooldown so it recurs.
+    RAISE_CHANCE_PER_DAY: 0.5,
+    RAISE_MIN_PCT: 10, RAISE_MAX_PCT: 30,
+    RAISE_SPEED_PER: 0.04,       // +4% work speed per approved raise (stacks)
+    RAISE_APPROVE_RELIEF: 8,     // burnout shaved off — they feel valued
+    RAISE_DENY_BURNOUT: 12,      // burnout added — a denied "no" is not free
+    RAISE_COOLDOWN_DAYS: 4,      // game-days before the same person can ask again
+    RAISE_START_WEEK: 2,         // no raise asks during the forgiving first week
+
     // shop (Friday upgrade moment, TWO purchases per week)
     SHOP: {
       plant:         { name:"Office plant",     price:12000, desc:"morale. allegedly." },
@@ -289,6 +300,8 @@
       activeCall: null,         // 6PM call in progress
       callFiredToday: false,
       officeEventToday: false,
+      raiseAskedToday: false,   // a staffer may ask for a raise, once a day
+      _raiseAt: null,
 
       stats: {                  // week-scoped (reset each Friday) + run totals
         weekEarned: 0, weekSpent: 0, weekShipped: 0, weekScrapped: 0,
@@ -310,6 +323,7 @@
       portraitKey: def.portraitKey || 'char1',
       burnout: 0, desk: -1, briefId: null,
       shippedWeek: 0,               // MVP race for the friday IG reel
+      raises: 0, _raiseDay: -99,    // approved raises (each +RAISE_SPEED_PER speed) + cooldown marker
       bubble: null, bubbleT: 0      // floating speech bubble
     };
   }

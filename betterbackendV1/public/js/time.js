@@ -75,6 +75,22 @@
         G.events.fireOfficeEvent();
       }
 
+      // a staffer may ask for a raise (week 2+), at most once a day, early
+      // afternoon. Scheduled a beat later, and held until the screen is clear.
+      if(!s.raiseAskedToday && s.week >= G.BAL.RAISE_START_WEEK &&
+         this.hour() >= 12 && this.hour() < 16 && !s.activeCall){
+        s.raiseAskedToday = true; // roll once per day
+        if(Math.random() < G.BAL.RAISE_CHANCE_PER_DAY){
+          s._raiseAt = s.dayT + 2 + Math.random() * 6;
+        }
+      }
+      if(s._raiseAt && s.dayT >= s._raiseAt){
+        if(!s.activeCall && G.modals && !G.modals.anyOpen()){
+          s._raiseAt = null;
+          G.events.fireRaiseRequest();
+        }
+      }
+
       // 7PM: the office empties, the night shift begins
       if(!s.night && s.dayT >= G.BAL.DAY_REAL_SECONDS){
         s.night = true;
@@ -145,6 +161,8 @@
       s.callFiredToday = false;
       s.officeEventToday = false;
       s._officeEventAt = null;
+      s.raiseAskedToday = false;
+      s._raiseAt = null;
       // the printer wakes up wrong some mornings; stays jammed until clicked
       if(!s.printerJammed && Math.random() < G.BAL.PRINTER_JAM_CHANCE){
         s.printerJammed = true;
