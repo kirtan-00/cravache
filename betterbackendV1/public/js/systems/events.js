@@ -130,7 +130,10 @@
       // apply the "take the call" option effects if defined
       var opt = call.def && call.def.options ? call.def.options[0] : null;
       if(opt) this.applyEffects(opt.effects, { clientId: call.client.id });
-      G.dock.infoToast('FRAMED IT', 'That quote went straight on the office wall.', 'good');
+      // listening to a client out costs nothing but time — and it calms the floor.
+      G.chaos.add(-5);
+      G.hud.poke('chaos');
+      G.dock.infoToast('FRAMED IT', 'You heard them out. Quote on the wall, chaos −5%.', 'good');
     },
 
     // hung up / ignored
