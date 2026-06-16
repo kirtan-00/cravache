@@ -125,7 +125,8 @@
       arcade:        { name:"Arcade cabinet",    price:55000, desc:"break-room legend. idle recovers 20% faster, tiny chaos tick" },
       coffee:        { name:"Coffee machine",    price:60000, desc:"burnout builds 30% slower" },
       neon:          { name:"Neon sign",         price:80000, desc:"rep gains hit harder" },
-      cat:           { name:"Office cat",         price:50000, desc:"a ginger menace roams the floor. tap to pet — purrs calm everyone" }
+      cat:           { name:"Office cat",         price:50000, desc:"a ginger menace roams the floor. tap to pet — purrs calm everyone" },
+      foosball:      { name:"Foosball table",     price:70000, desc:"break-room war. tap for a match — idle staff blow off steam, burnout drops" }
     },
 
     // auto-assign (trial_autoassign.js): a big-ticket ops upgrade. Once bought,

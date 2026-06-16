@@ -1911,6 +1911,59 @@
     G.dock.infoToast('PURR 🐈', 'The office cat accepts your tribute. ' + n + ' people exhale. Chaos −2%.', 'good');
   }
 
+  // ---------- foosball table (shop: u.foosball) — tap for a match break ----------
+  // Break-room war machine. Tapping kicks off a short match (rods wiggle, ball
+  // ricochets, score ticks) and pulls up to two idle staff for a burnout break.
+  var FOOS = null, foosLastT = 0;
+  var FOOS_BOX = { x: 500, y: 538, w: 150, h: 58 };
+  function initFoos(){ FOOS = { matchT: 0, cd: 0, score: [0, 0], bx: 0.5, by: 0.5, vx: 0.9, vy: 0.4, rod: 0, t: 0 }; }
+  function tickFoos(dt){
+    if(!FOOS) initFoos();
+    var f = FOOS; f.t += dt; if(f.cd > 0) f.cd -= dt;
+    if(f.matchT > 0){
+      f.matchT -= dt; f.rod += dt * 7;
+      f.bx += f.vx * dt; f.by += f.vy * dt;
+      if(f.bx < 0.05){ f.score[1]++; f.bx = 0.5; f.by = 0.5; f.vx = 0.9; f.vy = (Math.random() - 0.5); }
+      else if(f.bx > 0.95){ f.score[0]++; f.bx = 0.5; f.by = 0.5; f.vx = -0.9; f.vy = (Math.random() - 0.5); }
+      if(f.by < 0.12){ f.by = 0.12; f.vy = Math.abs(f.vy); }
+      if(f.by > 0.88){ f.by = 0.88; f.vy = -Math.abs(f.vy); }
+    }
+  }
+  function drawFoos(ctx){
+    var dt = Math.max(0, Math.min(0.05, t - foosLastT)); foosLastT = t;
+    tickFoos(dt);
+    var f = FOOS, B = FOOS_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
+    ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + 8, y + h - 2, 6, 16); ctx.fillRect(x + w - 14, y + h - 2, 6, 16);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ellipse(ctx, x + w / 2, y + h + 15, w * 0.5, 6);
+    ctx.fillStyle = '#5a3b22'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
+    ctx.fillStyle = '#1f7a43'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + w / 2, y); ctx.lineTo(x + w / 2, y + h); ctx.stroke();
+    ctx.strokeRect(x + 1, y + h / 2 - 9, 3, 18); ctx.strokeRect(x + w - 4, y + h / 2 - 9, 3, 18);
+    var rodsX = [0.26, 0.45, 0.6, 0.8];
+    for(var r = 0; r < rodsX.length; r++){
+      var rx = x + rodsX[r] * w, team = (r % 2 === 0) ? '#d24b3e' : '#3a6ea5';
+      ctx.strokeStyle = '#cfd3da'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(rx, y - 3); ctx.lineTo(rx, y + h + 3); ctx.stroke();
+      var wig = f.matchT > 0 ? Math.sin(f.rod + r) * 4 : 0;
+      for(var pI = 0; pI < 2; pI++){ var py = y + h * (0.3 + 0.4 * pI) + wig; ctx.fillStyle = team; ctx.fillRect(rx - 2, py - 5, 4, 10); }
+    }
+    var bx = x + f.bx * w, by = y + f.by * h;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(bx, by, 2.5, 0, Math.PI * 2); ctx.fill();
+    pxText(ctx, f.score[0] + ' : ' + f.score[1], x + w / 2, y - 9, 13, '#f4e8cf', 'center');
+    if(f.matchT <= 0) pxText(ctx, 'FOOSBALL · tap to play', x + w / 2, y + h + 27, 11, 'rgba(159,232,255,0.7)', 'center');
+  }
+  function playFoos(){
+    if(!FOOS) initFoos();
+    var f = FOOS;
+    if(G.audio && G.audio.click) G.audio.click();
+    if(f.cd > 0){ G.dock.infoToast('FOOSBALL', 'Match in progress. Let them finish.', ''); return; }
+    f.matchT = 4.5; f.bx = 0.5; f.by = 0.5; f.vx = (Math.random() < 0.5 ? -1 : 1) * 0.9; f.vy = (Math.random() - 0.5); f.cd = 8;
+    var n = 0;
+    G.state.staff.forEach(function(st){ if(n < 2 && G.time.onClock(st) && !st.briefId){ st.burnout = Math.max(0, st.burnout - 8); n++; } });
+    if(G.chaos && G.chaos.add) G.chaos.add(-2);
+    G.dock.infoToast('FOOSBALL BREAK ⚽', (n || 'No') + ' idle hands hit the table. Burnout down, smack-talk up.', 'good');
+  }
+
   // ---------- props orchestrator ----------
   function drawProps(ctx){
     var s = G.state;
@@ -1925,6 +1978,7 @@
     if(u.string_lights) drawStringLights(ctx);
     if(u.posters) drawPosters(ctx);
     if(u.aquarium) drawAquarium(ctx);
+    if(u.foosball) drawFoos(ctx);
     if(u.arcade) drawArcade(ctx);
     if(u.plant_big) drawPlantBig(ctx);
     if(u.coffee) drawCoffee(ctx);
@@ -1998,6 +2052,14 @@
     handleClick: function(lx, ly){
       var s = G.state;
       function inBox(h){ return lx >= h.x && lx <= h.x + h.w && ly >= h.y && ly <= h.y + h.h; }
+
+      // foosball table: tap to kick off a match break
+      if(s.upgrades && s.upgrades.foosball &&
+         lx >= FOOS_BOX.x - 6 && lx <= FOOS_BOX.x + FOOS_BOX.w + 6 &&
+         ly >= FOOS_BOX.y - 14 && ly <= FOOS_BOX.y + FOOS_BOX.h + 12){
+        playFoos();
+        return;
+      }
 
       // office cat: tap the roaming pet to pet it (generous hitbox; it moves)
       if(s.upgrades && s.upgrades.cat && CAT &&
