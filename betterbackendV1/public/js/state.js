@@ -29,7 +29,7 @@
     // and Vraj (editor) who also pull night shifts.
     NIGHT_OWLS: { s_arya: true, s_natasha: true, s_dev_anand: true, s_vicky: true, s_imran: true, s_farhan: true },
     NIGHT_OWL_SPEED: 1.2,        // staff.js: night owls work this much faster at night, so staying for night work is a real choice, not just a skip
-    WEEKS: 8,                    // local -> gujarat -> india -> dubai -> global
+    WEEKS: 8,                    // local -> gujarat -> india -> mumbai -> global
 
     // departments
     DEPT_CAPS: { designer: 5, editor: 5, content: 3, production: 5 },
@@ -48,8 +48,8 @@
     OVERHEAD_LATE_RAMP: 40000,   // per-week escalator applied past OVERHEAD_LATE_WEEK (economy.js reads this)
 
     // client tiers: week each tier starts appearing
-    TIER_UNLOCK: { local: 1, gujarat: 2, india: 3, dubai: 4, global: 7 },
-    TIER_LABEL: ['LOCAL', 'GUJARAT', 'INDIA', 'IND+DXB', 'IND+DXB', 'IND+DXB', 'IND+DXB', 'GLOBAL'],
+    TIER_UNLOCK: { local: 1, gujarat: 2, india: 3, mumbai: 4, global: 7 },
+    TIER_LABEL: ['LOCAL', 'GUJARAT', 'INDIA', 'IND+MUM', 'IND+MUM', 'IND+MUM', 'IND+MUM', 'GLOBAL'],
 
     // brief spawning: every 1.5 game-hours ± jitter, scaled by G.curve.spawnMult
     SPAWN_BASE_HOURS: 1.5,
