@@ -1821,6 +1821,96 @@
            h.x + 50, h.y + 38, 14, 'rgba(159,232,255,0.9)', 'left');
   }
 
+  // ---------- office cat (shop: u.cat) — wanders the floor, tap to pet ----------
+  // A ginger menace that strolls the front floor, sits, flicks its tail, and
+  // rewards a tap with a purr + hearts + a little calm for nearby staff. Cosmetic
+  // state lives here (resets on reload); the morale effect on staff is real.
+  var CAT = null, catLastT = 0;
+  function catBounds(){ return { x0: 90, x1: 1170, y0: 588, y1: 660 }; }
+  function pickCatTarget(){
+    var b = catBounds();
+    CAT.tx = b.x0 + Math.random() * (b.x1 - b.x0);
+    CAT.ty = b.y0 + Math.random() * (b.y1 - b.y0);
+    CAT.face = CAT.tx >= CAT.x ? 1 : -1;
+    CAT.mode = 'walk';
+  }
+  function initCat(){
+    var b = catBounds();
+    CAT = { x: (b.x0 + b.x1) / 2, y: b.y1 - 4, tx: 0, ty: 0, mode: 'sit',
+            sitT: 2, t: 0, face: 1, walk: 0, blink: 2, petT: 0, petCd: 0, hearts: [] };
+    pickCatTarget();
+  }
+  function tickCat(dt){
+    if(!CAT) initCat();
+    var c = CAT; c.t += dt;
+    c.blink -= dt; if(c.blink <= 0) c.blink = 2.2 + Math.random() * 4;
+    if(c.petT > 0) c.petT -= dt;
+    if(c.petCd > 0) c.petCd -= dt;
+    for(var i = c.hearts.length - 1; i >= 0; i--){ var h = c.hearts[i]; h.t += dt; h.y -= dt * 24; if(h.t > 1.1) c.hearts.splice(i, 1); }
+    if(c.mode === 'walk'){
+      var dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy) || 1;
+      if(d < 4){ c.mode = 'sit'; c.sitT = 2.5 + Math.random() * 4.5; c.walk = 0; }
+      else { var sp = 48 * dt; c.x += dx / d * sp; c.y += dy / d * sp; c.face = dx >= 0 ? 1 : -1; c.walk += dt * 9; }
+    } else {
+      c.sitT -= dt; if(c.sitT <= 0) pickCatTarget();
+    }
+  }
+  function drawCat(ctx){
+    var dt = Math.max(0, Math.min(0.05, t - catLastT)); catLastT = t;
+    tickCat(dt);
+    var c = CAT, x = Math.round(c.x), y = Math.round(c.y);
+    var GIN = '#e8943a', STR = '#c9742a', BEL = '#f6dcb4', EAR = '#f2b6c1', EYE = '#10131f';
+    var walking = c.mode === 'walk', sitting = !walking;
+    var bob = walking ? Math.round(Math.sin(c.walk) * 1) : 0;
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ellipse(ctx, x, y + 1, 15, 5);
+    ctx.save(); ctx.translate(x, y); ctx.scale(c.face, 1);
+    // legs
+    ctx.fillStyle = STR;
+    if(walking){ var lp = Math.round(Math.sin(c.walk) * 2); ctx.fillRect(-7, -3, 3, 4 + lp); ctx.fillRect(3, -3, 3, 4 - lp); ctx.fillRect(-2, -3, 3, 4 - lp); }
+    else { ctx.fillRect(-7, -2, 3, 3); ctx.fillRect(3, -2, 3, 3); }
+    // tail sway
+    var ts = Math.sin(c.t * 3) * 4;
+    ctx.fillStyle = GIN; ctx.fillRect(-13, -11 - bob, 4, 3); ctx.fillRect(-15, -9 - bob + ts * 0.5, 3, 3 + Math.abs(ts) * 0.25);
+    // body
+    ctx.fillStyle = GIN;
+    if(sitting){ ctx.fillRect(-8, -16 - bob, 13, 14); } else { ctx.fillRect(-9, -12 - bob, 18, 9); }
+    // belly + stripes
+    ctx.fillStyle = BEL; ctx.fillRect(sitting ? -4 : -6, -7 - bob, sitting ? 6 : 8, 4);
+    ctx.fillStyle = STR; ctx.fillRect(-4, -12 - bob, 2, sitting ? 12 : 9); ctx.fillRect(0, -12 - bob, 2, sitting ? 12 : 9);
+    // head
+    var hx = sitting ? 3 : 8, hy = sitting ? -22 - bob : -16 - bob;
+    ctx.fillStyle = GIN; ctx.fillRect(hx - 5, hy, 10, 9);
+    ctx.beginPath(); ctx.moveTo(hx - 5, hy); ctx.lineTo(hx - 3, hy - 5); ctx.lineTo(hx - 1, hy); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(hx + 1, hy); ctx.lineTo(hx + 3, hy - 5); ctx.lineTo(hx + 5, hy); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = EAR; ctx.fillRect(hx - 3, hy - 3, 1, 2); ctx.fillRect(hx + 2, hy - 3, 1, 2);
+    // eyes (blink) + nose
+    ctx.fillStyle = EYE;
+    if(c.blink < 0.12){ ctx.fillRect(hx - 3, hy + 4, 3, 1); ctx.fillRect(hx + 1, hy + 4, 3, 1); }
+    else { ctx.fillRect(hx - 3, hy + 3, 2, 2); ctx.fillRect(hx + 2, hy + 3, 2, 2); }
+    ctx.fillStyle = '#c25a6a'; ctx.fillRect(hx, hy + 6, 1, 1);
+    ctx.restore();
+    // hearts float up (unflipped)
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    for(var k = 0; k < c.hearts.length; k++){ var ht = c.hearts[k]; ctx.globalAlpha = Math.max(0, 1 - ht.t); ctx.font = '12px serif'; ctx.fillStyle = '#ff6a8a'; ctx.fillText('❤', x + ht.dx, ht.y); }
+    ctx.globalAlpha = 1;
+  }
+  function petCat(){
+    if(!CAT) initCat();
+    var c = CAT;
+    c.mode = 'sit'; c.sitT = Math.max(c.sitT || 0, 1.6); c.petT = 0.6;
+    for(var k = 0; k < 3; k++) c.hearts.push({ dx: (k - 1) * 7, y: c.y - 22 - Math.random() * 6, t: 0 });
+    if(G.audio && G.audio.click) G.audio.click();
+    if(c.petCd > 0){
+      G.dock.infoToast('MEOW', 'The cat has had enough affection for now.', '');
+      return;
+    }
+    var n = 0;
+    G.state.staff.forEach(function(st){ if(G.time.onClock(st)){ st.burnout = Math.max(0, st.burnout - 3); n++; } });
+    if(G.chaos && G.chaos.add) G.chaos.add(-2);
+    c.petCd = 6;
+    G.dock.infoToast('PURR 🐈', 'The office cat accepts your tribute. ' + n + ' people exhale. Chaos −2%.', 'good');
+  }
+
   // ---------- props orchestrator ----------
   function drawProps(ctx){
     var s = G.state;
@@ -1872,6 +1962,7 @@
   G.render.office = {
     DESKS: DESKS,
     deskHitbox: deskHitbox,
+    catPos: function(){ return CAT ? { x: CAT.x, y: CAT.y } : null; },
 
     draw: function(ctx, dt){
       t += dt;
@@ -1882,6 +1973,7 @@
       drawClusters(ctx);       // dept labels + production tape
       drawDesks(ctx);          // seated staff behind desks (front-on)
       drawWanderers(ctx);      // cooler gossipers
+      if(G.state.upgrades && G.state.upgrades.cat) drawCat(ctx); // front-floor pet, on top
       // night: the room goes darker blue, laptops/props are the light source
       if(G.state.night){
         ctx.fillStyle = 'rgba(4,7,18,0.55)';
@@ -1906,6 +1998,13 @@
     handleClick: function(lx, ly){
       var s = G.state;
       function inBox(h){ return lx >= h.x && lx <= h.x + h.w && ly >= h.y && ly <= h.y + h.h; }
+
+      // office cat: tap the roaming pet to pet it (generous hitbox; it moves)
+      if(s.upgrades && s.upgrades.cat && CAT &&
+         lx >= CAT.x - 22 && lx <= CAT.x + 22 && ly >= CAT.y - 32 && ly <= CAT.y + 8){
+        petCat();
+        return;
+      }
 
       // arcade cabinet: opens the playable Breakout minigame (gated on the upgrade).
       // Rect matches drawArcade(): ax=300, ay=535, aw=70, ah=120.
