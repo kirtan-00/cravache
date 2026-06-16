@@ -116,7 +116,7 @@
 
     // shop (Friday upgrade moment, TWO purchases per week)
     SHOP: {
-      plant:         { name:"Office plant",     price:12000, desc:"morale. allegedly." },
+      plant:         { name:"Office plant",     price:5000,  desc:"morale. allegedly. always available — doesn't use a weekly pick" },
       plant_big:     { name:"Big monstera",     price:18000, desc:"a whole jungle corner. burnout builds 10% slower" },
       string_lights: { name:"String lights",    price:20000, desc:"cosy late-night glow. burnout builds 8% slower" },
       cooler:        { name:"Water cooler",     price:35000, desc:"gossip station. idle staff recover faster, together" },

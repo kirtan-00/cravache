@@ -387,6 +387,7 @@
         var it = G.BAL.SHOP[key];
         if(s.upgrades[key]) return;
         items.push({ name: it.name, desc: it.desc, price: it.price,
+          freebie: (key === 'plant'),   // plant is always buyable; never uses a weekly pick
           buy: function(){
             var ok = G.economy.buyUpgrade(key);
             // the neon comes blank: ask the player what it should say
@@ -431,20 +432,24 @@
         b.className = 'px-btn';
         b.textContent = it.locked ? 'LOCKED' : G.fmtMoney(it.price);
         b.disabled = it.locked || s.money < it.price;
+        b.dataset.freebie = it.freebie ? '1' : '';
         b.addEventListener('click', function(){
-          if(boughtCount >= picksMax || b.disabled) return;
+          if(b.disabled) return;
+          if(!it.freebie && boughtCount >= picksMax) return;
           if(it.buy()){
-            boughtCount += 1;
             b.disabled = true;
             b.textContent = 'DONE ✔';
-            var left = picksMax - boughtCount;
-            if(kickerEl) kickerEl.textContent = left > 0
-              ? picksMax + ' PICKS THIS WEEK · ' + left + ' LEFT (choose wisely)'
-              : picksMax + ' PICKS THIS WEEK · DONE FOR THE WEEK';
-            // out of picks? lock everything still buyable. else just refresh affordability.
-            btns.forEach(function(x){
-              if(boughtCount >= picksMax){ if(x.textContent !== 'DONE ✔') x.disabled = true; }
-            });
+            if(!it.freebie){
+              boughtCount += 1;
+              var left = picksMax - boughtCount;
+              if(kickerEl) kickerEl.textContent = left > 0
+                ? picksMax + ' PICKS THIS WEEK · ' + left + ' LEFT (choose wisely)'
+                : picksMax + ' PICKS THIS WEEK · DONE FOR THE WEEK';
+              // out of picks? lock everything still buyable — except freebies (e.g. plant).
+              btns.forEach(function(x){
+                if(boughtCount >= picksMax){ if(x.textContent !== 'DONE ✔' && x.dataset.freebie !== '1') x.disabled = true; }
+              });
+            }
           } else {
             G.audio.decline();
           }
