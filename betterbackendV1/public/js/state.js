@@ -129,7 +129,8 @@
       coffee:        { name:"Coffee machine",    price:60000, desc:"burnout builds 30% slower" },
       neon:          { name:"Neon sign",         price:80000, desc:"rep gains hit harder" },
       cat:           { name:"Office cat",         price:50000, desc:"a ginger menace roams the floor. tap to pet — purrs calm everyone" },
-      foosball:      { name:"Foosball table",     price:70000, desc:"break-room war. tap for a match — idle staff blow off steam, burnout drops" }
+      foosball:      { name:"Foosball table",     price:70000, desc:"break-room war. tap for a match — idle staff blow off steam, burnout drops" },
+      tabletennis:   { name:"Table tennis",       price:60000, desc:"break-room rally. tap to play a quick match — win and the chaos drops" }
     },
 
     // auto-assign (trial_autoassign.js): a big-ticket ops upgrade. Once bought,
@@ -260,7 +261,7 @@
 
       upgrades: { plant:false, coffee:false, neon:false, tv:false, cooler:false,
                   aquarium:false, arcade:false, plant_big:false, posters:false, string_lights:false,
-                  autoassign:false },
+                  tabletennis:false, autoassign:false },
       autoAssignOn: true,       // when autoassign upgrade owned, the toggle (player can pause it)
       neonText: 'CRAVACHE',     // what the neon sign reads (set on purchase)
       tvChannel: 0,             // current TV scene (player can cycle by clicking)

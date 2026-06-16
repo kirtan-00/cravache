@@ -23,7 +23,7 @@
   var SHOP_ICONS = {
     plant: '🪴', plant_big: '🌳', string_lights: '✨', cooler: '💧',
     aquarium: '🐟', tv: '📺', arcade: '🕹️', coffee: '☕', neon: '🪧',
-    cat: '🐈', foosball: '⚽'
+    cat: '🐈', foosball: '⚽', tabletennis: '🏓'
   };
   var DEPT_ICONS = { designer: '🎨', editor: '✂️', content: '✍️', production: '🎬' };
   function shopIcon(key){ return SHOP_ICONS[key] || '🛍️'; }

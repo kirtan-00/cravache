@@ -2245,28 +2245,11 @@
     G.dock.infoToast('PURR 🐈', 'The office cat accepts your tribute. ' + n + ' people exhale. Chaos −2%.', 'good');
   }
 
-  // ---------- foosball table (shop: u.foosball) — tap for a match break ----------
-  // Break-room war machine. Tapping kicks off a short match (rods wiggle, ball
-  // ricochets, score ticks) and pulls up to two idle staff for a burnout break.
-  var FOOS = null, foosLastT = 0;
+  // ---------- foosball table (shop: u.foosball) — tap to play the mini-game ----------
+  // Static break-room furniture. Tapping opens the foosball mini-game (G.foosball).
   var FOOS_BOX = { x: 500, y: 538, w: 150, h: 58 };
-  function initFoos(){ FOOS = { matchT: 0, cd: 0, score: [0, 0], bx: 0.5, by: 0.5, vx: 0.9, vy: 0.4, rod: 0, t: 0 }; }
-  function tickFoos(dt){
-    if(!FOOS) initFoos();
-    var f = FOOS; f.t += dt; if(f.cd > 0) f.cd -= dt;
-    if(f.matchT > 0){
-      f.matchT -= dt; f.rod += dt * 7;
-      f.bx += f.vx * dt; f.by += f.vy * dt;
-      if(f.bx < 0.05){ f.score[1]++; f.bx = 0.5; f.by = 0.5; f.vx = 0.9; f.vy = (Math.random() - 0.5); }
-      else if(f.bx > 0.95){ f.score[0]++; f.bx = 0.5; f.by = 0.5; f.vx = -0.9; f.vy = (Math.random() - 0.5); }
-      if(f.by < 0.12){ f.by = 0.12; f.vy = Math.abs(f.vy); }
-      if(f.by > 0.88){ f.by = 0.88; f.vy = -Math.abs(f.vy); }
-    }
-  }
   function drawFoos(ctx){
-    var dt = Math.max(0, Math.min(0.05, t - foosLastT)); foosLastT = t;
-    tickFoos(dt);
-    var f = FOOS, B = FOOS_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
+    var B = FOOS_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
     ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + 8, y + h - 2, 6, 16); ctx.fillRect(x + w - 14, y + h - 2, 6, 16);
     ctx.fillStyle = 'rgba(0,0,0,0.25)'; ellipse(ctx, x + w / 2, y + h + 15, w * 0.5, 6);
     ctx.fillStyle = '#5a3b22'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
@@ -2278,24 +2261,42 @@
     for(var r = 0; r < rodsX.length; r++){
       var rx = x + rodsX[r] * w, team = (r % 2 === 0) ? '#d24b3e' : '#3a6ea5';
       ctx.strokeStyle = '#cfd3da'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(rx, y - 3); ctx.lineTo(rx, y + h + 3); ctx.stroke();
-      var wig = f.matchT > 0 ? Math.sin(f.rod + r) * 4 : 0;
-      for(var pI = 0; pI < 2; pI++){ var py = y + h * (0.3 + 0.4 * pI) + wig; ctx.fillStyle = team; ctx.fillRect(rx - 2, py - 5, 4, 10); }
+      for(var pI = 0; pI < 2; pI++){ var py = y + h * (0.3 + 0.4 * pI); ctx.fillStyle = team; ctx.fillRect(rx - 2, py - 5, 4, 10); }
     }
-    var bx = x + f.bx * w, by = y + f.by * h;
+    var bx = x + 0.5 * w, by = y + 0.5 * h;
     ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(bx, by, 2.5, 0, Math.PI * 2); ctx.fill();
-    pxText(ctx, f.score[0] + ' : ' + f.score[1], x + w / 2, y - 9, 13, '#f4e8cf', 'center');
-    if(f.matchT <= 0) pxText(ctx, 'FOOSBALL · tap to play', x + w / 2, y + h + 27, 11, 'rgba(159,232,255,0.7)', 'center');
+    pxText(ctx, 'FOOSBALL · tap to play', x + w / 2, y + h + 27, 11, 'rgba(159,232,255,0.7)', 'center');
   }
-  function playFoos(){
-    if(!FOOS) initFoos();
-    var f = FOOS;
-    if(G.audio && G.audio.click) G.audio.click();
-    if(f.cd > 0){ G.dock.infoToast('FOOSBALL', 'Match in progress. Let them finish.', ''); return; }
-    f.matchT = 4.5; f.bx = 0.5; f.by = 0.5; f.vx = (Math.random() < 0.5 ? -1 : 1) * 0.9; f.vy = (Math.random() - 0.5); f.cd = 8;
-    var n = 0;
-    G.state.staff.forEach(function(st){ if(n < 2 && G.time.onClock(st) && !st.briefId){ st.burnout = Math.max(0, st.burnout - 8); n++; } });
-    if(G.chaos && G.chaos.add) G.chaos.add(-2);
-    G.dock.infoToast('FOOSBALL BREAK ⚽', (n || 'No') + ' idle hands hit the table. Burnout down, smack-talk up.', 'good');
+
+  // ---------- table tennis table (shop: u.tabletennis) — tap to play the mini-game ----------
+  // Static break-room furniture in the open lower-left floor. Tapping opens the
+  // table-tennis mini-game (G.tableTennis). Style/scale mirrors the foosball table.
+  var TT_BOX = { x: 110, y: 620, w: 150, h: 58 };
+  function drawTT(ctx){
+    var B = TT_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
+    // legs + floor shadow
+    ctx.fillStyle = '#2a2f3a'; ctx.fillRect(x + 8, y + h - 2, 6, 16); ctx.fillRect(x + w - 14, y + h - 2, 6, 16);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ellipse(ctx, x + w / 2, y + h + 15, w * 0.5, 6);
+    // blue table top with white frame
+    ctx.fillStyle = '#0c2c4f'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
+    ctx.fillStyle = '#1c5fa0'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 2; ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
+    // centre net (vertical) + centre line (horizontal)
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + w / 2, y - 5); ctx.lineTo(x + w / 2, y + h + 5); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.moveTo(x + 4, y + h / 2); ctx.lineTo(x + w - 4, y + h / 2); ctx.stroke();
+    // net mesh ticks
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    for(var ny = y + 2; ny < y + h - 2; ny += 6){ ctx.beginPath(); ctx.moveTo(x + w / 2 - 3, ny); ctx.lineTo(x + w / 2 + 3, ny); ctx.stroke(); }
+    // two paddles resting on the table
+    ctx.fillStyle = '#d24b3e'; ctx.beginPath(); ctx.arc(x + w * 0.22, y + h * 0.5, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + w * 0.22 - 1, y + h * 0.5 + 4, 2, 7);
+    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(x + w * 0.78, y + h * 0.5, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + w * 0.78 - 1, y + h * 0.5 + 4, 2, 7);
+    // white ball mid-table
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x + w * 0.5, y + h * 0.5, 2.5, 0, Math.PI * 2); ctx.fill();
+    pxText(ctx, 'TABLE TENNIS · tap to play', x + w / 2, y + h + 27, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   // ---------- props orchestrator ----------
@@ -2313,6 +2314,7 @@
     if(u.posters) drawPosters(ctx);
     if(u.aquarium) drawAquarium(ctx);
     if(u.foosball) drawFoos(ctx);
+    if(u.tabletennis) drawTT(ctx);
     if(u.arcade) drawArcade(ctx);
     if(u.plant_big) drawPlantBig(ctx);
     if(u.coffee) drawCoffee(ctx);
@@ -2387,11 +2389,19 @@
       var s = G.state;
       function inBox(h){ return lx >= h.x && lx <= h.x + h.w && ly >= h.y && ly <= h.y + h.h; }
 
-      // foosball table: tap to kick off a match break
+      // foosball table: tap to open the foosball mini-game
       if(s.upgrades && s.upgrades.foosball &&
          lx >= FOOS_BOX.x - 6 && lx <= FOOS_BOX.x + FOOS_BOX.w + 6 &&
          ly >= FOOS_BOX.y - 14 && ly <= FOOS_BOX.y + FOOS_BOX.h + 12){
-        playFoos();
+        if(G.foosball && G.foosball.open) G.foosball.open();
+        return;
+      }
+
+      // table tennis table: tap to open the table-tennis mini-game
+      if(s.upgrades && s.upgrades.tabletennis &&
+         lx >= TT_BOX.x - 6 && lx <= TT_BOX.x + TT_BOX.w + 6 &&
+         ly >= TT_BOX.y - 14 && ly <= TT_BOX.y + TT_BOX.h + 12){
+        if(G.tableTennis && G.tableTennis.open) G.tableTennis.open();
         return;
       }
 
