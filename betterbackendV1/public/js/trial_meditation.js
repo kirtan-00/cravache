@@ -51,6 +51,7 @@
   }
 
   function available(){
+    if(G.__propBusy && G.__propBusy !== 'med') return false;
     return gameRunning() && !meditating && usedToday() < MAX_PER_DAY;
   }
 
@@ -151,6 +152,7 @@
     try { if(G.audio && G.audio.click) G.audio.click(); } catch(e){}
 
     // stop the sim: time + brief spawning halt until we release.
+    G.__propBusy = 'med';   // mutual exclusion: blocks table tennis + foosball
     if(G.modals && G.modals.acquirePause){ G.modals.acquirePause(); paused = true; }
 
     showOverlay();
@@ -170,6 +172,7 @@
     // against a live (unpaused) state.
     if(paused && G.modals && G.modals.releasePause){ G.modals.releasePause(); }
     paused = false;
+    if(G.__propBusy === 'med') G.__propBusy = null;   // release mutual-exclusion lock
 
     // count this meditation against today's cap
     syncDay();

@@ -79,6 +79,7 @@
   }
 
   function available(){
+    if(G.__propBusy && G.__propBusy !== 'fb') return false;
     return gameRunning() && !playing &&
       !(G.modals && G.modals.anyOpen && G.modals.anyOpen()) &&
       usedToday() < MAX_PER_DAY;
@@ -393,6 +394,7 @@
     try { if(G.audio && G.audio.click) G.audio.click(); } catch(e){}
 
     // stop the sim: time + brief spawning halt until we release.
+    G.__propBusy = 'fb';   // mutual exclusion: blocks table tennis + meditation
     if(G.modals && G.modals.acquirePause){ G.modals.acquirePause(); paused = true; }
 
     showOverlay();
@@ -415,6 +417,7 @@
 
     if(paused && G.modals && G.modals.releasePause){ G.modals.releasePause(); }
     paused = false;
+    if(G.__propBusy === 'fb') G.__propBusy = null;   // release mutual-exclusion lock
     return true;
   }
 

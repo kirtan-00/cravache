@@ -375,6 +375,7 @@
         bodyHTML: stamp + '<div class="report-grid">' + rows + '</div>' + quote + warn +
           '<div class="modal-kicker" style="margin-top:8px" data-shop-kicker>' +
             picksMax + ' PICKS THIS WEEK · ' + picksMax + ' LEFT (choose wisely)</div>' +
+          '<div class="shop-scroll-hint">▼ scroll for the full shop ▼</div>' +
           '<div data-shop></div>'
       });
       var entry = push(el, {
@@ -722,7 +723,7 @@
         {
           label: 'HIRE THEM (' + G.fmtMoney(CUSTOM_FEE) + ')',
           onClick: function(){
-            var name = (el.querySelector('#ch-name').value || '').trim();
+            var name = (el.querySelector('#ch-name').value || '').trim().slice(0, 22);
             var title = (el.querySelector('#ch-title').value || '').trim();
             var salary = Math.round(parseFloat(el.querySelector('#ch-salary').value) || 0);
             var dept = picked;

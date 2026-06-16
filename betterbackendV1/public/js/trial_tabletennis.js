@@ -77,6 +77,7 @@
   }
 
   function available(){
+    if(G.__propBusy && G.__propBusy !== 'tt') return false;
     return gameRunning() && !playing && !modalOpen() && usedToday() < MAX_PER_DAY;
   }
 
@@ -318,6 +319,7 @@
     try { if(G.audio && G.audio.click) G.audio.click(); } catch(e){}
 
     // stop the sim: time + brief spawning halt until we release.
+    G.__propBusy = 'tt';   // mutual exclusion: blocks foosball + meditation
     if(G.modals && G.modals.acquirePause){ G.modals.acquirePause(); paused = true; }
 
     injectCSS();
@@ -349,6 +351,7 @@
     // resume the sim
     if(paused && G.modals && G.modals.releasePause){ G.modals.releasePause(); }
     paused = false;
+    if(G.__propBusy === 'tt') G.__propBusy = null;   // release mutual-exclusion lock
 
     if(consumed){
       syncDay();

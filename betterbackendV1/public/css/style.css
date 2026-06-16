@@ -265,7 +265,7 @@ canvas#game{
 @keyframes ringring{ 0%{transform:rotate(-1deg)} 50%{transform:rotate(1.4deg)} 100%{transform:rotate(-1deg)} }
 
 /* report card */
-.report-grid{ display:grid; grid-template-columns:1fr auto; gap:3px 14px; font-size:20px; margin-bottom:10px; }
+.report-grid{ display:grid; grid-template-columns:1fr auto; gap:2px 14px; font-size:16px; margin-bottom:6px; }
 .report-grid .rg-k{ color:var(--teal); white-space:nowrap; }
 .report-grid .rg-v{ text-align:right; color:var(--paper); }
 .report-grid .rg-v.neg{ color:var(--red); }
@@ -521,13 +521,22 @@ canvas#game{
 }
 
 /* tall modal lists (hiring etc.) scroll instead of spilling off-stage */
-.modal{ max-height:640px; overflow:hidden; display:flex; flex-direction:column; }
+.modal{ max-height:680px; overflow:hidden; display:flex; flex-direction:column; }
 .modal [data-hires], .modal [data-gshop], .modal [data-shop], .modal [data-cats], .modal [data-inv]{
   overflow-y:auto; min-height:0;
 }
 .modal [data-hires]{ max-height:430px; padding-right:6px; }
-.modal [data-hires]::-webkit-scrollbar{ width:10px; }
-.modal [data-hires]::-webkit-scrollbar-thumb{ background:var(--navy-dd); border:2px solid #000; }
+/* the weekly shop sits inside the (overflow:hidden) report card; without an
+   explicit cap + visible scrollbar it collapsed to ~187px and players never
+   discovered the other items. Give it the same chunky scroll treatment. */
+.modal [data-shop]{ max-height:300px; padding-right:6px; }
+.modal [data-hires]::-webkit-scrollbar,
+.modal [data-shop]::-webkit-scrollbar{ width:10px; }
+.modal [data-hires]::-webkit-scrollbar-thumb,
+.modal [data-shop]::-webkit-scrollbar-thumb{ background:var(--navy-dd); border:2px solid #000; }
+/* persistent "there's more below" hint above the shop grid */
+.shop-scroll-hint{ text-align:center; font:11px/1 'Silkscreen', monospace;
+  color:var(--teal); opacity:.85; margin:4px 0 2px; letter-spacing:1px; }
 
 /* pause menu volume row */
 .vol-row{ display:flex; gap:8px; margin-top:6px; }
