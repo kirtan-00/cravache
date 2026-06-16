@@ -19,6 +19,19 @@
     });
   }
 
+  // ---- shop iconography (local to modals; keyed by G.BAL.SHOP keys) ----
+  var SHOP_ICONS = {
+    plant: '🪴', plant_big: '🌳', string_lights: '✨', cooler: '💧',
+    aquarium: '🐟', tv: '📺', arcade: '🕹️', coffee: '☕', neon: '🪧',
+    cat: '🐈', foosball: '⚽'
+  };
+  var DEPT_ICONS = { designer: '🎨', editor: '✂️', content: '✍️', production: '🎬' };
+  function shopIcon(key){ return SHOP_ICONS[key] || '🛍️'; }
+  function deptIcon(dept){ return DEPT_ICONS[dept] || '🛍️'; }
+
+  // module counter for IDs (Date.now() may be stubbed in some contexts)
+  var customSeq = 0;
+
   function setPaused(){
     G.state.paused = pauseCount > 0;
   }
@@ -386,7 +399,7 @@
       Object.keys(G.BAL.SHOP).forEach(function(key){
         var it = G.BAL.SHOP[key];
         if(s.upgrades[key]) return;
-        items.push({ name: it.name, desc: it.desc, price: it.price,
+        items.push({ name: it.name, desc: it.desc, price: it.price, icon: shopIcon(key),
           freebie: (key === 'plant'),   // plant is always buyable; never uses a weekly pick
           buy: function(){
             var ok = G.economy.buyUpgrade(key);
@@ -401,7 +414,7 @@
           if(s.hirePool[i].dept === dept){ cand = s.hirePool[i]; break; }
         if(!cand) return;
         if(!G.staff.deptUnlocked(dept)){
-          items.push({ name: dept.toUpperCase() + ': locked', desc: 'Opens week ' + G.BAL.PRODUCTION_UNLOCK_WEEK + '.', price: 0, locked: true, buy: function(){ return false; } });
+          items.push({ name: dept.toUpperCase() + ': locked', desc: 'Opens week ' + G.BAL.PRODUCTION_UNLOCK_WEEK + '.', price: 0, icon: deptIcon(dept), locked: true, buy: function(){ return false; } });
           return;
         }
         if(G.staff.deptCount(dept) >= G.BAL.DEPT_CAPS[dept]) return;
@@ -410,7 +423,7 @@
         items.push({
           name: 'HIRE ' + cand.name + ' · ' + dept.toUpperCase() + ' ★' + cand.skill,
           desc: badges + ' — ' + cand.trait + ' · ' + G.fmtMoney(cand.salaryMonthly) + '/mo',
-          price: advance,
+          price: advance, icon: deptIcon(dept),
           buy: function(){
             if(s.money < advance) return false;
             var idx = s.hirePool.indexOf(cand);
@@ -423,22 +436,38 @@
 
       var kickerEl = el.querySelector('[data-shop-kicker]');
       var btns = [];
+      var grid = document.createElement('div');
+      grid.className = 'shop-grid';
       items.forEach(function(it){
-        var rowEl = document.createElement('div');
-        rowEl.className = 'shop-row';
-        rowEl.innerHTML = '<div><span class="sr-name">' + esc(it.name) + '</span>' +
-          '<span class="sr-desc">' + esc(it.desc) + '</span></div>';
+        var cardEl = document.createElement('div');
+        cardEl.className = 'shop-card' + (it.locked ? ' is-locked' : '');
+        var affordable = !it.locked && s.money >= it.price;
+        if(!affordable && !it.locked) cardEl.classList.add('cant-afford');
+
         var b = document.createElement('button');
-        b.className = 'px-btn';
+        b.className = 'px-btn sc-buy';
         b.textContent = it.locked ? 'LOCKED' : G.fmtMoney(it.price);
         b.disabled = it.locked || s.money < it.price;
         b.dataset.freebie = it.freebie ? '1' : '';
+
+        cardEl.innerHTML =
+          '<div class="sc-icon">' + esc(it.icon || '🛍️') + '</div>' +
+          '<div class="sc-name">' + esc(it.name) + '</div>' +
+          '<div class="sc-desc">' + esc(it.desc) + '</div>';
+        if(it.freebie){
+          var tag = document.createElement('div');
+          tag.className = 'sc-tag';
+          tag.textContent = 'FREE PICK';
+          cardEl.appendChild(tag);
+        }
+
         b.addEventListener('click', function(){
           if(b.disabled) return;
           if(!it.freebie && boughtCount >= picksMax) return;
           if(it.buy()){
             b.disabled = true;
             b.textContent = 'DONE ✔';
+            cardEl.classList.add('is-owned');
             if(!it.freebie){
               boughtCount += 1;
               var left = picksMax - boughtCount;
@@ -455,10 +484,11 @@
           }
         });
         btns.push(b);
-        rowEl.appendChild(b);
-        shopEl.appendChild(rowEl);
+        cardEl.appendChild(b);
+        grid.appendChild(cardEl);
       });
       if(!items.length) shopEl.innerHTML = '<div class="modal-fine">Nothing left to buy. The office is complete. The work is not.</div>';
+      else shopEl.appendChild(grid);
 
       var rcBtns = [{
         label: 'START MONDAY',
@@ -479,75 +509,283 @@
       addButtons(el, rcBtns);
     },
 
-    // ---------- HIRE: anytime, grouped by department ----------
+    // ---------- EMPLOYEES: roster (with FIRE) + hireables + custom hire ----------
     showHire: function(){
       var s = G.state;
+      var CUSTOM_FEE = 60000;
       G.staff.refillPool(); // walk-in CVs keep the pool stocked
+
       var el = modalShell({
-        kicker: 'HIRING · PAYROLL NOW ' + G.fmtMoney(G.economy.payrollTotal()) + '/WK',
-        title: 'WHO JOINS THE CHAOS?',
-        bodyHTML: '<div class="modal-fine">Signing advance = one week of pay, upfront. Salaries hit every Friday whether clients pay or not.</div><div data-hires></div>'
+        kicker: 'EMPLOYEES · PAYROLL NOW ' + G.fmtMoney(G.economy.payrollTotal()) + '/WK',
+        title: 'THE PEOPLE WHO MAKE THE CHAOS',
+        bodyHTML:
+          '<div class="modal-fine">Signing advance = one week of pay, upfront. Salaries hit every Friday whether clients pay or not.</div>' +
+          '<div data-roster></div>' +
+          '<div class="modal-kicker" style="margin-top:12px">OPEN POSITIONS</div>' +
+          '<div data-hires></div>'
       });
       var entry = push(el, { pausing: true });
-      var listEl = el.querySelector('[data-hires]');
-      var any = false;
 
-      ['designer', 'editor', 'content', 'production'].forEach(function(dept){
-        var cap = G.BAL.DEPT_CAPS[dept];
-        var head = document.createElement('div');
-        head.className = 'modal-kicker';
-        head.style.marginTop = '8px';
-        head.textContent = dept.toUpperCase() + ' · ' + G.staff.deptCount(dept) + '/' + cap +
-          (!G.staff.deptUnlocked(dept) ? ' · LOCKED UNTIL WK ' + G.BAL.PRODUCTION_UNLOCK_WEEK : '');
-        listEl.appendChild(head);
-
-        // CVs arrive in weekly waves; tease the queue instead of dumping it
-        var deptPool = s.hirePool.filter(function(c){ return c.dept === dept; });
-        var incoming = deptPool.filter(function(c){ return !G.staff.candidateVisible(c); }).length;
-
-        deptPool.filter(G.staff.candidateVisible).forEach(function(cand){
-          any = true;
-          var advance = Math.round(cand.salaryMonthly / 4);
-          var badges = (cand.badges || []).map(function(b){ return b.icon + ' ' + b.label; }).join(' · ');
-          var rowEl = document.createElement('div');
-          rowEl.className = 'shop-row';
-          rowEl.innerHTML = '<div><span class="sr-name">' + esc(cand.name) + ' ' + '★'.repeat(cand.skill) +
-            ' <span style="color:#9fe8ff">' + esc(cand.level) + '</span></span>' +
-            '<span class="sr-desc">' + esc(badges) + '</span>' +
-            '<span class="sr-desc">' + esc(cand.trait) + ' · ' + G.fmtMoney(cand.salaryMonthly) + '/mo</span></div>';
-          var b = document.createElement('button');
-          b.className = 'px-btn';
-          b.textContent = G.fmtMoney(advance);
-          b.disabled = !G.staff.deptUnlocked(dept) ||
-                       G.staff.deptCount(dept) >= cap ||
-                       s.money < advance;
-          b.addEventListener('click', function(){
-            var idx = s.hirePool.indexOf(cand);
-            if(s.money >= advance && G.staff.canHire(cand)){
-              G.economy.spend(advance);
-              if(G.staff.hire(idx)){
-                b.textContent = 'HIRED ✔';
-                rowEl.querySelectorAll('button').forEach(function(x){ x.disabled = true; });
-                head.textContent = dept.toUpperCase() + ' · ' + G.staff.deptCount(dept) + '/' + cap;
-                return;
-              }
+      // ---- (a) ROSTER of current staff, grouped by dept, each with FIRE ----
+      function fireStaffer(st){
+        // return their live brief to the tray (returnToTray nulls staffId + refreshes)
+        if(st.briefId){
+          var b = G.briefs.byId(st.briefId);
+          if(b) G.briefs.returnToTray(b, 1);
+          else { st.briefId = null; }
+        } else {
+          // belt-and-suspenders: any brief that thinks it's theirs goes back too
+          s.briefs.forEach(function(br){
+            if(br.staffId === st.id && br.status !== 'done' && br.status !== 'scrapped'){
+              G.briefs.returnToTray(br, 1);
             }
-            G.audio.decline();
           });
-          rowEl.appendChild(b);
-          listEl.appendChild(rowEl);
-        });
-
-        if(incoming > 0 && G.staff.deptUnlocked(dept)){
-          var tease = document.createElement('div');
-          tease.className = 'modal-fine';
-          tease.textContent = '+ ' + incoming + ' more CV' + (incoming > 1 ? 's' : '') + ' in the pipeline. Good people take time.';
-          listEl.appendChild(tease);
         }
-      });
-      if(!any) listEl.innerHTML += '<div class="modal-fine">Pool empty. Everyone employable in Ahmedabad already works here.</div>';
+        // free their desk + remove from roster (no rage-quit chaos: this is deliberate)
+        st.desk = -1;
+        var idx = s.staff.indexOf(st);
+        if(idx >= 0) s.staff.splice(idx, 1);
+        try { G.dock.refreshTray(); } catch(e){}
+        G.audio.decline();
+        G.dock.infoToast('LET GO', st.name + ' has been let go. The desk is already cold.', 'bad');
+      }
+
+      function renderRoster(){
+        var rosterEl = el.querySelector('[data-roster]');
+        rosterEl.innerHTML = '';
+        var depts = ['designer', 'editor', 'content', 'production'];
+        var anyStaff = false;
+        depts.forEach(function(dept){
+          var crew = s.staff.filter(function(st){ return st.dept === dept; });
+          if(!crew.length) return;
+          anyStaff = true;
+          var head = document.createElement('div');
+          head.className = 'modal-kicker';
+          head.style.marginTop = '8px';
+          head.textContent = deptIcon(dept) + ' ' + dept.toUpperCase() + ' · ' + crew.length + '/' + G.BAL.DEPT_CAPS[dept];
+          rosterEl.appendChild(head);
+
+          crew.forEach(function(st){
+            var rowEl = document.createElement('div');
+            rowEl.className = 'roster-row';
+            rowEl.innerHTML =
+              '<div class="rr-info"><span class="sr-name">' + esc(st.name) + ' ' +
+                '<span class="rr-stars">' + '★'.repeat(Math.max(0, st.skill || 0)) + '</span>' +
+                ' <span style="color:#9fe8ff">' + esc(st.level || '') + '</span></span>' +
+              '<span class="sr-desc">' + esc(st.trait || '') + ' · ' + G.fmtMoney(st.salaryMonthly) + '/mo</span></div>';
+            var fb = document.createElement('button');
+            fb.className = 'px-btn px-btn-red rr-fire';
+            fb.textContent = 'FIRE';
+            var armed = false;
+            fb.addEventListener('click', function(){
+              if(!armed){ armed = true; fb.textContent = 'SURE?'; return; }
+              fireStaffer(st);
+              renderRoster();
+              renderHires();
+            });
+            rowEl.appendChild(fb);
+            rosterEl.appendChild(rowEl);
+          });
+        });
+        if(!anyStaff){
+          rosterEl.innerHTML = '<div class="modal-fine">Nobody on payroll. An office full of empty desks and ambition.</div>';
+        }
+      }
+
+      // ---- (b) hireable candidates + (c) custom hire action ----
+      function renderHires(){
+        var listEl = el.querySelector('[data-hires]');
+        listEl.innerHTML = '';
+        var any = false;
+
+        ['designer', 'editor', 'content', 'production'].forEach(function(dept){
+          var cap = G.BAL.DEPT_CAPS[dept];
+          var head = document.createElement('div');
+          head.className = 'modal-kicker';
+          head.style.marginTop = '8px';
+          head.textContent = dept.toUpperCase() + ' · ' + G.staff.deptCount(dept) + '/' + cap +
+            (!G.staff.deptUnlocked(dept) ? ' · LOCKED UNTIL WK ' + G.BAL.PRODUCTION_UNLOCK_WEEK : '');
+          listEl.appendChild(head);
+
+          // CVs arrive in weekly waves; tease the queue instead of dumping it
+          var deptPool = s.hirePool.filter(function(c){ return c.dept === dept; });
+          var incoming = deptPool.filter(function(c){ return !G.staff.candidateVisible(c); }).length;
+
+          deptPool.filter(G.staff.candidateVisible).forEach(function(cand){
+            any = true;
+            var advance = Math.round(cand.salaryMonthly / 4);
+            var badges = (cand.badges || []).map(function(b){ return b.icon + ' ' + b.label; }).join(' · ');
+            var rowEl = document.createElement('div');
+            rowEl.className = 'shop-row';
+            rowEl.innerHTML = '<div><span class="sr-name">' + esc(cand.name) + ' ' + '★'.repeat(cand.skill) +
+              ' <span style="color:#9fe8ff">' + esc(cand.level) + '</span></span>' +
+              '<span class="sr-desc">' + esc(badges) + '</span>' +
+              '<span class="sr-desc">' + esc(cand.trait) + ' · ' + G.fmtMoney(cand.salaryMonthly) + '/mo</span></div>';
+            var b = document.createElement('button');
+            b.className = 'px-btn';
+            b.textContent = G.fmtMoney(advance);
+            b.disabled = !G.staff.deptUnlocked(dept) ||
+                         G.staff.deptCount(dept) >= cap ||
+                         s.money < advance;
+            b.addEventListener('click', function(){
+              var idx = s.hirePool.indexOf(cand);
+              if(s.money >= advance && G.staff.canHire(cand)){
+                G.economy.spend(advance);
+                if(G.staff.hire(idx)){
+                  b.textContent = 'HIRED ✔';
+                  rowEl.querySelectorAll('button').forEach(function(x){ x.disabled = true; });
+                  renderRoster();
+                  renderHires();
+                  return;
+                }
+              }
+              G.audio.decline();
+            });
+            rowEl.appendChild(b);
+            listEl.appendChild(rowEl);
+          });
+
+          if(incoming > 0 && G.staff.deptUnlocked(dept)){
+            var tease = document.createElement('div');
+            tease.className = 'modal-fine';
+            tease.textContent = '+ ' + incoming + ' more CV' + (incoming > 1 ? 's' : '') + ' in the pipeline. Good people take time.';
+            listEl.appendChild(tease);
+          }
+        });
+        if(!any) listEl.innerHTML += '<div class="modal-fine">Pool empty. Everyone employable in Ahmedabad already works here.</div>';
+
+        // ---- (c) CUSTOM HIRE action ----
+        var customBtn = document.createElement('button');
+        customBtn.className = 'px-btn custom-hire-btn';
+        customBtn.style.marginTop = '10px';
+        customBtn.textContent = '+ CUSTOM HIRE (' + G.fmtMoney(CUSTOM_FEE) + ')';
+        customBtn.addEventListener('click', function(){
+          G.audio.click();
+          G.modals.showCustomHire(function(){ renderRoster(); renderHires(); });
+        });
+        listEl.appendChild(customBtn);
+      }
+
+      renderRoster();
+      renderHires();
 
       addButtons(el, [{ label: 'DONE', onClick: function(){ G.audio.click(); close(entry); } }]);
+    },
+
+    // ---------- CUSTOM HIRE form: pay a creation fee to insert any employee ----------
+    showCustomHire: function(onHired){
+      var s = G.state;
+      var CUSTOM_FEE = 60000;
+      var DEPTS = ['designer', 'editor', 'content', 'production'];
+      var picked = 'designer';
+
+      var el = modalShell({
+        cls: 'modal-green',
+        kicker: 'CUSTOM HIRE · CREATION FEE ' + G.fmtMoney(CUSTOM_FEE),
+        title: 'BUILD AN EMPLOYEE',
+        bodyHTML:
+          '<div class="modal-fine">Put yourself, a friend, or a fictional legend on the actual payroll. Salary must be more than ' + G.fmtMoney(CUSTOM_FEE) + '/mo. They start as a junior who can do real work.</div>' +
+          '<input id="ch-name" class="px-input" maxlength="22" placeholder="NAME" autocomplete="off" spellcheck="false">' +
+          '<div class="modal-fine" style="margin-top:8px">Department (decides what work they can pick up)</div>' +
+          '<div class="ch-depts" data-depts></div>' +
+          '<input id="ch-title" class="px-input" maxlength="28" placeholder="DESIGNATION (OPTIONAL)" autocomplete="off" spellcheck="false">' +
+          '<div class="modal-fine" style="margin-top:8px">Salary / month (must be &gt; ' + G.fmtMoney(CUSTOM_FEE) + ')</div>' +
+          '<input id="ch-salary" class="px-input" type="number" min="0" step="1000" placeholder="75000" autocomplete="off">'
+      });
+      var entry = push(el, { pausing: true });
+
+      var deptsEl = el.querySelector('[data-depts]');
+      var deptBtns = [];
+      function paintDepts(){
+        deptBtns.forEach(function(b){
+          var unlocked = G.staff.deptUnlocked(b.dataset.dept);
+          b.className = 'px-btn' + (b.dataset.dept === picked ? '' : ' px-btn-dim');
+          b.disabled = !unlocked;
+        });
+      }
+      DEPTS.forEach(function(dept){
+        var b = document.createElement('button');
+        b.dataset.dept = dept;
+        b.textContent = deptIcon(dept) + ' ' + dept.toUpperCase();
+        b.addEventListener('click', function(){
+          if(!G.staff.deptUnlocked(dept)){ G.audio.decline(); return; }
+          picked = dept; paintDepts(); G.audio.click();
+        });
+        deptBtns.push(b);
+        deptsEl.appendChild(b);
+      });
+      paintDepts();
+
+      setTimeout(function(){ try { el.querySelector('#ch-name').focus(); } catch(e){} }, 60);
+
+      addButtons(el, [
+        {
+          label: 'HIRE THEM (' + G.fmtMoney(CUSTOM_FEE) + ')',
+          onClick: function(){
+            var name = (el.querySelector('#ch-name').value || '').trim();
+            var title = (el.querySelector('#ch-title').value || '').trim();
+            var salary = Math.round(parseFloat(el.querySelector('#ch-salary').value) || 0);
+            var dept = picked;
+
+            if(!name){
+              G.audio.decline();
+              G.dock.infoToast('NEEDS A NAME', 'Even the chaos needs to know who to blame.', 'bad');
+              return;
+            }
+            if(!(salary > CUSTOM_FEE)){
+              G.audio.decline();
+              G.dock.infoToast('SALARY TOO LOW', 'Pay them more than ' + G.fmtMoney(CUSTOM_FEE) + '/mo or nobody real takes the seat.', 'bad');
+              return;
+            }
+            // dept must have open cap + a free desk
+            if(!G.staff.deptUnlocked(dept) ||
+               G.staff.deptCount(dept) >= G.BAL.DEPT_CAPS[dept] ||
+               G.staff.freeDesk(dept) < 0){
+              G.audio.decline();
+              G.dock.infoToast('NO ROOM', dept.toUpperCase() + ' is full. No open seat for ' + esc(name) + '.', 'bad');
+              return;
+            }
+            if(s.money < CUSTOM_FEE){
+              G.audio.decline();
+              G.dock.infoToast('CANT AFFORD', 'The ' + G.fmtMoney(CUSTOM_FEE) + ' creation fee is out of reach right now.', 'bad');
+              return;
+            }
+
+            // spend the creation fee, then build + seat the staffer (mirror G.staff.hire)
+            G.economy.spend(CUSTOM_FEE);
+            customSeq += 1;
+            var st = G.makeStaffer({
+              id: 'custom_' + customSeq,
+              name: name,
+              dept: dept,
+              level: 'junior',
+              skill: 3,
+              salaryMonthly: salary,
+              trait: title || 'Custom hire',
+              traitTag: '',
+              universal: false,
+              badges: [],
+              portraitKey: 'char1'
+            });
+            st.burnout = 0;
+            if(!G.staff.seat(st)){
+              // extremely unlikely (we checked freeDesk), refund and bail
+              s.money += CUSTOM_FEE; s.stats.weekSpent -= CUSTOM_FEE; G.hud.poke('money');
+              G.audio.decline();
+              G.dock.infoToast('NO DESK', 'The seat vanished. Fee refunded.', 'bad');
+              return;
+            }
+            s.staff.push(st);
+            try { G.dock.refreshTray(); } catch(e){}
+            G.audio.accept();
+            G.dock.infoToast('NEW HIRE · ' + dept.toUpperCase(),
+              name + ' joined as ' + (title || 'Custom hire') + '. ' + G.fmtMoney(salary) + '/mo.', 'good');
+            close(entry);
+            if(onHired) onHired();
+          }
+        },
+        { label: 'CANCEL', cls: 'px-btn-dim', onClick: function(){ G.audio.click(); close(entry); } }
+      ]);
     },
 
     // ---------- GROWTH: spend money or staff time for leads ----------

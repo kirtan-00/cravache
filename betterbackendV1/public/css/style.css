@@ -531,3 +531,62 @@ canvas#game{
 
 /* pause menu volume row */
 .vol-row{ display:flex; gap:8px; margin-top:6px; }
+
+/* ---------- weekly SHOP: tidy tile grid that reads like a store ---------- */
+.shop-grid{
+  display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;
+  padding:2px 0 4px;
+}
+.shop-card{
+  display:flex; flex-direction:column; align-items:flex-start; gap:5px;
+  padding:10px 11px 11px; position:relative;
+  background:var(--navy-dd); border:3px solid #05070f;
+  box-shadow:inset 0 2px 0 rgba(159,232,255,.12), inset 0 -3px 0 rgba(0,0,0,.5), 2px 2px 0 #000;
+}
+.shop-card:hover{ border-color:rgba(159,232,255,.35); }
+.shop-card .sc-icon{
+  font-size:30px; line-height:1; margin-bottom:2px;
+  filter:drop-shadow(2px 2px 0 #000);
+}
+.shop-card .sc-name{
+  font-family:'Silkscreen', monospace; font-size:12px; color:var(--brass);
+  line-height:1.15; letter-spacing:.3px;
+}
+.shop-card .sc-desc{
+  font-size:15px; line-height:1.05; color:#b9ac8e; flex:1 0 auto;
+}
+.shop-card .sc-buy{
+  align-self:stretch; margin-top:6px; font-size:12px; padding:7px 10px 6px;
+  text-align:center;
+}
+.shop-card .sc-tag{
+  position:absolute; right:8px; top:8px;
+  font-family:'Silkscreen', monospace; font-size:8px; color:var(--green);
+  border:2px solid var(--green); padding:2px 5px 1px;
+}
+/* states */
+.shop-card.is-owned{ border-color:var(--green); }
+.shop-card.is-owned .sc-icon{ filter:drop-shadow(2px 2px 0 #000) saturate(1.2); }
+.shop-card.is-locked{ opacity:.55; }
+.shop-card.is-locked .sc-name{ color:var(--khaki-l); }
+.shop-card.cant-afford .sc-buy{ color:var(--red); }
+@media (max-width:560px){ .shop-grid{ grid-template-columns:1fr; } }
+
+/* shop grid scrolls inside the modal like the other lists */
+.modal [data-shop]{ overflow-y:auto; min-height:0; padding-right:4px; }
+
+/* ---------- EMPLOYEES roster rows (FIRE) ---------- */
+.modal [data-roster]{ overflow-y:auto; min-height:0; max-height:230px; padding-right:6px; }
+.roster-row{
+  display:flex; justify-content:space-between; align-items:center; gap:8px;
+  padding:6px 8px; margin-bottom:6px;
+  background:var(--navy-dd); border:2px solid #000;
+}
+.roster-row .rr-info{ min-width:0; }
+.roster-row .rr-stars{ color:var(--brass); }
+.roster-row .rr-fire{ font-size:10px; padding:5px 9px 4px; flex:0 0 auto; }
+.custom-hire-btn{ display:block; width:100%; text-align:center; }
+
+/* custom-hire dept selector */
+.ch-depts{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+.ch-depts .px-btn{ font-size:10px; padding:6px 9px 5px; }

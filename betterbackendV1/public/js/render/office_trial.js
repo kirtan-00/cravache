@@ -1063,11 +1063,24 @@
     'INTERN PITCHES IDEA, SENIOR PRESENTS IT, BOTH SATISFIED',
     'MAKE IT POP, SAYS NATION, AGAIN'
   ];
+  // one short, funny caption per real channel — index matches TV_CHANNELS order.
   var TV_CHANNEL_LINES = [
     'Cricket. Somebody dropped a catch. Productivity dipped 4%.',
     'The news anchor is angry about something. As usual.',
     'An ad break. The volume is louder. It always is.',
-    'Weather: hot. Tomorrow: hot. The client wants snow.'
+    'Weather: hot. Tomorrow: hot. The client wants snow.',
+    'The stock ticker. Everything is up except your retainer.',
+    'Music channel. The bars dance better than your last reel.',
+    'Weather radar. The sweep finds rain that never comes.',
+    'Breaking news: the crawl confirms the brief has changed again.',
+    'Pong, playing itself. Honestly more committed than the intern.',
+    'Cooking show. The pan sizzles. The lunch order does not.',
+    'A logo, bouncing. We are all waiting for it to hit the corner.',
+    'Awards night. Someone wins for a campaign nobody remembers.',
+    'Aquarium channel. The only calm thing in this office.',
+    'Test card. Even the colour bars look more aligned than the team.',
+    'Shopping channel. A product spins. You almost want it. Almost.',
+    'Election results. The bars race. Nobody campaigned on better briefs.'
   ];
 
   // word-wrap helper for the board text
@@ -1279,14 +1292,11 @@
     ctx.beginPath();
     ctx.rect(SCR.x, SCR.y, SCR.w, SCR.h);
     ctx.clip();
-    var chan = (G.state.tvChannel + Math.floor(t / 5)) % 4;
+    var chan = (G.state.tvChannel + Math.floor(t / 5)) % TV_CHANNELS.length;
     var sinceFlip = (t / 5) % 1;
     var staticNow = sinceFlip < 0.10 || (Math.floor(t * 13) % 97 === 0);
     if(staticNow){ drawTVStatic(ctx, SCR); }
-    else if(chan === 0){ drawTVCricket(ctx, SCR); }
-    else if(chan === 1){ drawTVNews(ctx, SCR); }
-    else if(chan === 2){ drawTVAd(ctx, SCR); }
-    else { drawTVWeather(ctx, SCR); }
+    else { TV_CHANNELS[chan](ctx, SCR); }
     ctx.globalAlpha = 0.12;
     ctx.fillStyle = '#000';
     for(var sl = 0; sl < SCR.h; sl += 3) ctx.fillRect(SCR.x, SCR.y + sl, SCR.w, 1);
@@ -1380,6 +1390,330 @@
     ctx.fillStyle = '#0a0d16'; ctx.fillRect(h.x, h.y + h.h - 12, h.w, 12);
     pxText(ctx, 'monsoon: "soon"', h.x + 4, h.y + h.h - 3, 8, '#9fe8ff', 'left', true);
   }
+
+  // ---- channel 5: scrolling stock ticker ----------------------------------
+  var TV_STOCKS = ['ADBRO', 'MEME', 'HYPE', 'CHAI', 'CTR', 'MOOD', 'PIVOT', 'SCOPE', 'VIRL', 'KPI'];
+  function drawTVTicker(ctx, h){
+    ctx.fillStyle = '#070b12'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    // headline index that crawls horizontally
+    pxText(ctx, 'MARKETS', h.x + 6, h.y + 16, 11, '#ffe066', 'left', true);
+    if(Math.floor(t * 2) % 2 === 0){ ctx.fillStyle = '#ff5c5c'; ctx.fillRect(h.x + h.w - 14, h.y + 6, 6, 6); }
+    // a wobbly line chart (sum of sines) sweeping
+    ctx.strokeStyle = '#5fe08a'; ctx.lineWidth = 2; ctx.beginPath();
+    for(var px = 0; px <= h.w; px += 4){
+      var v = Math.sin((px * 0.05) + t * 1.4) * 0.5 + Math.sin((px * 0.13) - t) * 0.3;
+      var yy = h.y + h.h / 2 + v * (h.h * 0.18);
+      if(px === 0) ctx.moveTo(h.x + px, yy); else ctx.lineTo(h.x + px, yy);
+    }
+    ctx.stroke();
+    // bottom ticker tape
+    ctx.fillStyle = '#0e1422'; ctx.fillRect(h.x, h.y + h.h - 14, h.w, 14);
+    var tape = '';
+    for(var i = 0; i < TV_STOCKS.length; i++){
+      var seed = Math.sin(i * 2.3 + Math.floor(t * 0.7));
+      var up = seed > 0;
+      var pct = (Math.abs(seed) * 9 + 0.1).toFixed(1);
+      tape += TV_STOCKS[i] + ' ' + (up ? '+' : '-') + pct + '%   ';
+    }
+    ctx.font = "12px 'VT323', monospace"; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var tw = ctx.measureText(tape).width || 1;
+    var sc = (t * 46) % tw;
+    ctx.fillStyle = '#5fe08a';
+    ctx.fillText(tape + tape, h.x - sc, h.y + h.h - 3);
+    ctx.fillText(tape + tape, h.x - sc + tw, h.y + h.h - 3);
+  }
+
+  // ---- channel 6: music-visualizer EQ bars --------------------------------
+  function drawTVMusic(ctx, h){
+    var grad = (Math.sin(t * 0.6) + 1) / 2;
+    ctx.fillStyle = 'rgb(' + Math.floor(20 + grad * 30) + ',10,' + Math.floor(30 + grad * 30) + ')';
+    ctx.fillRect(h.x, h.y, h.w, h.h);
+    var n = 12, gap = 2, bw = (h.w - gap) / n - gap;
+    var base = h.y + h.h - 14;
+    for(var i = 0; i < n; i++){
+      var amp = Math.abs(Math.sin(t * 4 + i * 0.8) * Math.cos(t * 2.3 + i)) ;
+      var bh = 6 + amp * (h.h - 28);
+      var bx = h.x + gap + i * (bw + gap);
+      // hue per bar
+      var r = 120 + Math.floor(120 * Math.sin(i * 0.5 + t));
+      var g = 120 + Math.floor(120 * Math.sin(i * 0.5 + t + 2));
+      var b = 200;
+      ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+      ctx.fillRect(bx, base - bh, bw, bh);
+      // bright cap
+      ctx.fillStyle = '#fff'; ctx.fillRect(bx, base - bh, bw, 2);
+    }
+    pxText(ctx, '♪ NOW PLAYING', h.x + 6, h.y + 14, 9, '#fff', 'left', true);
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x, h.y + h.h - 12, h.w, 12);
+    pxText(ctx, 'untitled (final v7 FINAL)', h.x + 4, h.y + h.h - 3, 8, '#ff9adf', 'left');
+  }
+
+  // ---- channel 7: weather radar sweep -------------------------------------
+  function drawTVRadar(ctx, h){
+    ctx.fillStyle = '#04140e'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    var cx = h.x + h.w / 2, cy = h.y + h.h / 2 - 4, R = Math.min(h.w, h.h) / 2 - 8;
+    // range rings
+    ctx.strokeStyle = '#1c5c3a'; ctx.lineWidth = 1;
+    for(var r = R; r > 4; r -= R / 3){ ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+    // sweep wedge
+    var ang = (t * 1.6) % (Math.PI * 2);
+    ctx.fillStyle = 'rgba(90,230,140,0.25)';
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, ang - 0.5, ang); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#8fffb0'; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ang) * R, cy + Math.sin(ang) * R); ctx.stroke();
+    // a couple of "blips" that fade as the sweep passes
+    var blips = [[0.6, -0.4], [-0.3, 0.5], [0.2, 0.7]];
+    for(var b = 0; b < blips.length; b++){
+      var ba = Math.atan2(blips[b][1], blips[b][0]); if(ba < 0) ba += Math.PI * 2;
+      var d = (ang - ba + Math.PI * 2) % (Math.PI * 2);
+      var fade = Math.max(0, 1 - d / 1.2);
+      ctx.fillStyle = 'rgba(255,224,102,' + (0.3 + fade * 0.7) + ')';
+      ctx.fillRect(cx + blips[b][0] * R - 2, cy + blips[b][1] * R - 2, 4, 4);
+    }
+    pxText(ctx, 'RADAR', h.x + 5, h.y + 13, 9, '#8fffb0', 'left', true);
+  }
+
+  // ---- channel 8: breaking-news lower-third + crawl -----------------------
+  function drawTVBreaking(ctx, h){
+    // studio bg
+    ctx.fillStyle = '#101a2e'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.fillStyle = '#16223c'; ctx.fillRect(h.x + 8, h.y + 8, h.w - 16, h.h - 36);
+    // "anchor" silhouette
+    var cx = h.x + h.w / 2;
+    ctx.fillStyle = '#0a1224'; ctx.fillRect(cx - 10, h.y + h.h - 50, 20, 24);
+    ctx.beginPath(); ctx.arc(cx, h.y + h.h - 50, 8, 0, Math.PI * 2); ctx.fillStyle = '#0a1224'; ctx.fill();
+    // flashing BREAKING band
+    var flash = Math.floor(t * 3) % 2 === 0;
+    ctx.fillStyle = flash ? '#ff2e2e' : '#c01818'; ctx.fillRect(h.x, h.y + h.h - 30, h.w, 12);
+    pxText(ctx, 'BREAKING', h.x + 4, h.y + h.h - 21, 8, '#fff', 'left', true);
+    pxText(ctx, 'LIVE', h.x + h.w - 26, h.y + h.h - 21, 8, '#fff', 'left', true);
+    // crawl
+    ctx.fillStyle = '#06101f'; ctx.fillRect(h.x, h.y + h.h - 14, h.w, 14);
+    var line = TV_HEADLINES[Math.floor(t / 7) % TV_HEADLINES.length] + '   +++   ';
+    ctx.font = "11px 'VT323', monospace"; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var lw = ctx.measureText(line).width || 1;
+    var sc = (t * 40) % lw;
+    ctx.fillStyle = '#ffe066';
+    ctx.fillText(line + line, h.x - sc, h.y + h.h - 3);
+    ctx.fillText(line + line, h.x - sc + lw, h.y + h.h - 3);
+  }
+
+  // ---- channel 9: self-playing Pong ---------------------------------------
+  function drawTVPong(ctx, h){
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    // dashed centre net
+    ctx.fillStyle = '#2a2a2a';
+    for(var ny = h.y + 4; ny < h.y + h.h - 4; ny += 8) ctx.fillRect(h.x + h.w / 2 - 1, ny, 2, 4);
+    // ball position bounces in a box
+    var bw2 = h.w - 24, bh2 = h.h - 14;
+    var px = Math.abs(((t * 90) % (bw2 * 2)) - bw2);
+    var py = Math.abs(((t * 64) % (bh2 * 2)) - bh2);
+    var bx = h.x + 12 + px, by = h.y + 7 + py;
+    // paddles track the ball (with a little lag = "AI")
+    var clamp = function(v){ return Math.max(h.y + 4, Math.min(h.y + h.h - 24, v)); };
+    var lpad = clamp(by - 8 + Math.sin(t * 5) * 5);
+    var rpad = clamp(by - 8 - Math.sin(t * 5) * 5);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(h.x + 4, lpad, 4, 16);
+    ctx.fillRect(h.x + h.w - 8, rpad, 4, 16);
+    ctx.fillRect(bx, by, 4, 4);
+    // score
+    pxText(ctx, (Math.floor(t / 6) % 9) + '', h.x + h.w / 2 - 24, h.y + 16, 14, '#fff', 'left', true);
+    pxText(ctx, (Math.floor(t / 7) % 9) + '', h.x + h.w / 2 + 14, h.y + 16, 14, '#fff', 'left', true);
+  }
+
+  // ---- channel 10: cooking show (sizzling pan) ----------------------------
+  function drawTVCooking(ctx, h){
+    ctx.fillStyle = '#3a241a'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.fillStyle = '#5a3a26'; ctx.fillRect(h.x, h.y + h.h - 26, h.w, 26); // counter
+    var cx = h.x + h.w / 2, cy = h.y + h.h - 30;
+    // pan
+    ctx.fillStyle = '#15171c'; ctx.beginPath(); ctx.ellipse(cx, cy, 34, 12, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#23262e'; ctx.beginPath(); ctx.ellipse(cx, cy - 2, 30, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#15171c'; ctx.fillRect(cx + 30, cy - 3, 22, 5); // handle
+    // sizzling bits jumping
+    for(var i = 0; i < 6; i++){
+      var ph = Math.abs(Math.sin(t * 6 + i * 1.3));
+      var ix = cx - 18 + i * 7;
+      var iy = cy - 4 - ph * 10;
+      ctx.fillStyle = i % 2 ? '#e0913a' : '#c75a2a';
+      ctx.fillRect(ix, iy, 4, 4);
+    }
+    // steam wisps
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    for(var s = 0; s < 3; s++){
+      var sy = (t * 16 + s * 14) % 30;
+      ctx.fillRect(cx - 10 + s * 10 + Math.sin(t * 3 + s) * 3, cy - 14 - sy, 3, 3);
+    }
+    pxText(ctx, 'CHEF AT WORK', h.x + 6, h.y + 16, 9, '#ffe066', 'left', true);
+    pxText(ctx, 'add a pinch of "deadline"', h.x + 4, h.y + h.h - 3, 8, '#ffd9a0', 'left');
+  }
+
+  // ---- channel 11: bouncing-logo (DVD) ad ---------------------------------
+  var TV_DVD = { x: 30, y: 20, vx: 38, vy: 27, hue: 0, lastT: 0 };
+  function drawTVDvd(ctx, h){
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    var bw = 44, bh = 18;
+    // advance using a frame delta derived from t
+    var dt = Math.max(0, Math.min(0.2, t - TV_DVD.lastT)); TV_DVD.lastT = t;
+    TV_DVD.x += TV_DVD.vx * dt; TV_DVD.y += TV_DVD.vy * dt;
+    var maxX = h.w - bw, maxY = h.h - bh;
+    if(TV_DVD.x <= 0){ TV_DVD.x = 0; TV_DVD.vx = Math.abs(TV_DVD.vx); TV_DVD.hue = (TV_DVD.hue + 60) % 360; }
+    if(TV_DVD.x >= maxX){ TV_DVD.x = maxX; TV_DVD.vx = -Math.abs(TV_DVD.vx); TV_DVD.hue = (TV_DVD.hue + 60) % 360; }
+    if(TV_DVD.y <= 0){ TV_DVD.y = 0; TV_DVD.vy = Math.abs(TV_DVD.vy); TV_DVD.hue = (TV_DVD.hue + 60) % 360; }
+    if(TV_DVD.y >= maxY){ TV_DVD.y = maxY; TV_DVD.vy = -Math.abs(TV_DVD.vy); TV_DVD.hue = (TV_DVD.hue + 60) % 360; }
+    var lx = h.x + TV_DVD.x, ly = h.y + TV_DVD.y;
+    ctx.fillStyle = 'hsl(' + TV_DVD.hue + ',80%,55%)';
+    ctx.fillRect(lx, ly, bw, bh);
+    pxText(ctx, 'CRVCH', lx + bw / 2, ly + 13, 11, '#000', 'center', true);
+  }
+
+  // ---- channel 12: awards red-carpet --------------------------------------
+  function drawTVAwards(ctx, h){
+    ctx.fillStyle = '#1a0a14'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    // red carpet
+    ctx.fillStyle = '#8c1430'; ctx.fillRect(h.x + h.w / 2 - 22, h.y + 24, 44, h.h - 24);
+    ctx.fillStyle = '#b21c40'; ctx.fillRect(h.x + h.w / 2 - 18, h.y + 24, 36, h.h - 24);
+    // a little trophy that gleams
+    var cx = h.x + h.w / 2, cy = h.y + h.h - 30;
+    ctx.fillStyle = '#ffd34d'; ctx.fillRect(cx - 8, cy - 16, 16, 12);
+    ctx.fillRect(cx - 3, cy - 4, 6, 8); ctx.fillRect(cx - 7, cy + 4, 14, 4);
+    var gleam = Math.floor(t * 4) % 4;
+    ctx.fillStyle = '#fff'; ctx.fillRect(cx - 6 + gleam * 3, cy - 14, 2, 8);
+    // camera flashes (random pops top area)
+    for(var i = 0; i < 5; i++){
+      if((Math.floor(t * 8) + i * 3) % 7 === 0){
+        var fx = h.x + 8 + ((i * 37) % (h.w - 16));
+        ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fillRect(fx, h.y + 8 + (i % 2) * 6, 5, 5);
+      }
+    }
+    pxText(ctx, 'THE ADDYS', h.x + h.w / 2, h.y + 16, 11, '#ffd34d', 'center', true);
+    pxText(ctx, 'and the brief goes to...', h.x + h.w / 2, h.y + h.h - 3, 8, '#ffd9e0', 'center');
+  }
+
+  // ---- channel 13: ASMR aquarium ------------------------------------------
+  var TV_FISH = [
+    { x: 20, y: 30, vx: 22, c: '#ff9a56', s: 1 },
+    { x: 120, y: 60, vx: -16, c: '#5fd0ff', s: 1.3 },
+    { x: 70, y: 80, vx: 13, c: '#ffe066', s: 0.9 }
+  ];
+  function drawTVFish(ctx, h){
+    var g = ctx.createLinearGradient(0, h.y, 0, h.y + h.h);
+    g.addColorStop(0, '#0a3a52'); g.addColorStop(1, '#04202e');
+    ctx.fillStyle = g; ctx.fillRect(h.x, h.y, h.w, h.h);
+    // sandy bottom + plants
+    ctx.fillStyle = '#1a3a22'; ctx.fillRect(h.x, h.y + h.h - 8, h.w, 8);
+    ctx.fillStyle = '#2e6b3a';
+    for(var p = 0; p < h.w; p += 18){
+      var sway = Math.sin(t * 1.5 + p) * 3;
+      ctx.fillRect(h.x + p, h.y + h.h - 24, 3, 16);
+      ctx.fillRect(h.x + p + sway, h.y + h.h - 30, 3, 8);
+    }
+    var dt = Math.max(0, Math.min(0.2, t - (drawTVFish._lt || t))); drawTVFish._lt = t;
+    for(var i = 0; i < TV_FISH.length; i++){
+      var f = TV_FISH[i];
+      f.x += f.vx * dt;
+      if(f.x < 4){ f.x = 4; f.vx = Math.abs(f.vx); }
+      if(f.x > h.w - 14){ f.x = h.w - 14; f.vx = -Math.abs(f.vx); }
+      var fy = h.y + f.y + Math.sin(t * 2 + i) * 4;
+      var fx = h.x + f.x;
+      ctx.fillStyle = f.c;
+      ctx.beginPath(); ctx.ellipse(fx, fy, 7 * f.s, 4 * f.s, 0, 0, Math.PI * 2); ctx.fill();
+      // tail (points opposite to travel)
+      var dir = f.vx > 0 ? -1 : 1;
+      ctx.fillRect(fx + dir * 6 * f.s, fy - 3, 4 * dir, 6);
+      ctx.fillStyle = '#000'; ctx.fillRect(fx - dir * 4 * f.s, fy - 1, 1.5, 1.5);
+    }
+    // rising bubbles
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    for(var b = 0; b < 4; b++){
+      var by = (t * 18 + b * 20) % h.h;
+      ctx.fillRect(h.x + 14 + b * 24, h.y + h.h - by, 2, 2);
+    }
+  }
+
+  // ---- channel 14: SMPTE/test-card color bars -----------------------------
+  function drawTVBars(ctx, h){
+    var cols = ['#c0c0c0', '#c0c000', '#00c0c0', '#00c000', '#c000c0', '#c00000', '#0000c0'];
+    var bw = h.w / cols.length;
+    for(var i = 0; i < cols.length; i++){
+      ctx.fillStyle = cols[i]; ctx.fillRect(h.x + i * bw, h.y, Math.ceil(bw) + 1, h.h - 18);
+    }
+    // bottom black strip + bouncing "TEST CARD" + jitter line
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x, h.y + h.h - 18, h.w, 18);
+    var jx = Math.floor(Math.sin(t * 1.3) * (h.w / 2 - 30));
+    pxText(ctx, 'TEST CARD', h.x + h.w / 2 + jx, h.y + h.h - 5, 9, '#fff', 'center', true);
+    // rolling horizontal sync glitch
+    var gy = h.y + (Math.floor(t * 40) % (h.h - 18));
+    ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(h.x, gy, h.w, 2);
+  }
+
+  // ---- channel 15: shopping channel (spinning product) --------------------
+  function drawTVShop(ctx, h){
+    ctx.fillStyle = '#2a1838'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.fillStyle = '#3a2450'; ctx.fillRect(h.x, h.y, h.w, 20);
+    pxText(ctx, 'SHOP NOW', h.x + 6, h.y + 15, 10, '#ffe066', 'left', true);
+    if(Math.floor(t * 3) % 2 === 0) pxText(ctx, 'LIVE', h.x + h.w - 26, h.y + 15, 9, '#ff5c5c', 'left', true);
+    // spinning "product": a box whose width squashes like a rotating 3D cube
+    var cx = h.x + h.w / 2, cy = h.y + h.h / 2;
+    var sw = Math.abs(Math.cos(t * 2)) * 26 + 6;
+    var face = Math.cos(t * 2) > 0;
+    ctx.fillStyle = face ? '#ff5c8a' : '#5c8aff';
+    ctx.fillRect(cx - sw / 2, cy - 22, sw, 44);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(cx - sw / 2, cy - 22, sw, 4);
+    pxText(ctx, face ? 'NEW!' : 'WOW', cx, cy + 4, 9, '#fff', 'center', true);
+    // price flashing
+    var price = Math.floor(t * 4) % 2 ? '999' : '99';
+    pxText(ctx, '₹' + price + ' only', cx, h.y + h.h - 5, 11, '#ffe066', 'center', true);
+  }
+
+  // ---- channel 16: election results bar race ------------------------------
+  var TV_PARTIES = [
+    { n: 'CREA', c: '#ff5c5c' },
+    { n: 'TIVE', c: '#5fd0ff' },
+    { n: 'DEPT', c: '#ffe066' }
+  ];
+  function drawTVElection(ctx, h){
+    ctx.fillStyle = '#0c1426'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    pxText(ctx, 'RESULTS', h.x + 6, h.y + 15, 10, '#fff', 'left', true);
+    if(Math.floor(t * 2) % 2 === 0){ ctx.fillStyle = '#ff5c5c'; ctx.fillRect(h.x + h.w - 14, h.y + 6, 6, 6); }
+    var top = h.y + 24, rowH = (h.h - 36) / TV_PARTIES.length;
+    var maxW = h.w - 64;
+    for(var i = 0; i < TV_PARTIES.length; i++){
+      var p = TV_PARTIES[i];
+      var frac = (Math.sin(t * 0.8 + i * 2) * 0.4 + 0.5);
+      var w = 6 + frac * maxW;
+      var ry = top + i * rowH;
+      ctx.fillStyle = '#1a2742'; ctx.fillRect(h.x + 6, ry + 2, maxW, rowH - 8);
+      ctx.fillStyle = p.c; ctx.fillRect(h.x + 6, ry + 2, w, rowH - 8);
+      pxText(ctx, p.n, h.x + 9, ry + rowH - 6, 8, '#0a0d16', 'left', true);
+      pxText(ctx, Math.floor(frac * 540) + '', h.x + h.w - 8, ry + rowH - 6, 9, '#fff', 'right', true);
+    }
+  }
+
+  // The single source of truth for channel order — auto-cycle (drawTV) and the
+  // tap handler both use TV_CHANNELS.length so they can never drift. "static"
+  // remains a transient no-signal state layered on top, not a real channel.
+  var TV_CHANNELS = [
+    drawTVCricket,    // 0
+    drawTVNews,       // 1
+    drawTVAd,         // 2
+    drawTVWeather,    // 3
+    drawTVTicker,     // 4
+    drawTVMusic,      // 5
+    drawTVRadar,      // 6
+    drawTVBreaking,   // 7
+    drawTVPong,       // 8
+    drawTVCooking,    // 9
+    drawTVDvd,        // 10
+    drawTVAwards,     // 11
+    drawTVFish,       // 12
+    drawTVBars,       // 13
+    drawTVShop,       // 14
+    drawTVElection    // 15
+  ];
 
   // ---------- neon sign (custom text, glowing tube) ----------
   function drawNeon(ctx){
@@ -2164,9 +2498,9 @@
 
       // office TV: flip the channel manually
       if(s.upgrades.tv && inBox(HOTSPOTS.tv)){
-        s.tvChannel = (s.tvChannel + 1) % 4;
+        s.tvChannel = (s.tvChannel + 1) % TV_CHANNELS.length;
         G.audio.click();
-        var ch = (s.tvChannel + Math.floor(t / 5)) % 4;
+        var ch = (s.tvChannel + Math.floor(t / 5)) % TV_CHANNELS.length;
         G.dock.infoToast('TV', TV_CHANNEL_LINES[ch], '');
         return;
       }
