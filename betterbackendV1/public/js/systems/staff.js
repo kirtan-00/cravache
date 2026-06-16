@@ -54,8 +54,8 @@
       if(st.id === 's_devang' && brief && brief.deadlineLeft < brief.deadlineTotal * 0.3){
         speed *= 1.5;
       }
-      // Director on payroll: whole production dept +20%
-      if(st.dept === 'production' && this.byId('s_dev_anand')){
+      // Director (Ohm) on payroll: whole production dept +20%
+      if(st.dept === 'production' && this.byId('s_imran')){
         speed *= G.BAL.DIRECTOR_BOOST;
       }
       // night owls (besides Arya, who has her own night magic) get a focus

@@ -32,7 +32,7 @@
     WEEKS: 8,                    // local -> gujarat -> india -> dubai -> global
 
     // departments
-    DEPT_CAPS: { designer: 5, editor: 5, content: 3, production: 4 },
+    DEPT_CAPS: { designer: 5, editor: 5, content: 3, production: 5 },
     PRODUCTION_UNLOCK_WEEK: 2,   // survive 1 week, production studio opens
     DIRECTOR_BOOST: 1.2,         // production dept speed while the Director is hired
     ARYA_SPEED_CAP: 2.0,         // night+hard-brief stack used to hit x2.38

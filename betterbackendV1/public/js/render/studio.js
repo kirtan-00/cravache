@@ -88,7 +88,8 @@
     { x:1015, y:478, role:'Camera'   },  // camera op: right of the backdrop
     { x:205,  y:492, role:'B-cam'    },  // far left
     { x:120,  y:466, role:'Director' },  // far left, back
-    { x:315,  y:506, role:'Gaffer'   }   // left, forward
+    { x:315,  y:506, role:'Gaffer'   },  // left, forward
+    { x:430,  y:500, role:'Producer' }   // centre-left: 5th crew (producer / comms)
   ];
 
   // deterministic per-staffer look so every crew member is a distinct character

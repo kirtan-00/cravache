@@ -40,7 +40,8 @@
     { x: 640,  y: 600, dept: 'production' },
     { x: 810,  y: 600, dept: 'production' },
     { x: 980,  y: 600, dept: 'production' },
-    { x: 1130, y: 600, dept: 'production' }
+    { x: 1130, y: 600, dept: 'production' },
+    { x: 510,  y: 600, dept: 'production' }   // 5th production seat (crew works in the studio; this is seating/cap bookkeeping)
   ];
   // DESK_SCALE: shrink each desk's DRAWN size by 20% (0.8) while keeping the grid
   // POSITIONS (d.x/d.y) where they are. Everything that sits on a desk — the
