@@ -25,9 +25,10 @@ interface GGlobal {
   music?: GMusic;
   audio?: GAudio;
 }
+type TapResult = 'on' | 'next' | 'off' | 'none';
 interface AlexaController {
   toggle: () => void;
-  next: () => void; // alias of toggle (tap = on/off)
+  next: () => TapResult; // tap: start → skip through queue → stop → start again
   isPlaying: () => boolean;
   hasSongs: () => boolean;
 }
@@ -118,17 +119,31 @@ function buildPlaylist(): void {
 }
 
 /** Expose the speaker controls to the canvas renderer (tap = start/skip + light). */
+/** Stop every track without changing `current` (used by the tap-to-off step). */
+function stopAll(): void {
+  howls.forEach((h) => {
+    if (h.playing()) h.stop();
+  });
+}
+
 function exposeController(): void {
-  // Tap starts the queue (if silent) or skips to the next song (if already
-  // playing). Songs also auto-advance on end, and the queue loops.
-  const next = (): void => {
-    if (!songsActive) return; // only our songs; never the lo-fi engine
+  // Tap cycle: OFF → song 1 → song 2 → … → last song → (tap) OFF → song 1 …
+  // i.e. the player skips through the whole queue, and the tap AFTER the last
+  // song shuts the speaker up; the next tap restarts from the top.
+  const next = (): TapResult => {
+    if (!songsActive) return 'none'; // only our songs; never the lo-fi engine
     Howler.mute(isGloballyMuted());
     if (!anyPlaying()) {
-      playIndex(current); // first tap (or after a stop): start the current track
-    } else {
-      playIndex(current + 1); // skip to the next song
+      playIndex(current); // off → start the queue (current is 0 after a full pass)
+      return 'on';
     }
+    if (current >= PLAYLIST.length - 1) {
+      stopAll(); // played through the queue → this tap silences it
+      current = 0; // reset so the next tap starts from the first song
+      return 'off';
+    }
+    playIndex(current + 1); // skip to the next song
+    return 'next';
   };
   window.CravacheAlexa = {
     toggle: next,

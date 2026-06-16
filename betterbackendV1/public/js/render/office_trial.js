@@ -1960,10 +1960,13 @@
       if(inBox(HOTSPOTS.alexa)){
         try{ if(G.audio && G.audio.click) G.audio.click(); }catch(e){}
         if(window.CravacheAlexa && window.CravacheAlexa.next){
-          var wasPlaying = window.CravacheAlexa.isPlaying && window.CravacheAlexa.isPlaying();
-          window.CravacheAlexa.next();
+          var st = window.CravacheAlexa.next(); // 'on' | 'next' | 'off' | 'none'
           if(G.dock && G.dock.infoToast){
-            G.dock.infoToast('ALEXA', wasPlaying ? 'Next track.' : 'Speaker on. Songs rolling.', '');
+            var msg = st === 'off'  ? 'Speaker off. Silence, finally.'
+                    : st === 'on'   ? 'Speaker on. Songs rolling.'
+                    : st === 'next' ? 'Next track.'
+                    :                 'No songs loaded.';
+            G.dock.infoToast('ALEXA', msg, '');
           }
         }
         return;
