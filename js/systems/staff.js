@@ -64,6 +64,8 @@
       if(G.state.night && G.BAL.NIGHT_OWLS[st.id] && st.id !== 's_arya'){
         speed *= (G.BAL.NIGHT_OWL_SPEED || 1.2);
       }
+      // approved raises: each one is a small permanent work-speed bump (+4%).
+      if(st.raises) speed *= (1 + G.BAL.RAISE_SPEED_PER * st.raises);
       return speed;
     },
 
