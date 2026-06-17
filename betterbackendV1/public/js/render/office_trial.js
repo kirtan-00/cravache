@@ -65,8 +65,10 @@
   var windowIdx = 0, boardIdx = 0, printerIdx = 0;
 
   // ---- aquarium fish sim (persistent; fish stay INSIDE the glass, swim to food) ----
-  // Tank rect matches HOTSPOTS.aquarium / drawAquarium (ax=40, ay=560, 150x100).
-  var AQ = { x: 40, y: 560, w: 150, h: 100, pad: 14 };
+  // Tank rect matches HOTSPOTS.aquarium / drawAquarium (ax=40, ay=494, 150x86).
+  // The whole break-room row was lifted to a shelf bottom-aligned to y≈580 so it
+  // sits clear ABOVE the dock (the dock covers y624-720 and was hiding the toys).
+  var AQ = { x: 40, y: 494, w: 150, h: 86, pad: 14 };
   var aqFish = null;      // lazy init: two fish { x, y, vx, vy, col, sz, fed }
   var aqFood = [];        // sinking pellets: { x, y, vy, life }
   var aqLastT = 0;        // for dt inside the draw call (no dt is passed to props)
@@ -1048,7 +1050,7 @@
     window:  { x: 440,  y: 46,  w: 459, h: 172 },  // the live studio window glass (widened +35%, right edge x=899)
     board:   { x: 14,   y: 55,  w: 337, h: 145 },  // HUSTLE board: x+w match the HUD stat panel (14..351), top 5px below it, bottom on the window line (y200)
     tv:      { x: 920,  y: 60,  w: 200, h: 120 },  // flatscreen on back wall (right) — moved right to clear the widened window (right frame ends x=909)
-    aquarium:{ x: 40,   y: 560, w: 150, h: 100 },  // the fish tank (gated on the aquarium upgrade) — tap to drop food
+    aquarium:{ x: 40,   y: 494, w: 150, h: 86 },  // the fish tank (gated on the aquarium upgrade) — tap to drop food
     studio:  { x: 858,  y: 556, w: 270, h: 58  }   // "GO TO PRODUCTION STUDIO" button (front-right, where the prod desks were)
   };
 
@@ -1752,7 +1754,7 @@
   }
 
   // ---------- water cooler (gossip station) ----------
-  var COOLER = { x: 648, y: 617 };   // break-room row slot 5 (bottom-aligned to floor baseline 660)
+  var COOLER = { x: 648, y: 537 };   // break-room row slot 5 (bottom-aligned to the lifted shelf ~580)
   var COOLER_S = 0.62;               // shrunk per "make the team thing small"
   G.render.coolerPoint = function(){ return { x: COOLER.x + 20 * COOLER_S, y: COOLER.y + 70 * COOLER_S }; };
 
@@ -1780,7 +1782,7 @@
     // label in WORLD space (drawn before the cooler's scale transform), sitting on
     // the floor baseline like the other break-room props. The cooler is decor (no
     // tap action), so its caption omits the "tap to ..." promise.
-    pxText(ctx, 'WATER COOLER', cx + 12, 687, 11, 'rgba(159,232,255,0.7)', 'center');
+    pxText(ctx, 'WATER COOLER', cx + 12, 607, 11, 'rgba(159,232,255,0.7)', 'center');
     ctx.save();
     ctx.translate(cx, cy); ctx.scale(COOLER_S, COOLER_S); ctx.translate(-cx, -cy);
     ctx.fillStyle = 'rgba(0,0,0,0.30)'; ellipse(ctx, cx + 20, cy + 70, 28, 7);
@@ -1871,7 +1873,7 @@
 
   // AQUARIUM — glowing tank on the front-left floor, drifting fish + bubbles.
   function drawAquarium(ctx){
-    var ax = 40, ay = 560, aw = 150, ah = 100;
+    var ax = 40, ay = 494, aw = 150, ah = 86;
     // glow halo (the tank lights the dark floor)
     ctx.fillStyle = 'rgba(80,170,220,0.10)';
     ctx.fillRect(ax - 24, ay - 24, aw + 48, ah + 48);
@@ -1973,17 +1975,17 @@
     ctx.strokeRect(ax + 2, ay + 2, aw - 4, ah - 4);
     ctx.fillStyle = 'rgba(255,255,255,0.10)';
     ctx.fillRect(ax + aw - 26, ay + 6, 6, ah - 16);
-    // "tap to ..." label beneath (the stand drops to ay+ah+16=676), shared style + baseline
-    pxText(ctx, 'FISH TANK · tap to feed', ax + aw / 2, 687, 11, 'rgba(159,232,255,0.7)', 'center');
+    // "tap to ..." label beneath (the stand drops to ay+ah+16), shared style + lifted baseline
+    pxText(ctx, 'FISH TANK · tap to feed', ax + aw / 2, 607, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   // COFFEE machine — sprite + rising steam; tappable (opens the brew mini-game).
   // Relocated onto the floor between the arcade (x≈300) and foosball (x≈500).
   // break-room row slot 4. Hit rect (62x82) wraps the 46x64 sprite; both bottom-
   // aligned to the floor baseline (660). cx/cy MUST stay in lockstep with the hit.
-  var COFFEE_HIT = { x: 529, y: 578, w: 62, h: 82 };
+  var COFFEE_HIT = { x: 529, y: 498, w: 62, h: 82 };
   function drawCoffee(ctx){
-    var cx = 537, cy = 596;   // sprite top-left: centred in COFFEE_HIT, sprite bottom = 660
+    var cx = 537, cy = 516;   // sprite top-left: centred in COFFEE_HIT, sprite bottom = 580
     ctx.fillStyle = 'rgba(0,0,0,0.22)'; ellipse(ctx, cx + 23, cy + 66, 24, 7);
     drawSprite(ctx, 'coffee_machine', cx, cy, 46, 64);
     // rising steam puffs from the spout (two staggered columns)
@@ -1997,14 +1999,14 @@
       ctx.fillRect(cx + 26 - drift, puffY - 4, 4, 4);
     }
     // "tap to ..." label beneath, matching the foosball/TT style + baseline
-    pxText(ctx, 'COFFEE · tap to brew', COFFEE_HIT.x + COFFEE_HIT.w / 2, 687, 11, 'rgba(159,232,255,0.7)', 'center');
+    pxText(ctx, 'COFFEE · tap to brew', COFFEE_HIT.x + COFFEE_HIT.w / 2, 607, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   // ARCADE cabinet — glowing screen, on the floor.
   // Click hitbox (see handleClick) is kept in lockstep with the draw rect below.
   // break-room row slot 3 (tallest). Bottom-aligned to the floor baseline (660):
   // ay = 660 - 120 = 540. drawArcade reads ARCADE_HIT so draw+hit stay in lockstep.
-  var ARCADE_HIT = { x: 405, y: 540, w: 70, h: 120 };
+  var ARCADE_HIT = { x: 405, y: 492, w: 70, h: 88 };
   function drawArcade(ctx){
     var ax = ARCADE_HIT.x, ay = ARCADE_HIT.y, aw = ARCADE_HIT.w, ah = ARCADE_HIT.h;
     ctx.fillStyle = 'rgba(0,0,0,0.28)'; ellipse(ctx, ax + aw / 2, ay + ah, aw * 0.5, 9);
@@ -2033,7 +2035,7 @@
     ctx.fillStyle = 'rgba(255,255,255,0.06)';
     ctx.fillRect(ax - 16, ay + 10, aw + 32, 60);
     // "tap to ..." label beneath, matching the foosball/TT style + baseline
-    pxText(ctx, 'ARCADE · tap to play', ax + aw / 2, 687, 11, 'rgba(159,232,255,0.7)', 'center');
+    pxText(ctx, 'ARCADE · tap to play', ax + aw / 2, 607, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   // SMALL windowsill plant — a little potted plant sitting ON the window sill
@@ -2266,7 +2268,7 @@
 
   // ---------- foosball table (shop: u.foosball) — tap to play the mini-game ----------
   // Static break-room furniture. Tapping opens the foosball mini-game (G.foosball).
-  var FOOS_BOX = { x: 700, y: 602, w: 150, h: 58 };   // break-room row slot 6 (bottom-aligned to floor baseline 660; right edge clears the studio button at x858)
+  var FOOS_BOX = { x: 700, y: 522, w: 150, h: 58 };   // break-room row slot 6 (bottom-aligned to the lifted shelf ~580; right edge clears the studio button at x858)
   function drawFoos(ctx){
     var B = FOOS_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
     ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + 8, y + h - 2, 6, 16); ctx.fillRect(x + w - 14, y + h - 2, 6, 16);
@@ -2290,7 +2292,7 @@
   // ---------- table tennis table (shop: u.tabletennis) — tap to play the mini-game ----------
   // Static break-room furniture in the open lower-left floor. Tapping opens the
   // table-tennis mini-game (G.tableTennis). Style/scale mirrors the foosball table.
-  var TT_BOX = { x: 216, y: 596, w: 168, h: 64 };   // break-room row slot 2 (bottom-aligned to baseline 660); was 40,560 — OVERLAPPED the fish tank
+  var TT_BOX = { x: 216, y: 516, w: 168, h: 64 };   // break-room row slot 2 (bottom-aligned to the lifted shelf ~580); was 40,560 — OVERLAPPED the fish tank
   function drawTT(ctx){
     var B = TT_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
     // soft glow halo so the table pops out of the dark corner

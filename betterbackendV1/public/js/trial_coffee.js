@@ -16,8 +16,10 @@
   window.G = window.G || {};
 
   var MAX_PER_DAY = 3;
-  var CHAOS_GOOD = 5;         // subtract on a clean cup
-  var CHAOS_OK   = 2;         // subtract on a sloppy cup
+  // chaos drop scales with mastery: ★★★ perfect rewards harder than a sloppy cup
+  var CHAOS_PERFECT = 6;      // ★★★ — dials dead-on + fill bang in the zone
+  var CHAOS_GOOD    = 5;      // ★★  — clean cup (dials in band, fill in zone)
+  var CHAOS_OK      = 2;      // ★   — drinkable, barely (over/under-fill or off dials)
 
   // canvas dimensions (internal pixels; CSS may scale)
   var CW = 460, CH = 340;
@@ -27,10 +29,14 @@
   var DIAL_MIN = -135 * Math.PI / 180;
   var DIAL_MAX =  135 * Math.PI / 180;
   var DIAL_R = 38;            // dial radius (px)
-  // two dials, each with a center + a randomly-placed target band [lo,hi] in 0..1
+  // vertical-drag sensitivity: full 0->1 over ~140px of travel. Predictable,
+  // never wraps (unlike mapping raw cursor angle around the knob).
+  var DRAG_SPAN = 140;
+  // two dials, each with a center + a randomly-placed target band [lo,hi] in 0..1.
+  // wasIn / glow drive the safe-cracker "snap into band" feedback.
   var dials = [
-    { key:'STRENGTH', cx:120, cy:230, val:0.5, lo:0, hi:0 },
-    { key:'SIZE',     cx:340, cy:230, val:0.5, lo:0, hi:0 }
+    { key:'STRENGTH', cx:120, cy:230, val:0.5, lo:0, hi:0, wasIn:false, glow:0 },
+    { key:'SIZE',     cx:340, cy:230, val:0.5, lo:0, hi:0, wasIn:false, glow:0 }
   ];
 
   // ---- fill -----------------------------------------------------------------
@@ -47,12 +53,23 @@
   var closing = false;        // guard against double-close
 
   // run state
-  var phase = 'setup';        // 'setup' -> 'pouring' -> (resolves to close)
-  var fill = 0;               // current cup fill 0..1
+  var phase = 'setup';        // 'setup' -> 'pouring' -> 'result' -> (close)
+  var fill = 0;               // displayed cup fill 0..1 (eased toward fillTarget)
+  var fillTarget = 0;         // where the liquid is actually pouring to
   var overflowed = false;
   var dragDial = -1;          // index of dial being dragged, -1 = none
+  var dragStartY = 0;         // canvas-Y at grab
+  var dragStartVal = 0;       // dial value at grab (delta is added to this)
   var brewBtn = { x: CW/2 - 70, y: 286, w: 140, h: 38 }; // BREW/STOP button rect
   var mouseDownPt = null;     // last mousedown canvas point (for hit-tests)
+
+  // ---- result / juice -------------------------------------------------------
+  var result = null;          // { stars, drop } once a cup is poured
+  var resultT = 0;            // time spent on the result beat (s)
+  var RESULT_HOLD = 1.05;     // celebratory beat length before auto-close (s)
+  var spark = [];             // sparkle particles on a good cup
+  var steam = [];             // rising steam wisps off the cup
+  var animT = 0;              // free-running clock for steam/shimmer
 
   function stage(){ return document.getElementById('stage') || document.body; }
 
@@ -125,7 +142,7 @@
 
     var head = document.createElement('div');
     head.className = 'cof-head';
-    head.textContent = 'OFFICE COFFEE — set the dials, then BREW';
+    head.textContent = 'OFFICE COFFEE — drag dials up/down, then BREW';
 
     canvasEl = document.createElement('canvas');
     canvasEl.width = CW;
@@ -176,20 +193,10 @@
     return p && p.x >= rc.x && p.x <= rc.x + rc.w && p.y >= rc.y && p.y <= rc.y + rc.h;
   }
 
-  // angle from a dial center to point p, mapped onto 0..1 across the dial sweep
-  function angleToVal(d, p){
-    var a = Math.atan2(p.y - d.cy, p.x - d.cx);
-    // rotate so straight-down (pointer rest) sits mid-sweep; our sweep is
-    // centered on -90deg (up) is min... use the raw atan2 clamped to the arc.
-    // Map a in [DIAL_MIN..DIAL_MAX] where 0rad points right. We want the knob
-    // pointer to sweep from lower-left (min) through top to lower-right (max).
-    // Shift atan2 by +90deg so "up" => 0, then it ranges around there.
-    var rel = a + Math.PI / 2;           // up = 0
-    // normalize into [-PI, PI]
-    while(rel >  Math.PI) rel -= 2*Math.PI;
-    while(rel < -Math.PI) rel += 2*Math.PI;
-    rel = clamp(rel, DIAL_MIN, DIAL_MAX);
-    return (rel - DIAL_MIN) / (DIAL_MAX - DIAL_MIN);
+  // value 0..1 -> needle angle across the -135deg..+135deg sweep (0deg = right,
+  // so -90deg = up). Drives the VISUAL needle from the well-behaved value.
+  function valToAngle(v){
+    return DIAL_MIN + clamp(v, 0, 1) * (DIAL_MAX - DIAL_MIN) - Math.PI / 2;
   }
 
   // ---------------------------------------------------------------- input
@@ -199,13 +206,15 @@
     mouseDownPt = p;
 
     if(phase === 'setup'){
-      // grab a dial if pressed on/near it
+      // grab a dial if pressed on/near it — DO NOT snap the value on grab.
+      // record the start point + current value; drag applies a smooth delta.
       for(var i=0;i<dials.length;i++){
         var d = dials[i];
         var dx = p.x - d.cx, dy = p.y - d.cy;
-        if(dx*dx + dy*dy <= (DIAL_R + 10)*(DIAL_R + 10)){
+        if(dx*dx + dy*dy <= (DIAL_R + 12)*(DIAL_R + 12)){
           dragDial = i;
-          d.val = angleToVal(d, p);
+          dragStartY = p.y;
+          dragStartVal = d.val;
           e.preventDefault();
           return;
         }
@@ -221,13 +230,19 @@
       stopPour();
       e.preventDefault();
     }
+    // phase 'result'/'done': ignore clicks, the beat auto-closes
   }
 
   function onMouseMove(e){
     if(dragDial < 0) return;
     var p = toCanvas(e);
     if(!p) return;
-    dials[dragDial].val = angleToVal(dials[dragDial], p);
+    var d = dials[dragDial];
+    // vertical drag: up = increase, down = decrease. Smooth delta over DRAG_SPAN
+    // px of travel, hard-clamped to [0,1] so it physically stops at the ends.
+    var delta = (dragStartY - p.y) / DRAG_SPAN;
+    d.val = clamp(dragStartVal + delta, 0, 1);
+    e.preventDefault();
   }
 
   function onMouseUp(e){
@@ -250,9 +265,10 @@
     if(phase !== 'setup') return;
     phase = 'pouring';
     fill = 0;
+    fillTarget = 0;
     overflowed = false;
     dragDial = -1;
-    try { if(G.audio && G.audio.click) G.audio.click(); } catch(e){}
+    try { if(G.audio && G.audio.waterPour) G.audio.waterPour(); } catch(e){}
   }
 
   function stopPour(){
@@ -269,27 +285,123 @@
     return true;
   }
 
-  // evaluate the finished cup and end the round
+  // how tightly each dial sits in its band: 1 = dead-center, 0 = at the edge.
+  function dialTightness(){
+    var min = 1;
+    for(var i=0;i<dials.length;i++){
+      var d = dials[i];
+      var mid = (d.lo + d.hi) / 2, half = (d.hi - d.lo) / 2 || 0.0001;
+      var t = 1 - Math.min(1, Math.abs(d.val - mid) / half);
+      if(t < min) min = t;
+    }
+    return min;   // worst-of-the-two — both must be tight for a ★★★
+  }
+
+  // evaluate the finished cup, score 1..3 stars, kick off the celebratory beat
   function resolveCup(){
     if(phase !== 'pouring') return;
-    phase = 'done';
 
     var fillGood = !overflowed && fill >= FILL_LO && fill <= FILL_HI;
-    var good = fillGood && dialsGood();
-    try { if(G.audio && G.audio.click) G.audio.click(); } catch(e){}
-    finish(good);
+    var inBand = dialsGood();
+    var clean = fillGood && inBand;
+
+    var stars, drop, perfect = false;
+    if(clean){
+      // how centered is the fill in its zone? + how tight are the dials?
+      var zMid = (FILL_LO + FILL_HI) / 2, zHalf = (FILL_HI - FILL_LO) / 2;
+      var fillTight = 1 - Math.min(1, Math.abs(fill - zMid) / zHalf);
+      var tight = Math.min(fillTight, dialTightness());
+      if(tight >= 0.55){ stars = 3; drop = CHAOS_PERFECT; perfect = true; }
+      else { stars = 2; drop = CHAOS_GOOD; }
+    } else {
+      stars = 1; drop = CHAOS_OK;
+    }
+
+    result = { stars: stars, drop: drop, perfect: perfect, clean: clean };
+    resultT = 0;
+    phase = 'result';
+
+    // celebratory beat: ding for any drinkable cup, full sparkle arpeggio on ★★★
+    spawnSteam();
+    if(perfect){
+      spawnSparkles(26);
+      try { if(G.audio && G.audio.viral) G.audio.viral(); } catch(e){}
+    } else if(clean){
+      spawnSparkles(12);
+      try { if(G.audio && G.audio.accept) G.audio.accept(); } catch(e){}
+    } else {
+      try { if(G.audio && G.audio.click) G.audio.click(); } catch(e){}
+    }
+  }
+
+  // ---------------------------------------------------------------- juice
+  var cupCenterX = CW/2;
+  var cupTopY = 132;
+
+  function spawnSparkles(n){
+    spark = [];
+    for(var i=0;i<n;i++){
+      var ang = Math.random() * Math.PI * 2;
+      var spd = 40 + Math.random() * 130;
+      spark.push({
+        x: cupCenterX, y: cupTopY + 30,
+        vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd - 50,
+        life: 0, max: 0.5 + Math.random() * 0.5,
+        s: 1.5 + Math.random() * 2.5
+      });
+    }
+  }
+
+  function spawnSteam(){
+    steam = [];
+    for(var i=0;i<5;i++){
+      steam.push({ x: cupCenterX - 18 + i*9 + (Math.random()*6-3), seed: Math.random()*6.28, sp: 0.7 + Math.random()*0.5 });
+    }
   }
 
   // ---------------------------------------------------------------- update
   function update(dt){
-    if(phase === 'pouring'){
-      fill += FILL_RATE * dt;
-      if(fill >= 1){
-        fill = 1;
-        overflowed = true;
-        // overflowing auto-stops the pour as a sloppy cup
-        resolveCup();
+    animT += dt;
+
+    // dial "safe-cracker" feedback — soft click + glow the instant a knob
+    // crosses into its target band (only matters while setting up).
+    if(phase === 'setup'){
+      for(var i=0;i<dials.length;i++){
+        var d = dials[i];
+        var nowIn = d.val >= d.lo && d.val <= d.hi;
+        if(nowIn && !d.wasIn){
+          d.glow = 1;
+          try { if(G.audio && G.audio.slotTick) G.audio.slotTick(); } catch(e){}
+        }
+        d.wasIn = nowIn;
+        if(d.glow > 0) d.glow = Math.max(0, d.glow - dt * 2.2);
       }
+    }
+
+    if(phase === 'pouring'){
+      fillTarget += FILL_RATE * dt;
+      if(fillTarget >= 1){
+        fillTarget = 1;
+        overflowed = true;
+      }
+      // displayed liquid eases smoothly toward the pour target
+      fill += (fillTarget - fill) * Math.min(1, dt * 14);
+      if(overflowed && fill > 0.985){
+        fill = 1;
+        resolveCup();   // flooded the pantry — auto-resolve as a sloppy cup
+      }
+    }
+
+    if(phase === 'result'){
+      resultT += dt;
+      // crema settle + steam keep moving; sparkles fly out and fade
+      for(var s=0;s<spark.length;s++){
+        var p = spark[s];
+        p.life += dt;
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        p.vy += 160 * dt;       // gentle gravity
+      }
+      if(resultT >= RESULT_HOLD) finish();
     }
   }
 
@@ -304,30 +416,53 @@
     ctx.closePath();
   }
 
+  // hard-edged pixel steam: stacked squares drifting up + sideways sine sway
+  function drawSteam(topY){
+    for(var i=0;i<steam.length;i++){
+      var w = steam[i];
+      for(var j=0;j<5;j++){
+        var t = (animT * w.sp + w.seed + j*0.5);
+        var sway = Math.sin(t) * 6;
+        var yy = topY - 6 - j*9 - ((animT * 14 * w.sp + j*7) % 12);
+        var alpha = 0.22 * (1 - j/5);
+        ctx.fillStyle = 'rgba(243,227,210,' + alpha.toFixed(3) + ')';
+        ctx.fillRect(Math.round(w.x + sway), Math.round(yy), 4, 4);
+      }
+    }
+  }
+
   function drawDial(d){
+    var inBand = d.val >= d.lo && d.val <= d.hi;
+
+    // snap-glow halo when freshly seated in the band (safe-cracker feedback)
+    if(d.glow > 0){
+      ctx.fillStyle = 'rgba(95,174,106,' + (0.30 * d.glow).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(d.cx, d.cy, DIAL_R + 8 + d.glow * 6, 0, Math.PI*2); ctx.fill();
+    }
+
     // base plate
     ctx.fillStyle = '#2a2018';
     ctx.beginPath(); ctx.arc(d.cx, d.cy, DIAL_R + 6, 0, Math.PI*2); ctx.fill();
 
-    // target band arc (a small lit wedge on the rim)
-    var aLo = DIAL_MIN + d.lo * (DIAL_MAX - DIAL_MIN) - Math.PI/2;
-    var aHi = DIAL_MIN + d.hi * (DIAL_MAX - DIAL_MIN) - Math.PI/2;
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = '#5fae6a';
+    // target band arc (a small lit wedge on the rim) — brightens when seated
+    var aLo = valToAngle(d.lo);
+    var aHi = valToAngle(d.hi);
+    ctx.lineWidth = inBand ? 7 : 6;
+    ctx.strokeStyle = inBand ? '#8fe09a' : '#5fae6a';
     ctx.beginPath();
     ctx.arc(d.cx, d.cy, DIAL_R + 3, aLo, aHi);
     ctx.stroke();
 
     // knob body
-    var inBand = d.val >= d.lo && d.val <= d.hi;
     ctx.fillStyle = inBand ? '#caa06a' : '#9a7a52';
     ctx.beginPath(); ctx.arc(d.cx, d.cy, DIAL_R, 0, Math.PI*2); ctx.fill();
     ctx.lineWidth = 3;
-    ctx.strokeStyle = '#1a120c';
+    ctx.strokeStyle = inBand ? '#5fae6a' : '#1a120c';
     ctx.stroke();
 
-    // pointer
-    var a = DIAL_MIN + d.val * (DIAL_MAX - DIAL_MIN) - Math.PI/2;
+    // pointer needle — driven by the well-behaved value
+    var a = valToAngle(d.val);
     ctx.strokeStyle = '#1a120c';
     ctx.lineWidth = 5;
     ctx.beginPath();
@@ -372,9 +507,16 @@
     var cupW = 70, cupH = 78, cupX = CW/2 - cupW/2, cupY = 132;
     // fill liquid (drawn first, clipped to cup interior)
     var innerX = cupX + 6, innerY = cupY + 6, innerW = cupW - 12, innerH = cupH - 12;
-    var liqH = innerH * clamp(fill, 0, 1);
+    var liqFrac = clamp(fill, 0, 1);
+    var liqH = innerH * liqFrac;
+    var liqTopY = innerY + (innerH - liqH);
     ctx.fillStyle = overflowed ? '#8a5a2c' : '#6f4423';
-    ctx.fillRect(innerX, innerY + (innerH - liqH), innerW, liqH);
+    ctx.fillRect(innerX, liqTopY, innerW, liqH);
+    // crema / foam layer on top of the liquid once there's a real pour
+    if(liqFrac > 0.04){
+      ctx.fillStyle = overflowed ? '#c0712c' : '#c79a5e';
+      ctx.fillRect(innerX, liqTopY, innerW, 4);
+    }
     // target "full" zone band on the cup (between FILL_LO and FILL_HI)
     var zoneTopY = innerY + innerH * (1 - FILL_HI);
     var zoneBotY = innerY + innerH * (1 - FILL_LO);
@@ -394,8 +536,13 @@
     ctx.arc(cupX + cupW + 10, cupY + cupH/2, 16, -Math.PI/2.2, Math.PI/2.2);
     ctx.stroke();
 
+    // steam wisps off the cup — gentle while pouring, fuller on a finished cup
+    if((phase === 'pouring' && liqFrac > 0.2) || phase === 'result'){
+      drawSteam(liqTopY);
+    }
+
     // pour stream while brewing
-    if(phase === 'pouring' && fill < 1){
+    if(phase === 'pouring' && fillTarget < 1){
       ctx.fillStyle = '#6f4423';
       ctx.fillRect(CW/2 - 2, 120, 4, cupY - 120 + 6);
     }
@@ -433,7 +580,7 @@
     var label, bcol;
     if(phase === 'setup'){ label = 'BREW'; bcol = '#caa06a'; }
     else if(phase === 'pouring'){ label = 'STOP'; bcol = '#d6694a'; }
-    else { label = '...'; bcol = '#7a6a55'; }
+    else { label = 'DONE'; bcol = '#7a6a55'; }
     ctx.fillStyle = bcol;
     roundRect(brewBtn.x, brewBtn.y, brewBtn.w, brewBtn.h, 7); ctx.fill();
     ctx.strokeStyle = '#1a120c'; ctx.lineWidth = 3;
@@ -443,14 +590,70 @@
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(label, brewBtn.x + brewBtn.w/2, brewBtn.y + brewBtn.h/2 + 1);
 
-    // hint line
+    // hint line — dry CravAche voice, coffee = survival fuel
     ctx.fillStyle = '#cdb59c';
     ctx.font = '9px "Silkscreen", monospace';
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     var hint = phase === 'setup'
-      ? 'drag dials into the green band'
-      : (phase === 'pouring' ? 'press STOP at the full line' : '');
-    ctx.fillText(hint, CW/2, brewBtn.y + brewBtn.h + 6);
+      ? 'dial it in — the floor runs on caffeine'
+      : (phase === 'pouring' ? "STOP at the line — don't flood the pantry" : '');
+    if(hint) ctx.fillText(hint, CW/2, brewBtn.y + brewBtn.h + 6);
+
+    // ---- result / reward beat (drawn on top of everything) ----
+    if(phase === 'result' && result) drawResult();
+  }
+
+  // celebratory payoff: dim the scene, punch a star rating, sparkle on a win
+  function drawResult(){
+    var prog = Math.min(1, resultT / RESULT_HOLD);
+    // ease-out pop-in for the card scale
+    var pop = 1 - Math.pow(1 - Math.min(1, resultT / 0.22), 3);
+
+    // dim backdrop fades in
+    ctx.fillStyle = 'rgba(14,8,5,' + (0.55 * prog).toFixed(3) + ')';
+    ctx.fillRect(0, 0, CW, CH);
+
+    // sparkles (drawn over the dim, behind the card text)
+    for(var s=0;s<spark.length;s++){
+      var p = spark[s];
+      var a = 1 - Math.min(1, p.life / p.max);
+      if(a <= 0) continue;
+      ctx.fillStyle = (result.perfect ? 'rgba(143,224,154,' : 'rgba(243,227,210,') + a.toFixed(3) + ')';
+      var sz = p.s * a;
+      ctx.fillRect(Math.round(p.x - sz/2), Math.round(p.y - sz/2), Math.ceil(sz), Math.ceil(sz));
+    }
+
+    var cy = CH/2 - 6;
+    ctx.save();
+    ctx.translate(CW/2, cy);
+    ctx.scale(pop, pop);
+
+    // stars: filled gold up to result.stars, dim for the rest of three
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '30px "Silkscreen", monospace';
+    var starStr = '';
+    for(var i=0;i<3;i++) starStr += (i < result.stars ? '★' : '☆');
+    // soft glow pulse behind the stars on a clean cup
+    if(result.clean){
+      var pulse = 0.4 + 0.3 * Math.sin(animT * 9);
+      ctx.fillStyle = (result.perfect ? 'rgba(143,224,154,' : 'rgba(202,160,106,') + (pulse*0.5).toFixed(3) + ')';
+      ctx.fillText(starStr, 0, -28);
+    }
+    ctx.fillStyle = result.perfect ? '#8fe09a' : (result.clean ? '#caa06a' : '#9a7a52');
+    ctx.fillText(starStr, 0, -28);
+
+    // headline
+    ctx.font = '18px "Silkscreen", monospace';
+    ctx.fillStyle = '#f3e3d2';
+    var title = result.perfect ? 'PERFECT CUP' : (result.clean ? 'FRESH BREW' : 'DRINKABLE');
+    ctx.fillText(title, 0, 8);
+
+    // reward line
+    ctx.font = '11px "Silkscreen", monospace';
+    ctx.fillStyle = result.clean ? '#8fe09a' : '#cdb59c';
+    ctx.fillText('chaos −' + result.drop + '%', 0, 32);
+
+    ctx.restore();
   }
 
   function loop(now){
@@ -478,9 +681,15 @@
     closing = false;
     phase = 'setup';
     fill = 0;
+    fillTarget = 0;
     overflowed = false;
     dragDial = -1;
     mouseDownPt = null;
+    result = null;
+    resultT = 0;
+    spark = [];
+    steam = [];
+    animT = 0;
 
     // randomize each dial's target band + a starting value outside it
     for(var i=0;i<dials.length;i++){
@@ -489,6 +698,7 @@
       var w  = 0.16 + Math.random() * 0.08;  // band width (forgiving)
       d.lo = lo; d.hi = Math.min(0.98, lo + w);
       d.val = Math.random() < 0.5 ? 0.08 : 0.92;  // start clearly outside band
+      d.wasIn = false; d.glow = 0;
     }
 
     try { if(G.audio && G.audio.click) G.audio.click(); } catch(e){}
@@ -522,6 +732,7 @@
     }
     canvasEl = null; ctx = null;
     dragDial = -1; mouseDownPt = null;
+    spark = []; steam = [];
 
     // resume the sim
     if(paused && G.modals && G.modals.releasePause){ G.modals.releasePause(); }
@@ -534,19 +745,25 @@
     }
   }
 
-  // a cup was poured — good=true if clean (fill in zone + dials in band)
-  function finish(good){
+  // the celebratory beat is over — bank the reward and close. Reward scales
+  // with the star rating set in resolveCup().
+  function finish(){
     if(closing) return;
-    if(good){
-      try { if(G.chaos && G.chaos.add) G.chaos.add(-CHAOS_GOOD); } catch(e){}
-      if(G.dock) G.dock.infoToast('FRESH BREW ☕',
-        'A proper cup. The floor exhales — chaos −5%.', 'good');
-    } else {
-      try { if(G.chaos && G.chaos.add) G.chaos.add(-CHAOS_OK); } catch(e){}
-      if(G.dock) G.dock.infoToast('COFFEE ☕',
-        'Drinkable. Barely. chaos −2%.', '');
+    var r = result || { stars: 1, drop: CHAOS_OK, perfect: false, clean: false };
+    try { if(G.chaos && G.chaos.add) G.chaos.add(-r.drop); } catch(e){}
+    if(G.dock){
+      if(r.perfect){
+        G.dock.infoToast('PERFECT CUP ☕★★★',
+          'Dialed in dead-on. The whole floor stands a little taller — chaos −' + r.drop + '%.', 'good');
+      } else if(r.clean){
+        G.dock.infoToast('FRESH BREW ☕★★',
+          'A proper cup. The floor exhales — chaos −' + r.drop + '%.', 'good');
+      } else {
+        G.dock.infoToast('COFFEE ☕★',
+          'Drinkable. Barely. chaos −' + r.drop + '%.', '');
+      }
     }
-    close(true);               // either cup burns a daily charge
+    close(true);               // any poured cup burns a daily charge
   }
 
   // bailed before pouring a cup — costs no daily charge, no perk
@@ -567,8 +784,25 @@
   }
 
   // entry interface — the office coffee machine calls open(); available() gates it.
+  // (interface intentionally stays exactly { open, available }.)
   G.coffee = {
     open: open,
     available: available
+  };
+
+  // dev-only inspection hook (not part of the public interface; lets the
+  // Playwright harness read live state without screenshots). Harmless in prod.
+  G.__coffeeDebug = {
+    state: function(){
+      return {
+        phase: phase, fill: fill, fillTarget: fillTarget, overflowed: overflowed,
+        dragDial: dragDial, vals: dials.map(function(d){ return d.val; }),
+        bands: dials.map(function(d){ return [d.lo, d.hi]; }),
+        result: result, propBusy: G.__propBusy
+      };
+    },
+    setBands: function(){   // pin both dials' bands near the top for deterministic tests
+      for(var i=0;i<dials.length;i++){ dials[i].lo = 0.80; dials[i].hi = 0.96; }
+    }
   };
 })();

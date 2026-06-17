@@ -66,7 +66,7 @@
     st.textContent = [
       // entry button: bottom-LEFT of the stage, away from the bottom-right
       // WhatsApp launcher and the night SKIP button.
-      '#med-launcher{position:absolute;left:14px;bottom:172px;z-index:70;',
+      '#med-launcher{position:absolute;left:14px;top:150px;z-index:70;',
         'display:flex;align-items:center;gap:7px;cursor:pointer;',
         'padding:9px 13px 8px;border:3px solid #05070f;border-radius:2px;',
         'background:var(--navy-dd,#0d1426);color:var(--paper,#f4e8cf);',
