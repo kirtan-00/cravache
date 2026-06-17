@@ -635,6 +635,35 @@
   // ============================================================
   //  PUBLIC API
   // ============================================================
+  // while a brief is being dragged in from the tray, light up the whole SET as the
+  // drop target so players don't think they must bullseye the backdrop.
+  function drawDropZone(ctx){
+    var brief = G.dock && G.dock.dragging;
+    if(!brief) return;
+    var ok = !brief.role || brief.role === 'production';
+    var x = SET.x, y = SET.y, w = SET.w, h = SET.h;
+    var pulse = 0.5 + 0.5 * Math.sin(t * 4);
+    ctx.save();
+    ctx.fillStyle = ok ? 'rgba(70,200,120,' + (0.08 + 0.06 * pulse) + ')' : 'rgba(210,75,62,0.10)';
+    ctx.fillRect(x, y, w, h);
+    ctx.lineWidth = 4; ctx.setLineDash([14, 9]); ctx.lineDashOffset = -t * 30;
+    ctx.strokeStyle = ok ? 'rgba(130,245,170,' + (0.55 + 0.4 * pulse) + ')' : 'rgba(235,125,115,0.75)';
+    ctx.strokeRect(x + 3, y + 3, w - 6, h - 6);
+    ctx.setLineDash([]);
+    var label = ok ? '🎬  DROP ANYWHERE ON SET TO SHOOT' : 'PRODUCTION ONLY SHOOTS — drop edits on a desk';
+    ctx.font = '16px "Silkscreen", system-ui, monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    var tw = ctx.measureText(label).width;
+    var cxp = x + w / 2, cyp = y + 40;
+    ctx.fillStyle = 'rgba(6,10,18,0.9)';
+    ctx.fillRect(cxp - tw / 2 - 16, cyp - 17, tw + 32, 34);
+    ctx.strokeStyle = ok ? 'rgba(130,245,170,0.9)' : 'rgba(235,125,115,0.9)';
+    ctx.lineWidth = 2; ctx.strokeRect(cxp - tw / 2 - 16, cyp - 17, tw + 32, 34);
+    ctx.fillStyle = ok ? '#c7ffdb' : '#ffd4cf';
+    ctx.fillText(label, cxp, cyp);
+    ctx.restore();
+  }
+
   G.render.studio = {
     SET: SET,
     enter: function(){

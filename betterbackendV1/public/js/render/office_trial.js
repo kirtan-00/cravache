@@ -1303,6 +1303,8 @@
     ctx.globalAlpha = 1;
     ctx.restore();
     pxText(ctx, 'CH' + (chan + 1), h.x + h.w - 4, h.y + h.h + 2, 7, 'rgba(159,232,255,0.5)', 'right', true);
+    // "tap to ..." label under the TV (matching the break-room prop captions)
+    pxText(ctx, 'tap to change channel', h.x + h.w / 2, h.y + h.h + 16, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   function drawTVStatic(ctx, h){
@@ -1750,7 +1752,7 @@
   }
 
   // ---------- water cooler (gossip station) ----------
-  var COOLER = { x: 470, y: 558 };   // relocated to clear front floor (between arcade & production)
+  var COOLER = { x: 648, y: 617 };   // break-room row slot 5 (bottom-aligned to floor baseline 660)
   var COOLER_S = 0.62;               // shrunk per "make the team thing small"
   G.render.coolerPoint = function(){ return { x: COOLER.x + 20 * COOLER_S, y: COOLER.y + 70 * COOLER_S }; };
 
@@ -1775,6 +1777,10 @@
 
   function drawCooler(ctx){
     var cx = COOLER.x, cy = COOLER.y;
+    // label in WORLD space (drawn before the cooler's scale transform), sitting on
+    // the floor baseline like the other break-room props. The cooler is decor (no
+    // tap action), so its caption omits the "tap to ..." promise.
+    pxText(ctx, 'WATER COOLER', cx + 12, 687, 11, 'rgba(159,232,255,0.7)', 'center');
     ctx.save();
     ctx.translate(cx, cy); ctx.scale(COOLER_S, COOLER_S); ctx.translate(-cx, -cy);
     ctx.fillStyle = 'rgba(0,0,0,0.30)'; ellipse(ctx, cx + 20, cy + 70, 28, 7);
@@ -1967,11 +1973,17 @@
     ctx.strokeRect(ax + 2, ay + 2, aw - 4, ah - 4);
     ctx.fillStyle = 'rgba(255,255,255,0.10)';
     ctx.fillRect(ax + aw - 26, ay + 6, 6, ah - 16);
+    // "tap to ..." label beneath (the stand drops to ay+ah+16=676), shared style + baseline
+    pxText(ctx, 'FISH TANK · tap to feed', ax + aw / 2, 687, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
-  // COFFEE machine — sprite + NEW rising steam puffs animation.
+  // COFFEE machine — sprite + rising steam; tappable (opens the brew mini-game).
+  // Relocated onto the floor between the arcade (x≈300) and foosball (x≈500).
+  // break-room row slot 4. Hit rect (62x82) wraps the 46x64 sprite; both bottom-
+  // aligned to the floor baseline (660). cx/cy MUST stay in lockstep with the hit.
+  var COFFEE_HIT = { x: 529, y: 578, w: 62, h: 82 };
   function drawCoffee(ctx){
-    var cx = 150, cy = 360;
+    var cx = 537, cy = 596;   // sprite top-left: centred in COFFEE_HIT, sprite bottom = 660
     ctx.fillStyle = 'rgba(0,0,0,0.22)'; ellipse(ctx, cx + 23, cy + 66, 24, 7);
     drawSprite(ctx, 'coffee_machine', cx, cy, 46, 64);
     // rising steam puffs from the spout (two staggered columns)
@@ -1984,11 +1996,15 @@
       ctx.fillRect(cx + 14 + drift, puffY, 4, 4);
       ctx.fillRect(cx + 26 - drift, puffY - 4, 4, 4);
     }
+    // "tap to ..." label beneath, matching the foosball/TT style + baseline
+    pxText(ctx, 'COFFEE · tap to brew', COFFEE_HIT.x + COFFEE_HIT.w / 2, 687, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   // ARCADE cabinet — glowing screen, on the floor.
   // Click hitbox (see handleClick) is kept in lockstep with the draw rect below.
-  var ARCADE_HIT = { x: 300, y: 535, w: 70, h: 120 };
+  // break-room row slot 3 (tallest). Bottom-aligned to the floor baseline (660):
+  // ay = 660 - 120 = 540. drawArcade reads ARCADE_HIT so draw+hit stay in lockstep.
+  var ARCADE_HIT = { x: 405, y: 540, w: 70, h: 120 };
   function drawArcade(ctx){
     var ax = ARCADE_HIT.x, ay = ARCADE_HIT.y, aw = ARCADE_HIT.w, ah = ARCADE_HIT.h;
     ctx.fillStyle = 'rgba(0,0,0,0.28)'; ellipse(ctx, ax + aw / 2, ay + ah, aw * 0.5, 9);
@@ -2016,6 +2032,8 @@
     // screen glow halo
     ctx.fillStyle = 'rgba(255,255,255,0.06)';
     ctx.fillRect(ax - 16, ay + 10, aw + 32, 60);
+    // "tap to ..." label beneath, matching the foosball/TT style + baseline
+    pxText(ctx, 'ARCADE · tap to play', ax + aw / 2, 687, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   // SMALL windowsill plant — a little potted plant sitting ON the window sill
@@ -2160,7 +2178,8 @@
   // rewards a tap with a purr + hearts + a little calm for nearby staff. Cosmetic
   // state lives here (resets on reload); the morale effect on staff is real.
   var CAT = null, catLastT = 0;
-  function catBounds(){ return { x0: 90, x1: 1170, y0: 588, y1: 660 }; }
+  // the cat roams the WHOLE office floor now, not just the front strip.
+  function catBounds(){ return { x0: 60, x1: 1200, y0: 320, y1: 665 }; }
   function pickCatTarget(){
     var b = catBounds();
     CAT.tx = b.x0 + Math.random() * (b.x1 - b.x0);
@@ -2247,7 +2266,7 @@
 
   // ---------- foosball table (shop: u.foosball) — tap to play the mini-game ----------
   // Static break-room furniture. Tapping opens the foosball mini-game (G.foosball).
-  var FOOS_BOX = { x: 500, y: 538, w: 150, h: 58 };
+  var FOOS_BOX = { x: 700, y: 602, w: 150, h: 58 };   // break-room row slot 6 (bottom-aligned to floor baseline 660; right edge clears the studio button at x858)
   function drawFoos(ctx){
     var B = FOOS_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
     ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + 8, y + h - 2, 6, 16); ctx.fillRect(x + w - 14, y + h - 2, 6, 16);
@@ -2271,7 +2290,7 @@
   // ---------- table tennis table (shop: u.tabletennis) — tap to play the mini-game ----------
   // Static break-room furniture in the open lower-left floor. Tapping opens the
   // table-tennis mini-game (G.tableTennis). Style/scale mirrors the foosball table.
-  var TT_BOX = { x: 120, y: 568, w: 168, h: 64 };
+  var TT_BOX = { x: 216, y: 596, w: 168, h: 64 };   // break-room row slot 2 (bottom-aligned to baseline 660); was 40,560 — OVERLAPPED the fish tank
   function drawTT(ctx){
     var B = TT_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
     // soft glow halo so the table pops out of the dark corner
@@ -2304,7 +2323,7 @@
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     ctx.fillText('🏓', x + w / 2, y - 12);
     ctx.restore();
-    pxText(ctx, 'TABLE TENNIS · tap to play', x + w / 2, y + h + 27, 12, 'rgba(190,230,255,0.95)', 'center');
+    pxText(ctx, 'TABLE TENNIS · tap to play', x + w / 2, y + h + 27, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   // ---------- props orchestrator ----------
@@ -2421,13 +2440,20 @@
       }
 
       // arcade cabinet: opens the playable Breakout minigame (gated on the upgrade).
-      // Rect matches drawArcade(): ax=300, ay=535, aw=70, ah=120.
+      // Rect matches drawArcade(): ax=405, ay=540, aw=70, ah=120.
       if(s.upgrades && s.upgrades.arcade && inBox(ARCADE_HIT)){
         if(window.CravacheArcade && window.CravacheArcade.open){
           window.CravacheArcade.open();
         } else if(G.audio){
           G.audio.click();
         }
+        return;
+      }
+
+      // coffee machine: tap to brew a cup (mini-game). gated on the upgrade.
+      if(s.upgrades && s.upgrades.coffee && inBox(COFFEE_HIT)){
+        if(G.coffee && G.coffee.open){ G.coffee.open(); }
+        else if(G.audio){ G.audio.click(); }
         return;
       }
 

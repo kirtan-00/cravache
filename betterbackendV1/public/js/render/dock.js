@@ -244,10 +244,11 @@
         ghostEl.classList.add('hidden');
         ghostEl.innerHTML = '';
 
-        // STUDIO scene: drop a brief onto the set and an idle crew shoots it
+        // STUDIO scene: dropping a shoot ANYWHERE in the studio assigns it to an
+        // idle shooter — players shouldn't have to bullseye the backdrop.
+        // assignDrop() validates role + crew availability and toasts on misuse.
         if(G.state && G.state.scene === 'studio' && G.render.studio){
-          var p = logicalXY(e);
-          if(G.render.studio.isOverSet(p.x, p.y)) G.render.studio.assignDrop(brief);
+          G.render.studio.assignDrop(brief);
           G.dock.refreshTray();
           return;
         }

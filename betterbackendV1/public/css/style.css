@@ -461,7 +461,8 @@ canvas#game{
   background:rgba(0,0,0,0.82);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   overflow:hidden; user-select:none;
-  animation:mdjitter 0.12s steps(2) infinite;
+  /* jitter lives on .md-word, NOT here: translating the full-cover backdrop
+     by 1px lifted its bottom edge and flashed the office behind it. */
 }
 /* scanline flicker band over everything */
 #monday-dread .md-scan{
@@ -474,6 +475,7 @@ canvas#game{
   font-family:'VT323', monospace;
   font-size:210px; line-height:0.85; letter-spacing:14px;
   display:flex;
+  animation:mdjitter 0.12s steps(2) infinite;
 }
 #monday-dread .md-ch{
   color:var(--red);

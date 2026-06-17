@@ -41,6 +41,11 @@
     effectiveSpeed: function(st, brief){
       var speed = G.BAL.SPEED_BASE + st.skill * G.BAL.SPEED_PER_SKILL;
 
+      // interns (low-skill walk-ins) grind tasks MUCH slower than seniors — cheap
+      // to hire, but they'll have you missing deadlines. 1★ is a true intern.
+      if(st.skill <= 1) speed *= 0.42;
+      else if(st.skill === 2) speed *= 0.72;
+
       // Arya: night magic + hard-brief genius + allergic to boring.
       // Buffs stack but cap out; the debuff does not get capped. Obviously.
       if(st.id === 's_arya'){
