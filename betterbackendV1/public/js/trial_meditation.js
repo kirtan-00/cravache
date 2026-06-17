@@ -1,8 +1,9 @@
 // CravAche — MEDITATION break. A self-contained breather the player can take
 // at most twice per in-game day. While it runs the sim is PAUSED (time stops,
 // no new briefs) via the modal pause refcount; a calm breathing overlay shows
-// for ~7s (skippable by clicking). On completion: chaos −15 (matches chai's
-// chaos.add(-5) convention — points, not percent of current).
+// for a full 2 minutes with a live countdown and CANNOT be skipped — it's a real
+// break. On completion: chaos −15 (matches chai's chaos.add(-5) convention —
+// points, not percent of current).
 //
 // Isolated: own DOM button (bottom-LEFT of #stage, clear of #wa-launcher and
 // the SKIP NIGHT button) + own absolutely-positioned overlay. Touches nothing
@@ -13,13 +14,15 @@
   window.G = window.G || {};
 
   var MAX_PER_DAY = 2;
-  var DURATION_MS = 7000;     // ~7s real-time
+  var DURATION_MS = 120000;   // 2 minutes real-time — a real break, not skippable
   var CHAOS_DROP = 15;        // subtract 15 chaos points on completion
 
   var btnEl = null;
   var overlayEl = null;
   var meditating = false;
   var endTimer = null;
+  var tickTimer = null;       // 1s countdown display updater
+  var endAt = 0;              // wall-clock ms when the break ends
   var paused = false;         // did WE acquire the pause lock?
 
   function stage(){ return document.getElementById('stage') || document.body; }
@@ -73,7 +76,7 @@
       '#med-launcher:hover{filter:brightness(1.1);}',
       '#med-launcher[disabled]{opacity:.45;cursor:not-allowed;filter:none;}',
       // breathing overlay
-      '#med-overlay{position:absolute;inset:0;z-index:200;cursor:pointer;',
+      '#med-overlay{position:absolute;inset:0;z-index:200;cursor:default;',
         'display:flex;flex-direction:column;align-items:center;justify-content:center;',
         'background:radial-gradient(circle at 50% 45%, rgba(28,54,66,.92), rgba(8,16,22,.97));',
         'opacity:0;transition:opacity .5s ease;}',
@@ -85,7 +88,10 @@
       '#med-overlay .med-text{margin-top:42px;color:#dff4f0;',
         'font:300 30px/1 "Silkscreen",system-ui,sans-serif;letter-spacing:4px;',
         'text-shadow:0 2px 14px rgba(0,0,0,.5);animation:med-fade 4s ease-in-out infinite;}',
-      '#med-overlay .med-fine{margin-top:18px;color:#9fc7c2;opacity:.7;',
+      '#med-overlay .med-timer{margin-top:22px;color:#bfe9e1;',
+        'font:300 44px/1 "Silkscreen",system-ui,monospace;letter-spacing:6px;',
+        'text-shadow:0 0 20px rgba(127,224,216,.5);}',
+      '#med-overlay .med-fine{margin-top:16px;color:#9fc7c2;opacity:.7;',
         'font:13px/1 system-ui,sans-serif;letter-spacing:1px;}',
       '@keyframes med-breathe{0%,100%{transform:scale(.78);}50%{transform:scale(1.18);}}',
       '@keyframes med-fade{0%,100%{opacity:.55;}50%{opacity:1;}}'
@@ -122,11 +128,21 @@
     overlayEl.innerHTML =
       '<div class="med-circle"></div>' +
       '<div class="med-text">Breathe…</div>' +
-      '<div class="med-fine">click to skip</div>';
-    overlayEl.addEventListener('click', function(){ finish(); });
+      '<div class="med-timer" id="med-timer">2:00</div>' +
+      '<div class="med-fine">stay with it — no skipping</div>';
+    // no click-to-skip: a meditation break is a full 2 minutes, on purpose.
     stage().appendChild(overlayEl);
     // kick the fade-in on next frame
     requestAnimationFrame(function(){ if(overlayEl) overlayEl.classList.add('in'); });
+  }
+
+  function updateTimer(){
+    var el = document.getElementById('med-timer');
+    if(!el) return;
+    var totalSec = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+    var m = Math.floor(totalSec / 60);
+    var sec = totalSec % 60;
+    el.textContent = m + ':' + (sec < 10 ? '0' : '') + sec;
   }
 
   function hideOverlay(){
@@ -158,6 +174,9 @@
     showOverlay();
     refreshButton();
 
+    endAt = Date.now() + DURATION_MS;
+    updateTimer();
+    tickTimer = setInterval(updateTimer, 250);
     endTimer = setTimeout(finish, DURATION_MS);
   }
 
@@ -166,6 +185,7 @@
     meditating = false;
 
     if(endTimer){ clearTimeout(endTimer); endTimer = null; }
+    if(tickTimer){ clearInterval(tickTimer); tickTimer = null; }
     hideOverlay();
 
     // resume the sim first, then apply the calm so any chaos HUD poke renders

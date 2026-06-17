@@ -2271,32 +2271,40 @@
   // ---------- table tennis table (shop: u.tabletennis) — tap to play the mini-game ----------
   // Static break-room furniture in the open lower-left floor. Tapping opens the
   // table-tennis mini-game (G.tableTennis). Style/scale mirrors the foosball table.
-  var TT_BOX = { x: 110, y: 620, w: 150, h: 58 };
+  var TT_BOX = { x: 120, y: 568, w: 168, h: 64 };
   function drawTT(ctx){
     var B = TT_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
+    // soft glow halo so the table pops out of the dark corner
+    ctx.fillStyle = 'rgba(70,150,255,0.12)';
+    ellipse(ctx, x + w / 2, y + h / 2, w * 0.82, h * 1.0);
     // legs + floor shadow
-    ctx.fillStyle = '#2a2f3a'; ctx.fillRect(x + 8, y + h - 2, 6, 16); ctx.fillRect(x + w - 14, y + h - 2, 6, 16);
-    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ellipse(ctx, x + w / 2, y + h + 15, w * 0.5, 6);
-    // blue table top with white frame
-    ctx.fillStyle = '#0c2c4f'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
-    ctx.fillStyle = '#1c5fa0'; ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 2; ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
-    // centre net (vertical) + centre line (horizontal)
-    ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(x + w / 2, y - 5); ctx.lineTo(x + w / 2, y + h + 5); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillStyle = '#2a2f3a'; ctx.fillRect(x + 10, y + h - 2, 7, 18); ctx.fillRect(x + w - 17, y + h - 2, 7, 18);
+    ctx.fillStyle = 'rgba(0,0,0,0.28)'; ellipse(ctx, x + w / 2, y + h + 17, w * 0.5, 6);
+    // bright blue table top with a bold white frame
+    ctx.fillStyle = '#0c3a6b'; ctx.fillRect(x - 5, y - 5, w + 10, h + 10);
+    ctx.fillStyle = '#2a82d6'; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = 'rgba(255,255,255,0.10)'; ctx.fillRect(x, y, w, h / 2); // top sheen
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
+    // centre line
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x + 4, y + h / 2); ctx.lineTo(x + w - 4, y + h / 2); ctx.stroke();
-    // net mesh ticks
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-    for(var ny = y + 2; ny < y + h - 2; ny += 6){ ctx.beginPath(); ctx.moveTo(x + w / 2 - 3, ny); ctx.lineTo(x + w / 2 + 3, ny); ctx.stroke(); }
-    // two paddles resting on the table
-    ctx.fillStyle = '#d24b3e'; ctx.beginPath(); ctx.arc(x + w * 0.22, y + h * 0.5, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + w * 0.22 - 1, y + h * 0.5 + 4, 2, 7);
-    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(x + w * 0.78, y + h * 0.5, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + w * 0.78 - 1, y + h * 0.5 + 4, 2, 7);
-    // white ball mid-table
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x + w * 0.5, y + h * 0.5, 2.5, 0, Math.PI * 2); ctx.fill();
-    pxText(ctx, 'TABLE TENNIS · tap to play', x + w / 2, y + h + 27, 11, 'rgba(159,232,255,0.7)', 'center');
+    // raised net across the middle + mesh ticks
+    ctx.fillStyle = '#eef4f8'; ctx.fillRect(x + w / 2 - 1, y - 7, 2, h + 14);
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1;
+    for(var ny = y; ny < y + h; ny += 5){ ctx.beginPath(); ctx.moveTo(x + w / 2 - 4, ny); ctx.lineTo(x + w / 2 + 4, ny); ctx.stroke(); }
+    // two paddles + ball
+    ctx.fillStyle = '#e23b2e'; ctx.beginPath(); ctx.arc(x + w * 0.24, y + h * 0.5, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + w * 0.24 - 1, y + h * 0.5 + 5, 2, 8);
+    ctx.fillStyle = '#1a1a1a'; ctx.beginPath(); ctx.arc(x + w * 0.76, y + h * 0.5, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + w * 0.76 - 1, y + h * 0.5 + 5, 2, 8);
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x + w * 0.5, y + h * 0.34, 3, 0, Math.PI * 2); ctx.fill();
+    // floating 🏓 icon above the table — clear "this is table tennis" marker
+    ctx.save();
+    ctx.font = '22px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('🏓', x + w / 2, y - 12);
+    ctx.restore();
+    pxText(ctx, 'TABLE TENNIS · tap to play', x + w / 2, y + h + 27, 12, 'rgba(190,230,255,0.95)', 'center');
   }
 
   // ---------- props orchestrator ----------
