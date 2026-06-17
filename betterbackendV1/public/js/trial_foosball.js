@@ -157,7 +157,10 @@
     onMouseMove = function(e){
       if(!canvas) return;
       var r = canvas.getBoundingClientRect();
-      // map cursor to canvas-space, account for any CSS scaling
+      if(!r.height) return;
+      // map cursor to canvas-space, account for any CSS scaling. clampRod() in
+      // step() keeps the rod in bounds, so off-canvas cursor positions still
+      // drive it (no dead zone outside the box).
       var scale = CH / r.height;
       mouseY = (e.clientY - r.top) * scale - rodLen() / 2;
     };
@@ -166,13 +169,14 @@
     // before us — capture runs ahead of both).
     window.addEventListener('keydown', onKeyDown, true);
     window.addEventListener('keyup', onKeyUp, true);
-    if(canvas) canvas.addEventListener('mousemove', onMouseMove);
+    // mouse drives the rod from ANYWHERE on screen, not just over the canvas.
+    window.addEventListener('mousemove', onMouseMove);
   }
 
   function detachInput(){
     if(onKeyDown){ window.removeEventListener('keydown', onKeyDown, true); onKeyDown = null; }
     if(onKeyUp){ window.removeEventListener('keyup', onKeyUp, true); onKeyUp = null; }
-    if(onMouseMove && canvas){ canvas.removeEventListener('mousemove', onMouseMove); }
+    if(onMouseMove){ window.removeEventListener('mousemove', onMouseMove); }
     onMouseMove = null;
   }
 

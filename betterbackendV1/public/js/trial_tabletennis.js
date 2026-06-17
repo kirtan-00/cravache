@@ -134,8 +134,9 @@
     ctx = canvasEl.getContext('2d');
 
     // listeners — tracked so we can rip them all out on close
-    canvasEl.addEventListener('mousemove', onMouseMove);
-    canvasEl.addEventListener('mouseleave', onMouseLeave);
+    // mouse drives the paddle from ANYWHERE on screen (window-level), so the
+    // player never loses control by drifting the cursor off the small canvas.
+    window.addEventListener('mousemove', onMouseMove);
     // capture phase on window so our Esc beats main.js's bubble-phase pause-menu
     // listener (same trick trial_overrides.js uses for its modals).
     window.addEventListener('keydown', onKeyDown, true);
@@ -146,10 +147,7 @@
   }
 
   function removeListeners(){
-    if(canvasEl){
-      canvasEl.removeEventListener('mousemove', onMouseMove);
-      canvasEl.removeEventListener('mouseleave', onMouseLeave);
-    }
+    window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('keydown', onKeyDown, true);
     window.removeEventListener('keyup', onKeyUp, true);
   }
@@ -158,12 +156,13 @@
   function onMouseMove(e){
     if(!canvasEl) return;
     var r = canvasEl.getBoundingClientRect();
-    // map screen y into internal canvas coords (canvas may be CSS-scaled)
+    if(!r.height) return;
+    // map screen y into internal canvas coords (canvas may be CSS-scaled) and
+    // clamp — so the paddle keeps tracking even when the cursor is above/below
+    // or beside the canvas box.
     var scale = CH / r.height;
-    mouseY = (e.clientY - r.top) * scale;
+    mouseY = clamp((e.clientY - r.top) * scale, 0, CH);
   }
-
-  function onMouseLeave(){ mouseY = -1; }
 
   function onKeyDown(e){
     var k = e.key;
