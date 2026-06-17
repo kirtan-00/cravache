@@ -40,7 +40,8 @@
     { x: 640,  y: 600, dept: 'production' },
     { x: 810,  y: 600, dept: 'production' },
     { x: 980,  y: 600, dept: 'production' },
-    { x: 1130, y: 600, dept: 'production' }
+    { x: 1130, y: 600, dept: 'production' },
+    { x: 510,  y: 600, dept: 'production' }   // 5th production seat (crew works in the studio; this is seating/cap bookkeeping)
   ];
   // DESK_SCALE: shrink each desk's DRAWN size by 20% (0.8) while keeping the grid
   // POSITIONS (d.x/d.y) where they are. Everything that sits on a desk — the
@@ -64,8 +65,10 @@
   var windowIdx = 0, boardIdx = 0, printerIdx = 0;
 
   // ---- aquarium fish sim (persistent; fish stay INSIDE the glass, swim to food) ----
-  // Tank rect matches HOTSPOTS.aquarium / drawAquarium (ax=40, ay=560, 150x100).
-  var AQ = { x: 40, y: 560, w: 150, h: 100, pad: 14 };
+  // Tank rect matches HOTSPOTS.aquarium / drawAquarium (ax=40, ay=494, 150x86).
+  // The whole break-room row was lifted to a shelf bottom-aligned to y≈580 so it
+  // sits clear ABOVE the dock (the dock covers y624-720 and was hiding the toys).
+  var AQ = { x: 40, y: 494, w: 150, h: 86, pad: 14 };
   var aqFish = null;      // lazy init: two fish { x, y, vx, vy, col, sz, fed }
   var aqFood = [];        // sinking pellets: { x, y, vy, life }
   var aqLastT = 0;        // for dt inside the draw call (no dt is passed to props)
@@ -1047,7 +1050,7 @@
     window:  { x: 440,  y: 46,  w: 459, h: 172 },  // the live studio window glass (widened +35%, right edge x=899)
     board:   { x: 14,   y: 55,  w: 337, h: 145 },  // HUSTLE board: x+w match the HUD stat panel (14..351), top 5px below it, bottom on the window line (y200)
     tv:      { x: 920,  y: 60,  w: 200, h: 120 },  // flatscreen on back wall (right) — moved right to clear the widened window (right frame ends x=909)
-    aquarium:{ x: 40,   y: 560, w: 150, h: 100 },  // the fish tank (gated on the aquarium upgrade) — tap to drop food
+    aquarium:{ x: 40,   y: 494, w: 150, h: 86 },  // the fish tank (gated on the aquarium upgrade) — tap to drop food
     studio:  { x: 858,  y: 556, w: 270, h: 58  }   // "GO TO PRODUCTION STUDIO" button (front-right, where the prod desks were)
   };
 
@@ -1062,11 +1065,24 @@
     'INTERN PITCHES IDEA, SENIOR PRESENTS IT, BOTH SATISFIED',
     'MAKE IT POP, SAYS NATION, AGAIN'
   ];
+  // one short, funny caption per real channel — index matches TV_CHANNELS order.
   var TV_CHANNEL_LINES = [
     'Cricket. Somebody dropped a catch. Productivity dipped 4%.',
     'The news anchor is angry about something. As usual.',
     'An ad break. The volume is louder. It always is.',
-    'Weather: hot. Tomorrow: hot. The client wants snow.'
+    'Weather: hot. Tomorrow: hot. The client wants snow.',
+    'The stock ticker. Everything is up except your retainer.',
+    'Music channel. The bars dance better than your last reel.',
+    'Weather radar. The sweep finds rain that never comes.',
+    'Breaking news: the crawl confirms the brief has changed again.',
+    'Pong, playing itself. Honestly more committed than the intern.',
+    'Cooking show. The pan sizzles. The lunch order does not.',
+    'A logo, bouncing. We are all waiting for it to hit the corner.',
+    'Awards night. Someone wins for a campaign nobody remembers.',
+    'Aquarium channel. The only calm thing in this office.',
+    'Test card. Even the colour bars look more aligned than the team.',
+    'Shopping channel. A product spins. You almost want it. Almost.',
+    'Election results. The bars race. Nobody campaigned on better briefs.'
   ];
 
   // word-wrap helper for the board text
@@ -1278,20 +1294,19 @@
     ctx.beginPath();
     ctx.rect(SCR.x, SCR.y, SCR.w, SCR.h);
     ctx.clip();
-    var chan = (G.state.tvChannel + Math.floor(t / 5)) % 4;
+    var chan = (G.state.tvChannel + Math.floor(t / 5)) % TV_CHANNELS.length;
     var sinceFlip = (t / 5) % 1;
     var staticNow = sinceFlip < 0.10 || (Math.floor(t * 13) % 97 === 0);
     if(staticNow){ drawTVStatic(ctx, SCR); }
-    else if(chan === 0){ drawTVCricket(ctx, SCR); }
-    else if(chan === 1){ drawTVNews(ctx, SCR); }
-    else if(chan === 2){ drawTVAd(ctx, SCR); }
-    else { drawTVWeather(ctx, SCR); }
+    else { TV_CHANNELS[chan](ctx, SCR); }
     ctx.globalAlpha = 0.12;
     ctx.fillStyle = '#000';
     for(var sl = 0; sl < SCR.h; sl += 3) ctx.fillRect(SCR.x, SCR.y + sl, SCR.w, 1);
     ctx.globalAlpha = 1;
     ctx.restore();
     pxText(ctx, 'CH' + (chan + 1), h.x + h.w - 4, h.y + h.h + 2, 7, 'rgba(159,232,255,0.5)', 'right', true);
+    // "tap to ..." label under the TV (matching the break-room prop captions)
+    pxText(ctx, 'tap to change channel', h.x + h.w / 2, h.y + h.h + 16, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   function drawTVStatic(ctx, h){
@@ -1380,6 +1395,330 @@
     pxText(ctx, 'monsoon: "soon"', h.x + 4, h.y + h.h - 3, 8, '#9fe8ff', 'left', true);
   }
 
+  // ---- channel 5: scrolling stock ticker ----------------------------------
+  var TV_STOCKS = ['ADBRO', 'MEME', 'HYPE', 'CHAI', 'CTR', 'MOOD', 'PIVOT', 'SCOPE', 'VIRL', 'KPI'];
+  function drawTVTicker(ctx, h){
+    ctx.fillStyle = '#070b12'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    // headline index that crawls horizontally
+    pxText(ctx, 'MARKETS', h.x + 6, h.y + 16, 11, '#ffe066', 'left', true);
+    if(Math.floor(t * 2) % 2 === 0){ ctx.fillStyle = '#ff5c5c'; ctx.fillRect(h.x + h.w - 14, h.y + 6, 6, 6); }
+    // a wobbly line chart (sum of sines) sweeping
+    ctx.strokeStyle = '#5fe08a'; ctx.lineWidth = 2; ctx.beginPath();
+    for(var px = 0; px <= h.w; px += 4){
+      var v = Math.sin((px * 0.05) + t * 1.4) * 0.5 + Math.sin((px * 0.13) - t) * 0.3;
+      var yy = h.y + h.h / 2 + v * (h.h * 0.18);
+      if(px === 0) ctx.moveTo(h.x + px, yy); else ctx.lineTo(h.x + px, yy);
+    }
+    ctx.stroke();
+    // bottom ticker tape
+    ctx.fillStyle = '#0e1422'; ctx.fillRect(h.x, h.y + h.h - 14, h.w, 14);
+    var tape = '';
+    for(var i = 0; i < TV_STOCKS.length; i++){
+      var seed = Math.sin(i * 2.3 + Math.floor(t * 0.7));
+      var up = seed > 0;
+      var pct = (Math.abs(seed) * 9 + 0.1).toFixed(1);
+      tape += TV_STOCKS[i] + ' ' + (up ? '+' : '-') + pct + '%   ';
+    }
+    ctx.font = "12px 'VT323', monospace"; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var tw = ctx.measureText(tape).width || 1;
+    var sc = (t * 46) % tw;
+    ctx.fillStyle = '#5fe08a';
+    ctx.fillText(tape + tape, h.x - sc, h.y + h.h - 3);
+    ctx.fillText(tape + tape, h.x - sc + tw, h.y + h.h - 3);
+  }
+
+  // ---- channel 6: music-visualizer EQ bars --------------------------------
+  function drawTVMusic(ctx, h){
+    var grad = (Math.sin(t * 0.6) + 1) / 2;
+    ctx.fillStyle = 'rgb(' + Math.floor(20 + grad * 30) + ',10,' + Math.floor(30 + grad * 30) + ')';
+    ctx.fillRect(h.x, h.y, h.w, h.h);
+    var n = 12, gap = 2, bw = (h.w - gap) / n - gap;
+    var base = h.y + h.h - 14;
+    for(var i = 0; i < n; i++){
+      var amp = Math.abs(Math.sin(t * 4 + i * 0.8) * Math.cos(t * 2.3 + i)) ;
+      var bh = 6 + amp * (h.h - 28);
+      var bx = h.x + gap + i * (bw + gap);
+      // hue per bar
+      var r = 120 + Math.floor(120 * Math.sin(i * 0.5 + t));
+      var g = 120 + Math.floor(120 * Math.sin(i * 0.5 + t + 2));
+      var b = 200;
+      ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+      ctx.fillRect(bx, base - bh, bw, bh);
+      // bright cap
+      ctx.fillStyle = '#fff'; ctx.fillRect(bx, base - bh, bw, 2);
+    }
+    pxText(ctx, '♪ NOW PLAYING', h.x + 6, h.y + 14, 9, '#fff', 'left', true);
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x, h.y + h.h - 12, h.w, 12);
+    pxText(ctx, 'untitled (final v7 FINAL)', h.x + 4, h.y + h.h - 3, 8, '#ff9adf', 'left');
+  }
+
+  // ---- channel 7: weather radar sweep -------------------------------------
+  function drawTVRadar(ctx, h){
+    ctx.fillStyle = '#04140e'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    var cx = h.x + h.w / 2, cy = h.y + h.h / 2 - 4, R = Math.min(h.w, h.h) / 2 - 8;
+    // range rings
+    ctx.strokeStyle = '#1c5c3a'; ctx.lineWidth = 1;
+    for(var r = R; r > 4; r -= R / 3){ ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+    // sweep wedge
+    var ang = (t * 1.6) % (Math.PI * 2);
+    ctx.fillStyle = 'rgba(90,230,140,0.25)';
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, ang - 0.5, ang); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#8fffb0'; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ang) * R, cy + Math.sin(ang) * R); ctx.stroke();
+    // a couple of "blips" that fade as the sweep passes
+    var blips = [[0.6, -0.4], [-0.3, 0.5], [0.2, 0.7]];
+    for(var b = 0; b < blips.length; b++){
+      var ba = Math.atan2(blips[b][1], blips[b][0]); if(ba < 0) ba += Math.PI * 2;
+      var d = (ang - ba + Math.PI * 2) % (Math.PI * 2);
+      var fade = Math.max(0, 1 - d / 1.2);
+      ctx.fillStyle = 'rgba(255,224,102,' + (0.3 + fade * 0.7) + ')';
+      ctx.fillRect(cx + blips[b][0] * R - 2, cy + blips[b][1] * R - 2, 4, 4);
+    }
+    pxText(ctx, 'RADAR', h.x + 5, h.y + 13, 9, '#8fffb0', 'left', true);
+  }
+
+  // ---- channel 8: breaking-news lower-third + crawl -----------------------
+  function drawTVBreaking(ctx, h){
+    // studio bg
+    ctx.fillStyle = '#101a2e'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.fillStyle = '#16223c'; ctx.fillRect(h.x + 8, h.y + 8, h.w - 16, h.h - 36);
+    // "anchor" silhouette
+    var cx = h.x + h.w / 2;
+    ctx.fillStyle = '#0a1224'; ctx.fillRect(cx - 10, h.y + h.h - 50, 20, 24);
+    ctx.beginPath(); ctx.arc(cx, h.y + h.h - 50, 8, 0, Math.PI * 2); ctx.fillStyle = '#0a1224'; ctx.fill();
+    // flashing BREAKING band
+    var flash = Math.floor(t * 3) % 2 === 0;
+    ctx.fillStyle = flash ? '#ff2e2e' : '#c01818'; ctx.fillRect(h.x, h.y + h.h - 30, h.w, 12);
+    pxText(ctx, 'BREAKING', h.x + 4, h.y + h.h - 21, 8, '#fff', 'left', true);
+    pxText(ctx, 'LIVE', h.x + h.w - 26, h.y + h.h - 21, 8, '#fff', 'left', true);
+    // crawl
+    ctx.fillStyle = '#06101f'; ctx.fillRect(h.x, h.y + h.h - 14, h.w, 14);
+    var line = TV_HEADLINES[Math.floor(t / 7) % TV_HEADLINES.length] + '   +++   ';
+    ctx.font = "11px 'VT323', monospace"; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    var lw = ctx.measureText(line).width || 1;
+    var sc = (t * 40) % lw;
+    ctx.fillStyle = '#ffe066';
+    ctx.fillText(line + line, h.x - sc, h.y + h.h - 3);
+    ctx.fillText(line + line, h.x - sc + lw, h.y + h.h - 3);
+  }
+
+  // ---- channel 9: self-playing Pong ---------------------------------------
+  function drawTVPong(ctx, h){
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    // dashed centre net
+    ctx.fillStyle = '#2a2a2a';
+    for(var ny = h.y + 4; ny < h.y + h.h - 4; ny += 8) ctx.fillRect(h.x + h.w / 2 - 1, ny, 2, 4);
+    // ball position bounces in a box
+    var bw2 = h.w - 24, bh2 = h.h - 14;
+    var px = Math.abs(((t * 90) % (bw2 * 2)) - bw2);
+    var py = Math.abs(((t * 64) % (bh2 * 2)) - bh2);
+    var bx = h.x + 12 + px, by = h.y + 7 + py;
+    // paddles track the ball (with a little lag = "AI")
+    var clamp = function(v){ return Math.max(h.y + 4, Math.min(h.y + h.h - 24, v)); };
+    var lpad = clamp(by - 8 + Math.sin(t * 5) * 5);
+    var rpad = clamp(by - 8 - Math.sin(t * 5) * 5);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(h.x + 4, lpad, 4, 16);
+    ctx.fillRect(h.x + h.w - 8, rpad, 4, 16);
+    ctx.fillRect(bx, by, 4, 4);
+    // score
+    pxText(ctx, (Math.floor(t / 6) % 9) + '', h.x + h.w / 2 - 24, h.y + 16, 14, '#fff', 'left', true);
+    pxText(ctx, (Math.floor(t / 7) % 9) + '', h.x + h.w / 2 + 14, h.y + 16, 14, '#fff', 'left', true);
+  }
+
+  // ---- channel 10: cooking show (sizzling pan) ----------------------------
+  function drawTVCooking(ctx, h){
+    ctx.fillStyle = '#3a241a'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.fillStyle = '#5a3a26'; ctx.fillRect(h.x, h.y + h.h - 26, h.w, 26); // counter
+    var cx = h.x + h.w / 2, cy = h.y + h.h - 30;
+    // pan
+    ctx.fillStyle = '#15171c'; ctx.beginPath(); ctx.ellipse(cx, cy, 34, 12, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#23262e'; ctx.beginPath(); ctx.ellipse(cx, cy - 2, 30, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#15171c'; ctx.fillRect(cx + 30, cy - 3, 22, 5); // handle
+    // sizzling bits jumping
+    for(var i = 0; i < 6; i++){
+      var ph = Math.abs(Math.sin(t * 6 + i * 1.3));
+      var ix = cx - 18 + i * 7;
+      var iy = cy - 4 - ph * 10;
+      ctx.fillStyle = i % 2 ? '#e0913a' : '#c75a2a';
+      ctx.fillRect(ix, iy, 4, 4);
+    }
+    // steam wisps
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    for(var s = 0; s < 3; s++){
+      var sy = (t * 16 + s * 14) % 30;
+      ctx.fillRect(cx - 10 + s * 10 + Math.sin(t * 3 + s) * 3, cy - 14 - sy, 3, 3);
+    }
+    pxText(ctx, 'CHEF AT WORK', h.x + 6, h.y + 16, 9, '#ffe066', 'left', true);
+    pxText(ctx, 'add a pinch of "deadline"', h.x + 4, h.y + h.h - 3, 8, '#ffd9a0', 'left');
+  }
+
+  // ---- channel 11: bouncing-logo (DVD) ad ---------------------------------
+  var TV_DVD = { x: 30, y: 20, vx: 38, vy: 27, hue: 0, lastT: 0 };
+  function drawTVDvd(ctx, h){
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    var bw = 44, bh = 18;
+    // advance using a frame delta derived from t
+    var dt = Math.max(0, Math.min(0.2, t - TV_DVD.lastT)); TV_DVD.lastT = t;
+    TV_DVD.x += TV_DVD.vx * dt; TV_DVD.y += TV_DVD.vy * dt;
+    var maxX = h.w - bw, maxY = h.h - bh;
+    if(TV_DVD.x <= 0){ TV_DVD.x = 0; TV_DVD.vx = Math.abs(TV_DVD.vx); TV_DVD.hue = (TV_DVD.hue + 60) % 360; }
+    if(TV_DVD.x >= maxX){ TV_DVD.x = maxX; TV_DVD.vx = -Math.abs(TV_DVD.vx); TV_DVD.hue = (TV_DVD.hue + 60) % 360; }
+    if(TV_DVD.y <= 0){ TV_DVD.y = 0; TV_DVD.vy = Math.abs(TV_DVD.vy); TV_DVD.hue = (TV_DVD.hue + 60) % 360; }
+    if(TV_DVD.y >= maxY){ TV_DVD.y = maxY; TV_DVD.vy = -Math.abs(TV_DVD.vy); TV_DVD.hue = (TV_DVD.hue + 60) % 360; }
+    var lx = h.x + TV_DVD.x, ly = h.y + TV_DVD.y;
+    ctx.fillStyle = 'hsl(' + TV_DVD.hue + ',80%,55%)';
+    ctx.fillRect(lx, ly, bw, bh);
+    pxText(ctx, 'CRVCH', lx + bw / 2, ly + 13, 11, '#000', 'center', true);
+  }
+
+  // ---- channel 12: awards red-carpet --------------------------------------
+  function drawTVAwards(ctx, h){
+    ctx.fillStyle = '#1a0a14'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    // red carpet
+    ctx.fillStyle = '#8c1430'; ctx.fillRect(h.x + h.w / 2 - 22, h.y + 24, 44, h.h - 24);
+    ctx.fillStyle = '#b21c40'; ctx.fillRect(h.x + h.w / 2 - 18, h.y + 24, 36, h.h - 24);
+    // a little trophy that gleams
+    var cx = h.x + h.w / 2, cy = h.y + h.h - 30;
+    ctx.fillStyle = '#ffd34d'; ctx.fillRect(cx - 8, cy - 16, 16, 12);
+    ctx.fillRect(cx - 3, cy - 4, 6, 8); ctx.fillRect(cx - 7, cy + 4, 14, 4);
+    var gleam = Math.floor(t * 4) % 4;
+    ctx.fillStyle = '#fff'; ctx.fillRect(cx - 6 + gleam * 3, cy - 14, 2, 8);
+    // camera flashes (random pops top area)
+    for(var i = 0; i < 5; i++){
+      if((Math.floor(t * 8) + i * 3) % 7 === 0){
+        var fx = h.x + 8 + ((i * 37) % (h.w - 16));
+        ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fillRect(fx, h.y + 8 + (i % 2) * 6, 5, 5);
+      }
+    }
+    pxText(ctx, 'THE ADDYS', h.x + h.w / 2, h.y + 16, 11, '#ffd34d', 'center', true);
+    pxText(ctx, 'and the brief goes to...', h.x + h.w / 2, h.y + h.h - 3, 8, '#ffd9e0', 'center');
+  }
+
+  // ---- channel 13: ASMR aquarium ------------------------------------------
+  var TV_FISH = [
+    { x: 20, y: 30, vx: 22, c: '#ff9a56', s: 1 },
+    { x: 120, y: 60, vx: -16, c: '#5fd0ff', s: 1.3 },
+    { x: 70, y: 80, vx: 13, c: '#ffe066', s: 0.9 }
+  ];
+  function drawTVFish(ctx, h){
+    var g = ctx.createLinearGradient(0, h.y, 0, h.y + h.h);
+    g.addColorStop(0, '#0a3a52'); g.addColorStop(1, '#04202e');
+    ctx.fillStyle = g; ctx.fillRect(h.x, h.y, h.w, h.h);
+    // sandy bottom + plants
+    ctx.fillStyle = '#1a3a22'; ctx.fillRect(h.x, h.y + h.h - 8, h.w, 8);
+    ctx.fillStyle = '#2e6b3a';
+    for(var p = 0; p < h.w; p += 18){
+      var sway = Math.sin(t * 1.5 + p) * 3;
+      ctx.fillRect(h.x + p, h.y + h.h - 24, 3, 16);
+      ctx.fillRect(h.x + p + sway, h.y + h.h - 30, 3, 8);
+    }
+    var dt = Math.max(0, Math.min(0.2, t - (drawTVFish._lt || t))); drawTVFish._lt = t;
+    for(var i = 0; i < TV_FISH.length; i++){
+      var f = TV_FISH[i];
+      f.x += f.vx * dt;
+      if(f.x < 4){ f.x = 4; f.vx = Math.abs(f.vx); }
+      if(f.x > h.w - 14){ f.x = h.w - 14; f.vx = -Math.abs(f.vx); }
+      var fy = h.y + f.y + Math.sin(t * 2 + i) * 4;
+      var fx = h.x + f.x;
+      ctx.fillStyle = f.c;
+      ctx.beginPath(); ctx.ellipse(fx, fy, 7 * f.s, 4 * f.s, 0, 0, Math.PI * 2); ctx.fill();
+      // tail (points opposite to travel)
+      var dir = f.vx > 0 ? -1 : 1;
+      ctx.fillRect(fx + dir * 6 * f.s, fy - 3, 4 * dir, 6);
+      ctx.fillStyle = '#000'; ctx.fillRect(fx - dir * 4 * f.s, fy - 1, 1.5, 1.5);
+    }
+    // rising bubbles
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    for(var b = 0; b < 4; b++){
+      var by = (t * 18 + b * 20) % h.h;
+      ctx.fillRect(h.x + 14 + b * 24, h.y + h.h - by, 2, 2);
+    }
+  }
+
+  // ---- channel 14: SMPTE/test-card color bars -----------------------------
+  function drawTVBars(ctx, h){
+    var cols = ['#c0c0c0', '#c0c000', '#00c0c0', '#00c000', '#c000c0', '#c00000', '#0000c0'];
+    var bw = h.w / cols.length;
+    for(var i = 0; i < cols.length; i++){
+      ctx.fillStyle = cols[i]; ctx.fillRect(h.x + i * bw, h.y, Math.ceil(bw) + 1, h.h - 18);
+    }
+    // bottom black strip + bouncing "TEST CARD" + jitter line
+    ctx.fillStyle = '#000'; ctx.fillRect(h.x, h.y + h.h - 18, h.w, 18);
+    var jx = Math.floor(Math.sin(t * 1.3) * (h.w / 2 - 30));
+    pxText(ctx, 'TEST CARD', h.x + h.w / 2 + jx, h.y + h.h - 5, 9, '#fff', 'center', true);
+    // rolling horizontal sync glitch
+    var gy = h.y + (Math.floor(t * 40) % (h.h - 18));
+    ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(h.x, gy, h.w, 2);
+  }
+
+  // ---- channel 15: shopping channel (spinning product) --------------------
+  function drawTVShop(ctx, h){
+    ctx.fillStyle = '#2a1838'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.fillStyle = '#3a2450'; ctx.fillRect(h.x, h.y, h.w, 20);
+    pxText(ctx, 'SHOP NOW', h.x + 6, h.y + 15, 10, '#ffe066', 'left', true);
+    if(Math.floor(t * 3) % 2 === 0) pxText(ctx, 'LIVE', h.x + h.w - 26, h.y + 15, 9, '#ff5c5c', 'left', true);
+    // spinning "product": a box whose width squashes like a rotating 3D cube
+    var cx = h.x + h.w / 2, cy = h.y + h.h / 2;
+    var sw = Math.abs(Math.cos(t * 2)) * 26 + 6;
+    var face = Math.cos(t * 2) > 0;
+    ctx.fillStyle = face ? '#ff5c8a' : '#5c8aff';
+    ctx.fillRect(cx - sw / 2, cy - 22, sw, 44);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(cx - sw / 2, cy - 22, sw, 4);
+    pxText(ctx, face ? 'NEW!' : 'WOW', cx, cy + 4, 9, '#fff', 'center', true);
+    // price flashing
+    var price = Math.floor(t * 4) % 2 ? '999' : '99';
+    pxText(ctx, '₹' + price + ' only', cx, h.y + h.h - 5, 11, '#ffe066', 'center', true);
+  }
+
+  // ---- channel 16: election results bar race ------------------------------
+  var TV_PARTIES = [
+    { n: 'CREA', c: '#ff5c5c' },
+    { n: 'TIVE', c: '#5fd0ff' },
+    { n: 'DEPT', c: '#ffe066' }
+  ];
+  function drawTVElection(ctx, h){
+    ctx.fillStyle = '#0c1426'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    pxText(ctx, 'RESULTS', h.x + 6, h.y + 15, 10, '#fff', 'left', true);
+    if(Math.floor(t * 2) % 2 === 0){ ctx.fillStyle = '#ff5c5c'; ctx.fillRect(h.x + h.w - 14, h.y + 6, 6, 6); }
+    var top = h.y + 24, rowH = (h.h - 36) / TV_PARTIES.length;
+    var maxW = h.w - 64;
+    for(var i = 0; i < TV_PARTIES.length; i++){
+      var p = TV_PARTIES[i];
+      var frac = (Math.sin(t * 0.8 + i * 2) * 0.4 + 0.5);
+      var w = 6 + frac * maxW;
+      var ry = top + i * rowH;
+      ctx.fillStyle = '#1a2742'; ctx.fillRect(h.x + 6, ry + 2, maxW, rowH - 8);
+      ctx.fillStyle = p.c; ctx.fillRect(h.x + 6, ry + 2, w, rowH - 8);
+      pxText(ctx, p.n, h.x + 9, ry + rowH - 6, 8, '#0a0d16', 'left', true);
+      pxText(ctx, Math.floor(frac * 540) + '', h.x + h.w - 8, ry + rowH - 6, 9, '#fff', 'right', true);
+    }
+  }
+
+  // The single source of truth for channel order — auto-cycle (drawTV) and the
+  // tap handler both use TV_CHANNELS.length so they can never drift. "static"
+  // remains a transient no-signal state layered on top, not a real channel.
+  var TV_CHANNELS = [
+    drawTVCricket,    // 0
+    drawTVNews,       // 1
+    drawTVAd,         // 2
+    drawTVWeather,    // 3
+    drawTVTicker,     // 4
+    drawTVMusic,      // 5
+    drawTVRadar,      // 6
+    drawTVBreaking,   // 7
+    drawTVPong,       // 8
+    drawTVCooking,    // 9
+    drawTVDvd,        // 10
+    drawTVAwards,     // 11
+    drawTVFish,       // 12
+    drawTVBars,       // 13
+    drawTVShop,       // 14
+    drawTVElection    // 15
+  ];
+
   // ---------- neon sign (custom text, glowing tube) ----------
   function drawNeon(ctx){
     var txt = '~ ' + (G.state.neonText || 'CRAVACHE') + ' ~';
@@ -1415,7 +1754,7 @@
   }
 
   // ---------- water cooler (gossip station) ----------
-  var COOLER = { x: 470, y: 558 };   // relocated to clear front floor (between arcade & production)
+  var COOLER = { x: 648, y: 537 };   // break-room row slot 5 (bottom-aligned to the lifted shelf ~580)
   var COOLER_S = 0.62;               // shrunk per "make the team thing small"
   G.render.coolerPoint = function(){ return { x: COOLER.x + 20 * COOLER_S, y: COOLER.y + 70 * COOLER_S }; };
 
@@ -1440,6 +1779,10 @@
 
   function drawCooler(ctx){
     var cx = COOLER.x, cy = COOLER.y;
+    // label in WORLD space (drawn before the cooler's scale transform), sitting on
+    // the floor baseline like the other break-room props. The cooler is decor (no
+    // tap action), so its caption omits the "tap to ..." promise.
+    pxText(ctx, 'WATER COOLER', cx + 12, 607, 11, 'rgba(159,232,255,0.7)', 'center');
     ctx.save();
     ctx.translate(cx, cy); ctx.scale(COOLER_S, COOLER_S); ctx.translate(-cx, -cy);
     ctx.fillStyle = 'rgba(0,0,0,0.30)'; ellipse(ctx, cx + 20, cy + 70, 28, 7);
@@ -1530,7 +1873,7 @@
 
   // AQUARIUM — glowing tank on the front-left floor, drifting fish + bubbles.
   function drawAquarium(ctx){
-    var ax = 40, ay = 560, aw = 150, ah = 100;
+    var ax = 40, ay = 494, aw = 150, ah = 86;
     // glow halo (the tank lights the dark floor)
     ctx.fillStyle = 'rgba(80,170,220,0.10)';
     ctx.fillRect(ax - 24, ay - 24, aw + 48, ah + 48);
@@ -1632,11 +1975,17 @@
     ctx.strokeRect(ax + 2, ay + 2, aw - 4, ah - 4);
     ctx.fillStyle = 'rgba(255,255,255,0.10)';
     ctx.fillRect(ax + aw - 26, ay + 6, 6, ah - 16);
+    // "tap to ..." label beneath (the stand drops to ay+ah+16), shared style + lifted baseline
+    pxText(ctx, 'FISH TANK · tap to feed', ax + aw / 2, 607, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
-  // COFFEE machine — sprite + NEW rising steam puffs animation.
+  // COFFEE machine — sprite + rising steam; tappable (opens the brew mini-game).
+  // Relocated onto the floor between the arcade (x≈300) and foosball (x≈500).
+  // break-room row slot 4. Hit rect (62x82) wraps the 46x64 sprite; both bottom-
+  // aligned to the floor baseline (660). cx/cy MUST stay in lockstep with the hit.
+  var COFFEE_HIT = { x: 529, y: 498, w: 62, h: 82 };
   function drawCoffee(ctx){
-    var cx = 150, cy = 360;
+    var cx = 537, cy = 516;   // sprite top-left: centred in COFFEE_HIT, sprite bottom = 580
     ctx.fillStyle = 'rgba(0,0,0,0.22)'; ellipse(ctx, cx + 23, cy + 66, 24, 7);
     drawSprite(ctx, 'coffee_machine', cx, cy, 46, 64);
     // rising steam puffs from the spout (two staggered columns)
@@ -1649,11 +1998,15 @@
       ctx.fillRect(cx + 14 + drift, puffY, 4, 4);
       ctx.fillRect(cx + 26 - drift, puffY - 4, 4, 4);
     }
+    // "tap to ..." label beneath, matching the foosball/TT style + baseline
+    pxText(ctx, 'COFFEE · tap to brew', COFFEE_HIT.x + COFFEE_HIT.w / 2, 607, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   // ARCADE cabinet — glowing screen, on the floor.
   // Click hitbox (see handleClick) is kept in lockstep with the draw rect below.
-  var ARCADE_HIT = { x: 300, y: 535, w: 70, h: 120 };
+  // break-room row slot 3 (tallest). Bottom-aligned to the floor baseline (660):
+  // ay = 660 - 120 = 540. drawArcade reads ARCADE_HIT so draw+hit stay in lockstep.
+  var ARCADE_HIT = { x: 405, y: 492, w: 70, h: 88 };
   function drawArcade(ctx){
     var ax = ARCADE_HIT.x, ay = ARCADE_HIT.y, aw = ARCADE_HIT.w, ah = ARCADE_HIT.h;
     ctx.fillStyle = 'rgba(0,0,0,0.28)'; ellipse(ctx, ax + aw / 2, ay + ah, aw * 0.5, 9);
@@ -1681,6 +2034,8 @@
     // screen glow halo
     ctx.fillStyle = 'rgba(255,255,255,0.06)';
     ctx.fillRect(ax - 16, ay + 10, aw + 32, 60);
+    // "tap to ..." label beneath, matching the foosball/TT style + baseline
+    pxText(ctx, 'ARCADE · tap to play', ax + aw / 2, 607, 11, 'rgba(159,232,255,0.7)', 'center');
   }
 
   // SMALL windowsill plant — a little potted plant sitting ON the window sill
@@ -1820,6 +2175,159 @@
            h.x + 50, h.y + 38, 14, 'rgba(159,232,255,0.9)', 'left');
   }
 
+  // ---------- office cat (shop: u.cat) — wanders the floor, tap to pet ----------
+  // A ginger menace that strolls the front floor, sits, flicks its tail, and
+  // rewards a tap with a purr + hearts + a little calm for nearby staff. Cosmetic
+  // state lives here (resets on reload); the morale effect on staff is real.
+  var CAT = null, catLastT = 0;
+  // the cat roams the WHOLE office floor now, not just the front strip.
+  function catBounds(){ return { x0: 60, x1: 1200, y0: 320, y1: 665 }; }
+  function pickCatTarget(){
+    var b = catBounds();
+    CAT.tx = b.x0 + Math.random() * (b.x1 - b.x0);
+    CAT.ty = b.y0 + Math.random() * (b.y1 - b.y0);
+    CAT.face = CAT.tx >= CAT.x ? 1 : -1;
+    CAT.mode = 'walk';
+  }
+  function initCat(){
+    var b = catBounds();
+    CAT = { x: (b.x0 + b.x1) / 2, y: b.y1 - 4, tx: 0, ty: 0, mode: 'sit',
+            sitT: 2, t: 0, face: 1, walk: 0, blink: 2, petT: 0, petCd: 0, hearts: [] };
+    pickCatTarget();
+  }
+  function tickCat(dt){
+    if(!CAT) initCat();
+    var c = CAT; c.t += dt;
+    c.blink -= dt; if(c.blink <= 0) c.blink = 2.2 + Math.random() * 4;
+    if(c.petT > 0) c.petT -= dt;
+    if(c.petCd > 0) c.petCd -= dt;
+    for(var i = c.hearts.length - 1; i >= 0; i--){ var h = c.hearts[i]; h.t += dt; h.y -= dt * 24; if(h.t > 1.1) c.hearts.splice(i, 1); }
+    if(c.mode === 'walk'){
+      var dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy) || 1;
+      if(d < 4){ c.mode = 'sit'; c.sitT = 2.5 + Math.random() * 4.5; c.walk = 0; }
+      else { var sp = 48 * dt; c.x += dx / d * sp; c.y += dy / d * sp; c.face = dx >= 0 ? 1 : -1; c.walk += dt * 9; }
+    } else {
+      c.sitT -= dt; if(c.sitT <= 0) pickCatTarget();
+    }
+  }
+  function drawCat(ctx){
+    var dt = Math.max(0, Math.min(0.05, t - catLastT)); catLastT = t;
+    tickCat(dt);
+    var c = CAT, x = Math.round(c.x), y = Math.round(c.y);
+    var GIN = '#e8943a', STR = '#c9742a', BEL = '#f6dcb4', EAR = '#f2b6c1', EYE = '#10131f';
+    var walking = c.mode === 'walk', sitting = !walking;
+    var bob = walking ? Math.round(Math.sin(c.walk) * 1) : 0;
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ellipse(ctx, x, y + 1, 15, 5);
+    ctx.save(); ctx.translate(x, y); ctx.scale(c.face, 1);
+    // legs
+    ctx.fillStyle = STR;
+    if(walking){ var lp = Math.round(Math.sin(c.walk) * 2); ctx.fillRect(-7, -3, 3, 4 + lp); ctx.fillRect(3, -3, 3, 4 - lp); ctx.fillRect(-2, -3, 3, 4 - lp); }
+    else { ctx.fillRect(-7, -2, 3, 3); ctx.fillRect(3, -2, 3, 3); }
+    // tail sway
+    var ts = Math.sin(c.t * 3) * 4;
+    ctx.fillStyle = GIN; ctx.fillRect(-13, -11 - bob, 4, 3); ctx.fillRect(-15, -9 - bob + ts * 0.5, 3, 3 + Math.abs(ts) * 0.25);
+    // body
+    ctx.fillStyle = GIN;
+    if(sitting){ ctx.fillRect(-8, -16 - bob, 13, 14); } else { ctx.fillRect(-9, -12 - bob, 18, 9); }
+    // belly + stripes
+    ctx.fillStyle = BEL; ctx.fillRect(sitting ? -4 : -6, -7 - bob, sitting ? 6 : 8, 4);
+    ctx.fillStyle = STR; ctx.fillRect(-4, -12 - bob, 2, sitting ? 12 : 9); ctx.fillRect(0, -12 - bob, 2, sitting ? 12 : 9);
+    // head
+    var hx = sitting ? 3 : 8, hy = sitting ? -22 - bob : -16 - bob;
+    ctx.fillStyle = GIN; ctx.fillRect(hx - 5, hy, 10, 9);
+    ctx.beginPath(); ctx.moveTo(hx - 5, hy); ctx.lineTo(hx - 3, hy - 5); ctx.lineTo(hx - 1, hy); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(hx + 1, hy); ctx.lineTo(hx + 3, hy - 5); ctx.lineTo(hx + 5, hy); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = EAR; ctx.fillRect(hx - 3, hy - 3, 1, 2); ctx.fillRect(hx + 2, hy - 3, 1, 2);
+    // eyes (blink) + nose
+    ctx.fillStyle = EYE;
+    if(c.blink < 0.12){ ctx.fillRect(hx - 3, hy + 4, 3, 1); ctx.fillRect(hx + 1, hy + 4, 3, 1); }
+    else { ctx.fillRect(hx - 3, hy + 3, 2, 2); ctx.fillRect(hx + 2, hy + 3, 2, 2); }
+    ctx.fillStyle = '#c25a6a'; ctx.fillRect(hx, hy + 6, 1, 1);
+    ctx.restore();
+    // hearts float up (unflipped)
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    for(var k = 0; k < c.hearts.length; k++){ var ht = c.hearts[k]; ctx.globalAlpha = Math.max(0, 1 - ht.t); ctx.font = '12px serif'; ctx.fillStyle = '#ff6a8a'; ctx.fillText('❤', x + ht.dx, ht.y); }
+    ctx.globalAlpha = 1;
+  }
+  function petCat(){
+    if(!CAT) initCat();
+    var c = CAT;
+    c.mode = 'sit'; c.sitT = Math.max(c.sitT || 0, 1.6); c.petT = 0.6;
+    for(var k = 0; k < 3; k++) c.hearts.push({ dx: (k - 1) * 7, y: c.y - 22 - Math.random() * 6, t: 0 });
+    if(G.audio && G.audio.click) G.audio.click();
+    if(c.petCd > 0){
+      G.dock.infoToast('MEOW', 'The cat has had enough affection for now.', '');
+      return;
+    }
+    var n = 0;
+    G.state.staff.forEach(function(st){ if(G.time.onClock(st)){ st.burnout = Math.max(0, st.burnout - 3); n++; } });
+    if(G.chaos && G.chaos.add) G.chaos.add(-2);
+    c.petCd = 6;
+    G.dock.infoToast('PURR 🐈', 'The office cat accepts your tribute. ' + n + ' people exhale. Chaos −2%.', 'good');
+  }
+
+  // ---------- foosball table (shop: u.foosball) — tap to play the mini-game ----------
+  // Static break-room furniture. Tapping opens the foosball mini-game (G.foosball).
+  var FOOS_BOX = { x: 700, y: 522, w: 150, h: 58 };   // break-room row slot 6 (bottom-aligned to the lifted shelf ~580; right edge clears the studio button at x858)
+  function drawFoos(ctx){
+    var B = FOOS_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
+    ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + 8, y + h - 2, 6, 16); ctx.fillRect(x + w - 14, y + h - 2, 6, 16);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ellipse(ctx, x + w / 2, y + h + 15, w * 0.5, 6);
+    ctx.fillStyle = '#5a3b22'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
+    ctx.fillStyle = '#1f7a43'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + w / 2, y); ctx.lineTo(x + w / 2, y + h); ctx.stroke();
+    ctx.strokeRect(x + 1, y + h / 2 - 9, 3, 18); ctx.strokeRect(x + w - 4, y + h / 2 - 9, 3, 18);
+    var rodsX = [0.26, 0.45, 0.6, 0.8];
+    for(var r = 0; r < rodsX.length; r++){
+      var rx = x + rodsX[r] * w, team = (r % 2 === 0) ? '#d24b3e' : '#3a6ea5';
+      ctx.strokeStyle = '#cfd3da'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(rx, y - 3); ctx.lineTo(rx, y + h + 3); ctx.stroke();
+      for(var pI = 0; pI < 2; pI++){ var py = y + h * (0.3 + 0.4 * pI); ctx.fillStyle = team; ctx.fillRect(rx - 2, py - 5, 4, 10); }
+    }
+    var bx = x + 0.5 * w, by = y + 0.5 * h;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(bx, by, 2.5, 0, Math.PI * 2); ctx.fill();
+    pxText(ctx, 'FOOSBALL · tap to play', x + w / 2, y + h + 27, 11, 'rgba(159,232,255,0.7)', 'center');
+  }
+
+  // ---------- table tennis table (shop: u.tabletennis) — tap to play the mini-game ----------
+  // Static break-room furniture in the open lower-left floor. Tapping opens the
+  // table-tennis mini-game (G.tableTennis). Style/scale mirrors the foosball table.
+  var TT_BOX = { x: 216, y: 516, w: 168, h: 64 };   // break-room row slot 2 (bottom-aligned to the lifted shelf ~580); was 40,560 — OVERLAPPED the fish tank
+  function drawTT(ctx){
+    var B = TT_BOX, x = B.x, y = B.y, w = B.w, h = B.h;
+    // soft glow halo so the table pops out of the dark corner
+    ctx.fillStyle = 'rgba(70,150,255,0.12)';
+    ellipse(ctx, x + w / 2, y + h / 2, w * 0.82, h * 1.0);
+    // legs + floor shadow
+    ctx.fillStyle = '#2a2f3a'; ctx.fillRect(x + 10, y + h - 2, 7, 18); ctx.fillRect(x + w - 17, y + h - 2, 7, 18);
+    ctx.fillStyle = 'rgba(0,0,0,0.28)'; ellipse(ctx, x + w / 2, y + h + 17, w * 0.5, 6);
+    // bright blue table top with a bold white frame
+    ctx.fillStyle = '#0c3a6b'; ctx.fillRect(x - 5, y - 5, w + 10, h + 10);
+    ctx.fillStyle = '#2a82d6'; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = 'rgba(255,255,255,0.10)'; ctx.fillRect(x, y, w, h / 2); // top sheen
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
+    // centre line
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + 4, y + h / 2); ctx.lineTo(x + w - 4, y + h / 2); ctx.stroke();
+    // raised net across the middle + mesh ticks
+    ctx.fillStyle = '#eef4f8'; ctx.fillRect(x + w / 2 - 1, y - 7, 2, h + 14);
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1;
+    for(var ny = y; ny < y + h; ny += 5){ ctx.beginPath(); ctx.moveTo(x + w / 2 - 4, ny); ctx.lineTo(x + w / 2 + 4, ny); ctx.stroke(); }
+    // two paddles + ball
+    ctx.fillStyle = '#e23b2e'; ctx.beginPath(); ctx.arc(x + w * 0.24, y + h * 0.5, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + w * 0.24 - 1, y + h * 0.5 + 5, 2, 8);
+    ctx.fillStyle = '#1a1a1a'; ctx.beginPath(); ctx.arc(x + w * 0.76, y + h * 0.5, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x + w * 0.76 - 1, y + h * 0.5 + 5, 2, 8);
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x + w * 0.5, y + h * 0.34, 3, 0, Math.PI * 2); ctx.fill();
+    // floating 🏓 icon above the table — clear "this is table tennis" marker
+    ctx.save();
+    ctx.font = '22px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('🏓', x + w / 2, y - 12);
+    ctx.restore();
+    pxText(ctx, 'TABLE TENNIS · tap to play', x + w / 2, y + h + 27, 11, 'rgba(159,232,255,0.7)', 'center');
+  }
+
   // ---------- props orchestrator ----------
   function drawProps(ctx){
     var s = G.state;
@@ -1834,6 +2342,8 @@
     if(u.string_lights) drawStringLights(ctx);
     if(u.posters) drawPosters(ctx);
     if(u.aquarium) drawAquarium(ctx);
+    if(u.foosball) drawFoos(ctx);
+    if(u.tabletennis) drawTT(ctx);
     if(u.arcade) drawArcade(ctx);
     if(u.plant_big) drawPlantBig(ctx);
     if(u.coffee) drawCoffee(ctx);
@@ -1871,6 +2381,7 @@
   G.render.office = {
     DESKS: DESKS,
     deskHitbox: deskHitbox,
+    catPos: function(){ return CAT ? { x: CAT.x, y: CAT.y } : null; },
 
     draw: function(ctx, dt){
       t += dt;
@@ -1881,6 +2392,7 @@
       drawClusters(ctx);       // dept labels + production tape
       drawDesks(ctx);          // seated staff behind desks (front-on)
       drawWanderers(ctx);      // cooler gossipers
+      if(G.state.upgrades && G.state.upgrades.cat) drawCat(ctx); // front-floor pet, on top
       // night: the room goes darker blue, laptops/props are the light source
       if(G.state.night){
         ctx.fillStyle = 'rgba(4,7,18,0.55)';
@@ -1906,14 +2418,44 @@
       var s = G.state;
       function inBox(h){ return lx >= h.x && lx <= h.x + h.w && ly >= h.y && ly <= h.y + h.h; }
 
+      // foosball table: tap to open the foosball mini-game
+      if(s.upgrades && s.upgrades.foosball &&
+         lx >= FOOS_BOX.x - 6 && lx <= FOOS_BOX.x + FOOS_BOX.w + 6 &&
+         ly >= FOOS_BOX.y - 14 && ly <= FOOS_BOX.y + FOOS_BOX.h + 12){
+        if(G.foosball && G.foosball.open) G.foosball.open();
+        return;
+      }
+
+      // table tennis table: tap to open the table-tennis mini-game
+      if(s.upgrades && s.upgrades.tabletennis &&
+         lx >= TT_BOX.x - 6 && lx <= TT_BOX.x + TT_BOX.w + 6 &&
+         ly >= TT_BOX.y - 14 && ly <= TT_BOX.y + TT_BOX.h + 12){
+        if(G.tableTennis && G.tableTennis.open) G.tableTennis.open();
+        return;
+      }
+
+      // office cat: tap the roaming pet to pet it (generous hitbox; it moves)
+      if(s.upgrades && s.upgrades.cat && CAT &&
+         lx >= CAT.x - 22 && lx <= CAT.x + 22 && ly >= CAT.y - 32 && ly <= CAT.y + 8){
+        petCat();
+        return;
+      }
+
       // arcade cabinet: opens the playable Breakout minigame (gated on the upgrade).
-      // Rect matches drawArcade(): ax=300, ay=535, aw=70, ah=120.
+      // Rect matches drawArcade(): ax=405, ay=540, aw=70, ah=120.
       if(s.upgrades && s.upgrades.arcade && inBox(ARCADE_HIT)){
         if(window.CravacheArcade && window.CravacheArcade.open){
           window.CravacheArcade.open();
         } else if(G.audio){
           G.audio.click();
         }
+        return;
+      }
+
+      // coffee machine: tap to brew a cup (mini-game). gated on the upgrade.
+      if(s.upgrades && s.upgrades.coffee && inBox(COFFEE_HIT)){
+        if(G.coffee && G.coffee.open){ G.coffee.open(); }
+        else if(G.audio){ G.audio.click(); }
         return;
       }
 
@@ -2002,9 +2544,9 @@
 
       // office TV: flip the channel manually
       if(s.upgrades.tv && inBox(HOTSPOTS.tv)){
-        s.tvChannel = (s.tvChannel + 1) % 4;
+        s.tvChannel = (s.tvChannel + 1) % TV_CHANNELS.length;
         G.audio.click();
-        var ch = (s.tvChannel + Math.floor(t / 5)) % 4;
+        var ch = (s.tvChannel + Math.floor(t / 5)) % TV_CHANNELS.length;
         G.dock.infoToast('TV', TV_CHANNEL_LINES[ch], '');
         return;
       }

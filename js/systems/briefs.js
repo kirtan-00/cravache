@@ -32,10 +32,11 @@
   // clear. This keeps a full, all-working roster genuinely occupied: a fresh
   // brief can't always be picked up the instant it lands. Tuned to stay
   // manageable, not punishing. Fees run ~Rs 4k..9L; +1% time per Rs 13,000 of
-  // fee, capped at +60% on the very biggest brand jobs.
+  // fee — scaled hard so a ~Rs 1L job clearly takes longer (about +57%), capped
+  // at +100% time on the very biggest brand jobs.
   function feeTimeFactor(def){
     var fee = def.fee || 0;
-    return 1 + Math.min(0.60, fee / 1300000);
+    return 1 + Math.min(1.0, fee / 175000);
   }
 
   G.briefs = {

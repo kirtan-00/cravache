@@ -96,7 +96,8 @@
       return G.BAL.OVERHEAD_BASE +
              s.staff.length * G.BAL.OVERHEAD_PER_STAFF +
              (s.week - 1) * G.BAL.OVERHEAD_WEEK_RAMP +
-             tiersOpen * (G.BAL.OVERHEAD_TIER_STEP || 0);
+             tiersOpen * (G.BAL.OVERHEAD_TIER_STEP || 0) +
+             Math.max(0, s.week - (G.BAL.OVERHEAD_LATE_WEEK || 4)) * (G.BAL.OVERHEAD_LATE_RAMP || 0);
     },
 
     runPayroll: function(){

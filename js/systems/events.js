@@ -127,10 +127,18 @@
       s.activeCall = null;
       s.quotesWall.push({ text: call.quote, client: call.client.name });
       s.stats.quotesSurvived++;
-      // apply the "take the call" option effects if defined
+      // apply the "take the call" option effects if defined — but strip its chaos
+      // component: listening is a flat −5 calm (below), so the option's own chaos
+      // would double-count and make the toast ("chaos −5%") a lie.
       var opt = call.def && call.def.options ? call.def.options[0] : null;
-      if(opt) this.applyEffects(opt.effects, { clientId: call.client.id });
-      G.dock.infoToast('FRAMED IT', 'That quote went straight on the office wall.', 'good');
+      if(opt && opt.effects){
+        var fx = {}; for(var k in opt.effects){ if(k !== 'chaos') fx[k] = opt.effects[k]; }
+        this.applyEffects(fx, { clientId: call.client.id });
+      }
+      // listening to a client out costs nothing but time — and it calms the floor.
+      G.chaos.add(-5);
+      G.hud.poke('chaos');
+      G.dock.infoToast('FRAMED IT', 'You heard them out. Quote on the wall, chaos −5%.', 'good');
     },
 
     // hung up / ignored

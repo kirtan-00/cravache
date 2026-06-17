@@ -5,7 +5,7 @@
 
   // ---------- balance (DESIGN.md economy first-pass, tune freely keep ratios) ----------
   G.BAL = {
-    START_MONEY: 100000,         // ~2 starting weeks of costs. Tight is the point.
+    START_MONEY: 130000,         // ~2 starting weeks of costs. Tight is the point.
 
     // economy rebalance (2026-06-13 design pass): briefs.json is now re-priced
     // to real Indian agency rates (role x tier ladder), so the JSON is ground
@@ -29,24 +29,27 @@
     // and Vraj (editor) who also pull night shifts.
     NIGHT_OWLS: { s_arya: true, s_natasha: true, s_dev_anand: true, s_vicky: true, s_imran: true, s_farhan: true },
     NIGHT_OWL_SPEED: 1.2,        // staff.js: night owls work this much faster at night, so staying for night work is a real choice, not just a skip
-    WEEKS: 8,                    // local -> gujarat -> india -> dubai -> global
+    WEEKS: 8,                    // local -> gujarat -> india -> mumbai -> global
 
     // departments
-    DEPT_CAPS: { designer: 5, editor: 5, content: 3, production: 4 },
+    DEPT_CAPS: { designer: 5, editor: 5, content: 3, production: 5 },
+    MANAGER_SALARY: 300000,      // planned dept managers cost 3 lakh/month each (manager feature built separately)
     PRODUCTION_UNLOCK_WEEK: 2,   // survive 1 week, production studio opens
     DIRECTOR_BOOST: 1.2,         // production dept speed while the Director is hired
     ARYA_SPEED_CAP: 2.0,         // night+hard-brief stack used to hit x2.38
 
     // weekly office overhead beyond payroll: rent, AC, the one Adobe bill.
     // Scales with headcount so growth costs something ongoing.
-    OVERHEAD_BASE: 9000,
+    OVERHEAD_BASE: 7000,
     OVERHEAD_PER_STAFF: 3000,
-    OVERHEAD_WEEK_RAMP: 4500,    // rent hikes weekly. The landlord saw your reel.
-    OVERHEAD_TIER_STEP: 15000,   // extra rent per client tier unlocked beyond local (economy.js reads this)
+    OVERHEAD_WEEK_RAMP: 7000,    // rent hikes weekly. The landlord saw your reel.
+    OVERHEAD_TIER_STEP: 22000,   // extra rent per client tier unlocked beyond local (economy.js reads this)
+    OVERHEAD_LATE_WEEK: 4,       // beyond this week the rent escalates hard
+    OVERHEAD_LATE_RAMP: 40000,   // per-week escalator applied past OVERHEAD_LATE_WEEK (economy.js reads this)
 
     // client tiers: week each tier starts appearing
-    TIER_UNLOCK: { local: 1, gujarat: 2, india: 3, dubai: 3, global: 8 },
-    TIER_LABEL: ['LOCAL', 'GUJARAT', 'INDIA', 'IND+DXB', 'IND+DXB', 'IND+DXB', 'IND+DXB', 'GLOBAL'],
+    TIER_UNLOCK: { local: 1, gujarat: 2, india: 3, mumbai: 4, global: 7 },
+    TIER_LABEL: ['LOCAL', 'GUJARAT', 'INDIA', 'IND+MUM', 'IND+MUM', 'IND+MUM', 'IND+MUM', 'GLOBAL'],
 
     // brief spawning: every 1.5 game-hours ± jitter, scaled by G.curve.spawnMult
     SPAWN_BASE_HOURS: 1.5,
@@ -68,7 +71,7 @@
     QUIT_DEADLINE_FACTOR: 0.25,  // brief returns to tray with 25% deadline left
 
     // money ticks (cosmetic escrow share of fee total; the rest must be CHASED)
-    ESCROW_SHARE: 0.18,
+    ESCROW_SHARE: 0.12,
     TICK_MIN: 20, TICK_MAX: 90,
 
     // verdict base odds (verdict.js normalizes)
@@ -89,7 +92,7 @@
     // receivables: approved fees become invoices. Hold CALL to collect now;
     // ignored invoices self-pay LATE and SHORT (the client "adjusted" it)
     INVOICE_AUTOPAY_DAYS: 3.5,
-    INVOICE_AUTOPAY_HAIRCUT: 0.80, // lazy collectors get 80 paise on the rupee
+    INVOICE_AUTOPAY_HAIRCUT: 0.70, // lazy collectors get 70 paise on the rupee
     INVOICE_CALL_HOLD: 3,        // real seconds of holding through excuses
 
     // chaos
@@ -97,7 +100,7 @@
     CHAOS_DECAY_PER_SEC: 0.45,   // only when everything on-track
     CHAOS_QUIT: 10,
     CHAOS_DECLINE: 1,            // declining a brief: -2 rep AND +1 chaos (briefs.js) so dodging risk has teeth
-    CHAOS_CREEP_OFFTRACK: 1.2,   // chaos.js: while things are off-track (late brief / burnt-out staff) chaos CLIMBS on its own, snowballing toward the wall
+    CHAOS_CREEP_OFFTRACK: 1.6,   // chaos.js: while things are off-track (late brief / burnt-out staff) chaos CLIMBS on its own, snowballing toward the wall
 
     // events (call/scope-creep chances live in G.curve)
     CALL_HOLD_REAL_SECONDS: 5,   // "10 in-game minutes" of your attention
@@ -116,7 +119,7 @@
 
     // shop (Friday upgrade moment, TWO purchases per week)
     SHOP: {
-      plant:         { name:"Office plant",     price:12000, desc:"morale. allegedly." },
+      plant:         { name:"Office plant",     price:5000,  desc:"morale. allegedly. always available — doesn't use a weekly pick" },
       plant_big:     { name:"Big monstera",     price:18000, desc:"a whole jungle corner. burnout builds 10% slower" },
       string_lights: { name:"String lights",    price:20000, desc:"cosy late-night glow. burnout builds 8% slower" },
       cooler:        { name:"Water cooler",     price:35000, desc:"gossip station. idle staff recover faster, together" },
@@ -124,7 +127,10 @@
       tv:            { name:"Office TV",         price:45000, desc:"news + cricket + ads. chaos decays 15% faster" },
       arcade:        { name:"Arcade cabinet",    price:55000, desc:"break-room legend. idle recovers 20% faster, tiny chaos tick" },
       coffee:        { name:"Coffee machine",    price:60000, desc:"burnout builds 30% slower" },
-      neon:          { name:"Neon sign",         price:80000, desc:"rep gains hit harder" }
+      neon:          { name:"Neon sign",         price:80000, desc:"rep gains hit harder" },
+      cat:           { name:"Office cat",         price:50000, desc:"a ginger menace roams the floor. tap to pet — purrs calm everyone" },
+      foosball:      { name:"Foosball table",     price:70000, desc:"break-room war. tap for a match — idle staff blow off steam, burnout drops" },
+      tabletennis:   { name:"Table tennis",       price:60000, desc:"break-room rally. tap to play a quick match — win and the chaos drops" }
     },
 
     // auto-assign (trial_autoassign.js): a big-ticket ops upgrade. Once bought,
@@ -174,7 +180,7 @@
 
     // the Craanes: award-night parody. Pay to enter. Like the real thing.
     CRAANES_EVERY_WEEKS: 4,      // fires Friday of week 4, 8, 12...
-    CRAANES_ENTRY: 25000,        // per category. The jury thanks you.
+    CRAANES_ENTRY: 75000,        // per category. The jury thanks you.
     CRAANES_WIN_REP: 6,
     CRAANES_WIN_FOLLOWERS: 900
   };
@@ -255,7 +261,7 @@
 
       upgrades: { plant:false, coffee:false, neon:false, tv:false, cooler:false,
                   aquarium:false, arcade:false, plant_big:false, posters:false, string_lights:false,
-                  autoassign:false },
+                  tabletennis:false, autoassign:false },
       autoAssignOn: true,       // when autoassign upgrade owned, the toggle (player can pause it)
       neonText: 'CRAVACHE',     // what the neon sign reads (set on purchase)
       tvChannel: 0,             // current TV scene (player can cycle by clicking)
