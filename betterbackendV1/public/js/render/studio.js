@@ -534,6 +534,18 @@
     var W = 58, H = 88, topY = footY - H;
     // ground shadow
     ctx.fillStyle = 'rgba(0,0,0,0.30)'; ctx.beginPath(); ctx.ellipse(ox, footY+2, 22, 6, 0,0,Math.PI*2); ctx.fill();
+    // drag-hover highlight: while you drag a brief over this crew member, ring
+    // them — green if they can take it, red if they're busy / off-clock.
+    if(G.render.studio.dragHoverCrew === st.id){
+      var canTake = !working && (!G.time || G.time.onClock(st));
+      var ring = canTake ? '#34A853' : '#EA4335';
+      ctx.save();
+      ctx.strokeStyle = ring; ctx.lineWidth = 3;
+      ctx.shadowColor = ring; ctx.shadowBlur = 16;
+      var pad = 6, ph = Math.sin(t*6)*1.5;
+      ctx.strokeRect(ox - W/2 - pad, topY - pad - ph, W + pad*2, H + pad*2 + ph);
+      ctx.restore();
+    }
     // BODY = the real office character sprite (same faces/look as the first
     // screen), full-body standing. Calm 2-frame flip while working. If art is
     // missing, fall back to the generated figure.
@@ -606,15 +618,17 @@
   //  NAV — BACK to office (top-left chip) + studio title
   // ============================================================
   function drawChrome(ctx){
-    // back arrow chip — sits BELOW the 40px HUD top bar (y0..60) so it never
-    // overlaps the money/clock chips. (No on-canvas title: the right side is
-    // owned by the HUD clock + the brief-offer stack.)
-    var by = 66;
-    ctx.fillStyle = '#10182b'; ctx.fillRect(16, by, 150, 30);
-    ctx.strokeStyle = C.gold; ctx.lineWidth = 2; ctx.strokeRect(17, by+1, 148, 28);
-    ctx.fillStyle = C.gold; ctx.font = "12px 'Silkscreen', monospace"; ctx.textAlign='left'; ctx.textBaseline='middle';
-    ctx.fillText('◀ OFFICE · STUDIO', 30, by+16);
-    addHit('nav-office','nav', 16, by, 150, 30);
+    // BACK-to-office button. Sits in the EXACT same rect as the office's
+    // "PRODUCTION STUDIO" entry panel (x858,y556,270x58) so the two are one
+    // toggle in a single consistent spot — leave via the same place you entered.
+    var bx = 858, by = 556, bw = 270, bh = 58;
+    ctx.fillStyle = '#10182b'; ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeStyle = C.gold; ctx.lineWidth = 2; ctx.strokeRect(bx+1, by+1, bw-2, bh-2);
+    ctx.fillStyle = C.gold; ctx.font = "16px 'Silkscreen', monospace"; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.fillText('◀ BACK TO OFFICE', bx + 18, by + 26);
+    ctx.fillStyle = 'rgba(244,232,207,0.75)'; ctx.font = "11px 'Silkscreen', monospace";
+    ctx.fillText('tap to leave the studio', bx + 18, by + 44);
+    addHit('nav-office','nav', bx, by, bw, bh);
   }
 
   // first-entry curiosity hint (auto-fades)
@@ -650,7 +664,7 @@
     ctx.strokeStyle = ok ? 'rgba(130,245,170,' + (0.55 + 0.4 * pulse) + ')' : 'rgba(235,125,115,0.75)';
     ctx.strokeRect(x + 3, y + 3, w - 6, h - 6);
     ctx.setLineDash([]);
-    var label = ok ? '🎬  DROP ANYWHERE ON SET TO SHOOT' : 'PRODUCTION ONLY SHOOTS — drop edits on a desk';
+    var label = ok ? '🎬  DROP ON A SHOOTER TO ASSIGN' : 'PRODUCTION ONLY SHOOTS — drop edits on a desk';
     ctx.font = '16px "Silkscreen", system-ui, monospace';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     var tw = ctx.measureText(label).width;
@@ -707,17 +721,46 @@
     },
 
     // drag-drop hooks used by dock.js
+    dragHoverCrew: null,    // staffId the dragged brief is hovering over (highlight)
     isOverSet: function(lx, ly){ return lx>=SET.x && lx<=SET.x+SET.w && ly>=SET.y && ly<=SET.y+SET.h; },
-    assignDrop: function(brief){
+
+    // which crew member (production staffer) is under these logical coords, or null
+    crewAt: function(lx, ly){
+      for(var i=hits.length-1;i>=0;i--){
+        var h = hits[i];
+        if(h.type === 'crew' && inBox(h, lx, ly)) return G.staff.byId(h.staffId);
+      }
+      return null;
+    },
+
+    // assign by dropping the brief ON a specific crew member (not the greenscreen).
+    assignDropAt: function(brief, lx, ly){
       if(!brief) return false;
       // production people only shoot — they don't take edit/design/content tasks
       if(brief.role && brief.role !== 'production'){
         toast('NOT A SHOOT', 'Production only shoots. Edits go to the editors’ desks.', 'bad');
         return false;
       }
+      if(!productionCrew().length){ toast('NO CREW', 'Hire a production shooter first.', 'bad'); return false; }
+      var st = this.crewAt(lx, ly);
+      if(!st){ toast('DROP ON A SHOOTER', 'Drop the brief onto a crew member to put them on it.', 'bad'); return false; }
+      if(st.briefId){ toast('MID-TAKE', st.name.split(' ')[0] + ' is already shooting. Wait for the wrap.', 'bad'); return false; }
+      if(G.time && !G.time.onClock(st)){ toast('OFF THE CLOCK', st.name.split(' ')[0] + ' has gone home. Catch them tomorrow.', 'bad'); return false; }
+      G.briefs.assign(brief, st);
+      toast('ROLLING', st.name.split(' ')[0] + ' is shooting ' + (brief.title||'the brief') + '.', 'good');
+      if(G.audio && G.audio.accept) G.audio.accept();
+      return true;
+    },
+
+    // legacy: drop-anywhere assign (kept for back-compat; dock.js now uses assignDropAt)
+    assignDrop: function(brief){
+      if(!brief) return false;
+      if(brief.role && brief.role !== 'production'){
+        toast('NOT A SHOOT', 'Production only shoots. Edits go to the editors’ desks.', 'bad');
+        return false;
+      }
       var crew = productionCrew();
       if(!crew.length){ toast('NO CREW', 'Hire a production shooter first.', 'bad'); return false; }
-      // an idle, on-clock crew member picks it up — real assign pipeline
       var free = crew.filter(function(st){ return !st.briefId && (!G.time || G.time.onClock(st)); });
       if(!free.length){ toast('CREW BUSY', 'Every shooter is mid-take. Wait for a wrap.', 'bad'); return false; }
       G.briefs.assign(brief, free[0]);
