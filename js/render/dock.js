@@ -300,7 +300,7 @@
       var s = G.state;
       var skipBtn = document.getElementById('btn-skipnight');
       if(skipBtn){
-        var canSkip = s.night && !s.staff.some(function(st){ return G.BAL.NIGHT_OWLS[st.id] && st.briefId; });
+        var canSkip = s.night && !s.staff.some(function(st){ return G.time.isOwl(st) && st.briefId; });
         skipBtn.classList.toggle('hidden', !canSkip);
       }
       // brief offers tick down on SIM time (simDt is 0 while the sim is paused /

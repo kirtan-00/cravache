@@ -66,7 +66,7 @@
       // night owls (besides Arya, who has her own night magic) get a focus
       // bonus after hours, so staying for night work is a real choice, not
       // just a free skip.
-      if(G.state.night && G.BAL.NIGHT_OWLS[st.id] && st.id !== 's_arya'){
+      if(G.state.night && G.time.isOwl(st) && st.id !== 's_arya'){
         speed *= (G.BAL.NIGHT_OWL_SPEED || 1.2);
       }
       // approved raises: each one is a small permanent work-speed bump (+4%).

@@ -23,9 +23,15 @@
       return G.BAL.DAY_START_HOUR + this.dayFrac() * span;
     },
 
+    // night owls work the night shift; everyone else sleeps. The whole PRODUCTION
+    // department are night owls (shoots run late), plus any id flagged in BAL.
+    isOwl: function(st){
+      return !!(st && (G.BAL.NIGHT_OWLS[st.id] || st.dept === 'production'));
+    },
+
     // is this staffer on the clock right now? (night = owls only, rest sleep)
     onClock: function(st){
-      return !G.state.night || !!G.BAL.NIGHT_OWLS[st.id];
+      return !G.state.night || this.isOwl(st);
     },
 
     clockString: function(){
@@ -95,7 +101,7 @@
       if(!s.night && s.dayT >= G.BAL.DAY_REAL_SECONDS){
         s.night = true;
         s.nightT = 0;
-        var owlsIn = s.staff.some(function(st){ return G.BAL.NIGHT_OWLS[st.id] && st.briefId; });
+        var owlsIn = s.staff.some(function(st){ return G.time.isOwl(st) && st.briefId; });
         G.dock.infoToast('7PM 🌙', owlsIn
           ? 'Everyone normal went home. The night crew stays. Deadlines do not sleep.'
           : 'Office empty. Night crew has no tasks. SKIP NIGHT, or put them to work.', '');
@@ -115,7 +121,7 @@
     skipNight: function(){
       var s = G.state;
       if(!s.night) return;
-      var owlsWorking = s.staff.some(function(st){ return G.BAL.NIGHT_OWLS[st.id] && st.briefId; });
+      var owlsWorking = s.staff.some(function(st){ return G.time.isOwl(st) && st.briefId; });
       if(owlsWorking){
         G.dock.infoToast('CANNOT SKIP', 'The night crew is mid-task. Sleep is for clients.', 'bad');
         return;
