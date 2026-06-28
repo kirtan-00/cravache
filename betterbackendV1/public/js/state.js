@@ -27,7 +27,10 @@
     NIGHT_END_HOUR: 24,
     // night workers: Arya (own night magic), Preet, Nirav + Kirtan/Ohm (production)
     // and Vraj (editor) who also pull night shifts.
+    // explicit night-owl ids; PLUS the whole production department is always a
+    // night owl (shoots run late) — see G.time.isOwl().
     NIGHT_OWLS: { s_arya: true, s_natasha: true, s_dev_anand: true, s_vicky: true, s_imran: true, s_farhan: true },
+    MEMCARD_LOSS: 20000,         // Pratham (s_om): 20% of his shoots come back with no card — project killed, this much lost
     NIGHT_OWL_SPEED: 1.2,        // staff.js: night owls work this much faster at night, so staying for night work is a real choice, not just a skip
     WEEKS: 8,                    // local -> gujarat -> india -> mumbai -> global
 

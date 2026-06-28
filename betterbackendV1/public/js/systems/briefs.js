@@ -286,7 +286,30 @@
       brief.status = 'done';
       staffer.briefId = null;
       brief.staffId = staffer.id; // remember who made it (fine-print check)
+      // Pratham (s_om) sometimes rolls without a card in the camera. 20% of his
+      // shoots come back as nothing — the footage never existed. Project killed,
+      // ₹20,000 gone, no verdict. (Quirk follows the slot, not the display name.)
+      if(staffer.id === 's_om' && brief.role === 'production' && Math.random() < 0.20){
+        this.memoryCardFail(brief, staffer);
+        return;
+      }
       G.verdict.judge(brief, staffer);
+    },
+
+    // Pratham's no-memory-card disaster: an unrecoverable shoot.
+    memoryCardFail: function(brief, staffer){
+      var s = G.state;
+      var LOSS = (G.BAL && G.BAL.MEMCARD_LOSS) || 20000;
+      brief.status = 'scrapped';
+      G.economy.spend(LOSS);                       // ₹20,000 down the drain
+      s.rep = Math.max(0, s.rep + G.BAL.REP_SCRAPPED);
+      G.chaos.add(G.BAL.CHAOS_SCRAPPED);           // a dead project spikes the chaos meter
+      s.stats.weekScrapped++;
+      try { G.audio.alarm(); } catch(e){}
+      var first = (staffer.name || 'Pratham').split(' ')[0];
+      G.dock.infoToast('NO CARD IN THE CAMERA ☠',
+        first + ' shot the whole thing with no memory card. The footage never existed — project dead, −' +
+        G.fmtMoney(LOSS) + '.', 'bad');
     },
 
     scrapOverdue: function(brief){
