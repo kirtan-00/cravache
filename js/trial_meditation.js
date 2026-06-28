@@ -172,7 +172,12 @@
     meditating = true;
     try { if(G.audio && G.audio.click) G.audio.click(); } catch(e){}
 
-    // stop the sim: time + brief spawning halt until we release.
+    // stop the sim: time, brief spawning, chaos, events, payroll — EVERYTHING —
+    // halt until we release. medFreeze is a dedicated flag main.js honours in its
+    // simActive gate, so no stray `G.state.paused = false` (lifelines / WhatsApp)
+    // can secretly resume the game under the breathing overlay. No tasks spawn,
+    // no problems fire, no deadline drains while you breathe.
+    if(G.state) G.state.medFreeze = true;
     G.__propBusy = 'med';   // mutual exclusion: blocks table tennis + foosball
     if(G.modals && G.modals.acquirePause){ G.modals.acquirePause(); paused = true; }
 
@@ -197,6 +202,7 @@
     // against a live (unpaused) state.
     if(paused && G.modals && G.modals.releasePause){ G.modals.releasePause(); }
     paused = false;
+    if(G.state) G.state.medFreeze = false;            // thaw the sim
     if(G.__propBusy === 'med') G.__propBusy = null;   // release mutual-exclusion lock
 
     // count this meditation against today's cap

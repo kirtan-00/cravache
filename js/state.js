@@ -5,7 +5,7 @@
 
   // ---------- balance (DESIGN.md economy first-pass, tune freely keep ratios) ----------
   G.BAL = {
-    START_MONEY: 130000,         // ~2 starting weeks of costs. Tight is the point.
+    START_MONEY: 150000,         // ~2 starting weeks of costs. Tight is the point (council: +20k margin for an unlucky spawn).
 
     // economy rebalance (2026-06-13 design pass): briefs.json is now re-priced
     // to real Indian agency rates (role x tier ladder), so the JSON is ground
@@ -33,7 +33,9 @@
 
     // departments
     DEPT_CAPS: { designer: 5, editor: 5, content: 3, production: 5 },
-    MANAGER_SALARY: 300000,      // planned dept managers cost 3 lakh/month each (manager feature built separately)
+    MANAGER_SALARY: 300000,      // the ops MANAGER (trial_autoassign.js): 3 lakh/month recurring. Hire one and
+                                 // it auto-routes tray briefs to free, capable staff. Routing is ALL it does.
+    MANAGER_UNLOCK_WEEK: 3,      // learn assignment by hand for 2 weeks, then a manager becomes hireable
     PRODUCTION_UNLOCK_WEEK: 2,   // survive 1 week, production studio opens
     DIRECTOR_BOOST: 1.2,         // production dept speed while the Director is hired
     ARYA_SPEED_CAP: 2.0,         // night+hard-brief stack used to hit x2.38
@@ -41,7 +43,7 @@
     // weekly office overhead beyond payroll: rent, AC, the one Adobe bill.
     // Scales with headcount so growth costs something ongoing.
     OVERHEAD_BASE: 7000,
-    OVERHEAD_PER_STAFF: 3000,
+    OVERHEAD_PER_STAFF: 4500,    // council: each extra desk costs more — rewards a tight crew over a bloated one
     OVERHEAD_WEEK_RAMP: 7000,    // rent hikes weekly. The landlord saw your reel.
     OVERHEAD_TIER_STEP: 22000,   // extra rent per client tier unlocked beyond local (economy.js reads this)
     OVERHEAD_LATE_WEEK: 4,       // beyond this week the rent escalates hard
@@ -99,7 +101,7 @@
     CHAOS_OVERDUE: 12, CHAOS_IGNORED_CALL: 8, CHAOS_SCOPE_REFUSE: 5,
     CHAOS_DECAY_PER_SEC: 0.45,   // only when everything on-track
     CHAOS_QUIT: 10,
-    CHAOS_DECLINE: 1,            // declining a brief: -2 rep AND +1 chaos (briefs.js) so dodging risk has teeth
+    CHAOS_DECLINE: 2,            // declining a brief: -2 rep AND +2 chaos (briefs.js) so "decline everything" cheese has real teeth
     CHAOS_CREEP_OFFTRACK: 1.6,   // chaos.js: while things are off-track (late brief / burnt-out staff) chaos CLIMBS on its own, snowballing toward the wall
 
     // events (call/scope-creep chances live in G.curve)
@@ -140,8 +142,8 @@
     AUTOASSIGN_UNLOCK_WEEK: 3,  // "after week 2" = buyable from week 3 onward
 
     // retainers (trial_retainers.js): a client who likes you signs a weekly deal
-    MAX_RETAINERS: 3,            // cap concurrent retainers so the economy can't be auto-piloted
-    RETAINER_FEE_FRAC: 0.4,      // retainer weekly fee = this × median brief fee (a commitment discount)
+    MAX_RETAINERS: 2,            // cap concurrent retainers so the economy can't be auto-piloted (council: 3 became free income)
+    RETAINER_FEE_FRAC: 0.35,     // retainer weekly fee = this × median brief fee (a commitment discount, not a lifeline)
     RETAINER_GOOD_DELIVERIES: 4, // good deliveries before a client offers a retainer
 
     // decor perk knobs (kept MINOR; see js/systems/staff.js + chaos.js):
@@ -262,7 +264,14 @@
       upgrades: { plant:false, coffee:false, neon:false, tv:false, cooler:false,
                   aquarium:false, arcade:false, plant_big:false, posters:false, string_lights:false,
                   tabletennis:false, autoassign:false },
-      autoAssignOn: true,       // when autoassign upgrade owned, the toggle (player can pause it)
+      // per-department ops managers (trial_autoassign.js). Hire one PER department
+      // for ₹3L/mo each; a dept's manager auto-routes that dept's briefs to its
+      // own idle, capable staff. Routing is ALL a manager does.
+      managers: { designer:false, editor:false, content:false, production:false },
+      medFreeze: false,         // hard sim-freeze while meditating (own flag so nothing else can clobber it)
+      coffeeBuffMult: 1,        // active coffee speed boost multiplier (1 = none); set by trial_coffee.js
+      coffeeBuffLeft: 0,        // sim-seconds left on the coffee boost (ticked down in staff.update)
+      autoAssignOn: true,       // legacy toggle (kept for save-compat; manager routing is gated on `manager`)
       neonText: 'CRAVACHE',     // what the neon sign reads (set on purchase)
       tvChannel: 0,             // current TV scene (player can cycle by clicking)
 

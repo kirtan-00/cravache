@@ -52,7 +52,7 @@
   function offerCardHTML(def){
     var c = G.data.clientById(def.clientId);
     var u = urgency(def);
-    return '<div class="bo-head">NEW BRIEF · ' + esc(c ? c.name : '???') + ' · ' + diffPips(def.difficulty) +
+    return '<div class="bo-head">' + deptMark(def.role) + 'NEW BRIEF · ' + esc(c ? c.name : '???') + ' · ' + diffPips(def.difficulty) +
         '<span class="bo-urgency ' + u.cls + '">' + u.label + '</span></div>' +
       '<div class="bo-title">' + esc(def.title) + '</div>' +
       '<div class="bo-sub">' + roleChip(def.role) +
@@ -151,6 +151,25 @@
     return '<span class="bc-role bc-role-' + (role || 'any') + '">' + r.icon + ' ' + r.label + '</span>';
   }
 
+  // CrayWingz department mark: every brief is either a DESIGN job or a PRODUCTION
+  // job, and wears the agency's geometric mark + brand colour so you can read the
+  // tray at a glance. Design = blue square, Production = red ring, the rest = a
+  // yellow dot. (Colours pulled from craywingz.com: #4284F4 / #EA4335 / #FBBC04.)
+  function deptFamily(role){
+    if(role === 'designer' || role === 'content') return 'design';
+    if(role === 'production' || role === 'editor') return 'production';
+    return 'any';
+  }
+  var DEPT_MARK = {
+    design:     { label: 'DESIGN' },
+    production: { label: 'PRODUCTION' },
+    any:        { label: 'ANY DESK' }
+  };
+  function deptMark(role){
+    var fam = deptFamily(role);
+    return '<span class="cw-mark cw-' + fam + '" title="CrayWingz · ' + DEPT_MARK[fam].label + '"></span>';
+  }
+
   // how scary is this brief, really
   function urgency(def){
     var score = def.difficulty - def.deadlineDays; // 5★ in 1d = 4, 1★ in 3d = -2
@@ -161,7 +180,7 @@
 
   function cardHTML(b){
     var c = G.data.clientById(b.clientId);
-    return '<div class="bc-client">' + esc(c ? c.name : '???') + '</div>' +
+    return '<div class="bc-client">' + deptMark(b.role) + esc(c ? c.name : '???') + '</div>' +
       '<div class="bc-diff">' + diffPips(b.difficulty) + '</div>' +
       '<div class="bc-title">' + esc(b.title) + '</div>' +
       '<div class="bc-row">' + roleChip(b.role) +
@@ -233,6 +252,12 @@
       window.addEventListener('pointermove', function(e){
         if(!G.dock.dragging) return;
         moveGhost(e);
+        // in the studio, light up the crew member the brief is hovering over
+        if(G.state && G.state.scene === 'studio' && G.render.studio && G.render.studio.crewAt){
+          var p = logicalXY(e);
+          var st = G.render.studio.crewAt(p.x, p.y);
+          G.render.studio.dragHoverCrew = st ? st.id : null;
+        }
       });
 
       window.addEventListener('pointerup', function(e){
@@ -244,11 +269,13 @@
         ghostEl.classList.add('hidden');
         ghostEl.innerHTML = '';
 
-        // STUDIO scene: dropping a shoot ANYWHERE in the studio assigns it to an
-        // idle shooter — players shouldn't have to bullseye the backdrop.
-        // assignDrop() validates role + crew availability and toasts on misuse.
+        // STUDIO scene: assign by dropping the brief ON a crew member (not on the
+        // greenscreen). assignDropAt() finds the person under the cursor, checks
+        // role + availability, and toasts on misuse / empty drop.
         if(G.state && G.state.scene === 'studio' && G.render.studio){
-          G.render.studio.assignDrop(brief);
+          var p = logicalXY(e);
+          G.render.studio.dragHoverCrew = null;
+          G.render.studio.assignDropAt(brief, p.x, p.y);
           G.dock.refreshTray();
           return;
         }

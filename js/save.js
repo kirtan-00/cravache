@@ -37,6 +37,7 @@
         copy.pendingToasts = 0;
         copy.activeCall = null;
         copy.paused = false;
+        copy.medFreeze = false;   // never reload mid-meditation into a frozen sim
         localStorage.setItem(KEY, JSON.stringify({ v: VERSION, t: 1, state: copy }));
       } catch(e){ /* quota or private mode: play on without saves */ }
     },

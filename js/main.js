@@ -203,7 +203,9 @@
     if(!G.state) return;
 
     var s = G.state;
-    var simActive = s.running && !s.paused && !s.gameOver && !s.restructure;
+    // medFreeze is its OWN flag, written only by meditation — so the lifeline /
+    // WhatsApp code that pokes G.state.paused directly can never thaw a meditation.
+    var simActive = s.running && !s.paused && !s.medFreeze && !s.gameOver && !s.restructure;
 
     // autosave every ~5s while playing
     saveT += rdt;

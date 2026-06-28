@@ -71,6 +71,9 @@
       }
       // approved raises: each one is a small permanent work-speed bump (+4%).
       if(st.raises) speed *= (1 + G.BAL.RAISE_SPEED_PER * st.raises);
+      // fresh coffee perks the WHOLE floor (every dept, incl. studio crew) for a
+      // minute after a good pot — see trial_coffee.js.
+      if(G.state.coffeeBuffLeft > 0) speed *= (G.state.coffeeBuffMult || 1);
       return speed;
     },
 
@@ -86,6 +89,12 @@
 
     update: function(dt){
       var s = G.state;
+      // coffee boost burns down on SIM time (this only runs inside simTick, so a
+      // pause / meditation correctly freezes the minute).
+      if(s.coffeeBuffLeft > 0){
+        s.coffeeBuffLeft = Math.max(0, s.coffeeBuffLeft - dt);
+        if(s.coffeeBuffLeft === 0) s.coffeeBuffMult = 1;
+      }
       for(var i = s.staff.length - 1; i >= 0; i--){
         var st = s.staff[i];
         var working = !!st.briefId && G.time.onClock(st); // home = not working, recovering

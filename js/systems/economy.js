@@ -76,9 +76,14 @@
 
     // salaries are MONTHLY (real Indian numbers); Friday deducts a month/4
     payrollTotal: function(){
-      return G.state.staff.reduce(function(sum, st){
+      var total = G.state.staff.reduce(function(sum, st){
         return sum + Math.round(st.salaryMonthly / 4);
       }, 0);
+      // each hired department manager is a recurring payroll line (₹3L/mo each)
+      var mgrs = G.state.managers || {};
+      var perMgr = Math.round((G.BAL.MANAGER_SALARY || 300000) / 4);
+      for(var d in mgrs){ if(mgrs[d]) total += perMgr; }
+      return total;
     },
 
     // rent + AC + software: the office costs money even when nobody works,
